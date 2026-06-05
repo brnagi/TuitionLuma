@@ -2,20 +2,21 @@
 
 TuitionLuma is a SwiftUI MVP that helps students and families compare the true cost of college, including tuition, fees, housing, aid, debt, and expected outcomes.
 
+The main app experience is real-data-first. Explore, school details, and program outcomes load from the U.S. Department of Education College Scorecard API by default. Sample data is kept only for SwiftUI previews, local development fallback, and missing-key demo states.
+
 ## What is included
 
 - Swift + SwiftUI iOS app
 - MVVM-style view models
-- Local mock data for 10 realistic colleges
-- Explore, Compare, Calculator, and Saved tabs
-- Onboarding, search, detail, calculator, compare, and saved screens
+- Live College Scorecard API-backed Explore, Detail, Compare, Calculator, and Saved flows
+- Institution-level mapping for tuition, net price, attendance cost, graduation rate, admissions, earnings, debt, ownership, and student size
+- Field-of-study/program mapping where College Scorecard program data is available
+- Paginated search, featured colleges, state browsing, loading states, empty states, missing-key state, and API error handling
 - Reusable components: `SchoolCard`, `CostBreakdownCard`, `StatPill`, `ComparisonRow`, and `LumaButton`
 - Calculator logic for annual cost, total degree cost, net cost after aid, monthly loan payment, and 10-year repayment
 - Freemium model with mock TuitionLuma Pro subscription state
 - Paywall, Pro badge, feature lock, and upgrade prompt components
-- Empty, loading, and error states
-- TODO placeholder for future College Scorecard API integration
-- TODO placeholder for future StoreKit 2 subscription integration
+- TODO placeholders for future StoreKit 2, campus image, logo, and report export integrations
 
 ## Free vs Pro
 
@@ -47,32 +48,86 @@ MVP pricing copy is `$4.99 / month`.
 
 - Xcode 15 or newer
 - iOS 17 or newer simulator/device
+- College Scorecard API key from `api.data.gov`
+
+## College Scorecard API setup
+
+TuitionLuma reads the API key from `COLLEGE_SCORECARD_API_KEY`. Do not hardcode API keys in source files.
+
+Recommended local setup in Xcode:
+
+1. Open `TuitionLuma.xcodeproj`.
+2. Select Product > Scheme > Edit Scheme.
+3. Choose Run > Arguments.
+4. Add an environment variable named `COLLEGE_SCORECARD_API_KEY`.
+5. Paste your local key as the value.
+6. Keep the key out of git.
+
+Command-line build/run tools can also pass the key as an environment variable:
+
+```sh
+COLLEGE_SCORECARD_API_KEY=your_key_here \
+xcodebuild -project TuitionLuma.xcodeproj \
+  -scheme TuitionLuma \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+The Xcode project also exposes an empty `COLLEGE_SCORECARD_API_KEY` build setting and maps it to `INFOPLIST_KEY_COLLEGE_SCORECARD_API_KEY`. You can override that locally with an untracked `.xcconfig` if preferred, but the runtime environment variable is the safest development path.
+
+When the key is missing, Explore shows a polished missing-key state with an explicit “Use Sample Data” fallback. That sample fallback is not the default production flow.
 
 ## Run the app
 
 1. Open `TuitionLuma.xcodeproj` in Xcode.
-2. Select the `TuitionLuma` scheme.
-3. Choose an iPhone simulator.
-4. Press Run.
+2. Add `COLLEGE_SCORECARD_API_KEY` to the Run scheme environment.
+3. Select the `TuitionLuma` scheme.
+4. Choose an iPhone simulator.
+5. Press Run.
 
-## Command-line build check
+## Command-line checks
 
 From this folder:
 
 ```sh
-xcodebuild -project TuitionLuma.xcodeproj -scheme TuitionLuma -destination 'generic/platform=iOS Simulator' build
+swiftc -typecheck $(find TuitionLuma -name '*.swift' | sort)
 ```
 
-## Future College Scorecard integration
+```sh
+COLLEGE_SCORECARD_API_KEY=your_key_here \
+xcodebuild -project TuitionLuma.xcodeproj \
+  -scheme TuitionLuma \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
 
-`Services/CollegeScorecardService.swift` contains the integration boundary. The intended path is:
+## Data architecture
 
-1. Add an API key and endpoint configuration.
-2. Fetch College Scorecard school records.
-3. Map API fields into `School`, `Program`, and `CostEstimate`.
-4. Swap `MockSchoolService` for `CollegeScorecardService` inside `ExploreViewModel`.
+`Services/CollegeScorecardService.swift` is the live data boundary. It uses `URLSession` with async/await and supports:
 
-The mock-first structure is designed so the UI and calculator can keep working while live data is added later.
+- `searchSchools(query:page:perPage:)`
+- `fetchSchoolDetails(schoolId:)`
+- `fetchProgramsForSchool(schoolId:)`
+- `fetchSchoolsByState(state:page:perPage:)`
+- `fetchFeaturedSchools(page:perPage:)`
+
+Mapped institution fields include:
+
+- School ID, name, city, state, and ownership type
+- In-state tuition and out-of-state tuition
+- Average net price and cost of attendance
+- Graduation rate and admission rate
+- Median earnings and average debt
+- Student size and missing-data indicators
+
+Mapped program fields include:
+
+- Program name
+- Credential level/title
+- CIP code
+- Median earnings
+- Debt
+- Completion count
 
 ## Future StoreKit 2 integration
 

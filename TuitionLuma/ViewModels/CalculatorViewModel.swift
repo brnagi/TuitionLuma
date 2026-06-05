@@ -2,39 +2,39 @@ import Foundation
 
 @MainActor
 final class CalculatorViewModel: ObservableObject {
-    @Published var selectedSchool: School
+    @Published var selectedSchool: School?
     @Published var aidInput: AidInput
 
-    init(school: School = MockSchools.all[0], aidInput: AidInput = .starter) {
+    init(school: School? = nil, aidInput: AidInput = .starter) {
         self.selectedSchool = school
         self.aidInput = aidInput
     }
 
     var annualCost: Double {
-        CalculatorEngine.annualCost(for: selectedSchool)
+        selectedSchool.map { CalculatorEngine.annualCost(for: $0) } ?? 0
     }
 
     var totalDegreeCost: Double {
-        CalculatorEngine.totalDegreeCost(for: selectedSchool, years: aidInput.yearsInSchool)
+        selectedSchool.map { CalculatorEngine.totalDegreeCost(for: $0, years: aidInput.yearsInSchool) } ?? 0
     }
 
     var netAnnualCost: Double {
-        CalculatorEngine.netAnnualCost(for: selectedSchool, aid: aidInput)
+        selectedSchool.map { CalculatorEngine.netAnnualCost(for: $0, aid: aidInput) } ?? 0
     }
 
     var netTotalCost: Double {
-        CalculatorEngine.netTotalCost(for: selectedSchool, aid: aidInput)
+        selectedSchool.map { CalculatorEngine.netTotalCost(for: $0, aid: aidInput) } ?? 0
     }
 
     var loanPrincipal: Double {
-        CalculatorEngine.loanPrincipal(for: selectedSchool, aid: aidInput)
+        selectedSchool.map { CalculatorEngine.loanPrincipal(for: $0, aid: aidInput) } ?? 0
     }
 
     var monthlyPayment: Double {
-        CalculatorEngine.monthlyLoanPayment(for: selectedSchool, aid: aidInput)
+        selectedSchool.map { CalculatorEngine.monthlyLoanPayment(for: $0, aid: aidInput) } ?? 0
     }
 
     var totalTenYearRepayment: Double {
-        CalculatorEngine.totalTenYearRepayment(for: selectedSchool, aid: aidInput)
+        selectedSchool.map { CalculatorEngine.totalTenYearRepayment(for: $0, aid: aidInput) } ?? 0
     }
 }

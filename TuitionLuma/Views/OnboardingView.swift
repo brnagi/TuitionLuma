@@ -34,7 +34,7 @@ struct OnboardingView: View {
                     }
 
                     HStack(spacing: 10) {
-                        StatPill(title: "Schools", value: "10", systemImage: "building.columns.fill", tint: .white.opacity(0.24))
+                        StatPill(title: "Schools", value: "Live", systemImage: "building.columns.fill", tint: .white.opacity(0.24))
                         StatPill(title: "Loan view", value: "10 yrs", systemImage: "calendar", tint: .white.opacity(0.24))
                     }
                 }

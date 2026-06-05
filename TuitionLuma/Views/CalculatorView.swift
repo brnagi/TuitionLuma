@@ -11,10 +11,19 @@ struct CalculatorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     schoolPicker
-                    headlineNumbers
-                    aidInputs
-                    planningModeCard
-                    advancedCalculatorSection
+                    if viewModel.selectedSchool == nil {
+                        EmptyStateView(
+                            title: "Choose a live school first",
+                            message: "Search real College Scorecard colleges in Explore, then return here to model costs.",
+                            systemImage: "building.columns"
+                        )
+                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    } else {
+                        headlineNumbers
+                        aidInputs
+                        planningModeCard
+                        advancedCalculatorSection
+                    }
                 }
                 .padding()
             }
@@ -36,15 +45,25 @@ struct CalculatorView: View {
                 .font(.headline)
                 .foregroundStyle(LumaTheme.ink)
 
-            Picker("Choose a school", selection: $viewModel.selectedSchool) {
-                ForEach(appViewModel.schools) { school in
-                    Text(school.name).tag(school)
+            if appViewModel.knownSchools.isEmpty {
+                Text("No live schools loaded yet")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else {
+                Picker("Choose a school", selection: $viewModel.selectedSchool) {
+                    Text("Select a school").tag(Optional<School>.none)
+                    ForEach(appViewModel.knownSchools) { school in
+                        Text(school.name).tag(Optional(school))
+                    }
                 }
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             }
-            .pickerStyle(.menu)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
 
             if !subscriptionManager.state.isPro {
                 UpgradePrompt(

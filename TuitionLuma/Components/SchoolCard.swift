@@ -161,7 +161,7 @@ struct SchoolCard: View {
         HStack(spacing: 0) {
             compactMetric(
                 title: "Net Price",
-                value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice),
+                value: school.costEstimate.averageNetPrice > 0 ? LumaFormat.compactCurrency(school.costEstimate.averageNetPrice) : "N/A",
                 tint: netPriceTint
             )
 
@@ -170,7 +170,7 @@ struct SchoolCard: View {
 
             compactMetric(
                 title: "Earnings",
-                value: LumaFormat.compactCurrency(school.medianEarnings),
+                value: school.medianEarnings > 0 ? LumaFormat.compactCurrency(school.medianEarnings) : "N/A",
                 tint: LumaTheme.outcomeTeal
             )
 
@@ -179,7 +179,7 @@ struct SchoolCard: View {
 
             compactMetric(
                 title: "Grad Rate",
-                value: school.graduationRate.formatted(LumaFormat.percent),
+                value: school.graduationRate > 0 ? school.graduationRate.formatted(LumaFormat.percent) : "N/A",
                 tint: LumaTheme.outcomeTeal
             )
         }

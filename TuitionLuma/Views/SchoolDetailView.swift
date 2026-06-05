@@ -3,14 +3,19 @@ import SwiftUI
 struct SchoolDetailView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @StateObject private var viewModel: SchoolDetailViewModel
     @State private var isShowingPaywall = false
-    var school: School
+
+    init(school: School) {
+        _viewModel = StateObject(wrappedValue: SchoolDetailViewModel(school: school))
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 hero
                 quickStats
+                dataQualitySection
                 CostBreakdownCard(cost: school.costEstimate)
                 proPlanningSection
                 programSection
@@ -20,6 +25,9 @@ struct SchoolDetailView: View {
         }
         .background(LumaTheme.canvas)
         .navigationTitle(school.name)
+        .task {
+            await viewModel.load()
+        }
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
@@ -35,6 +43,10 @@ struct SchoolDetailView: View {
             PaywallView()
                 .environmentObject(subscriptionManager)
         }
+    }
+
+    private var school: School {
+        viewModel.school
     }
 
     private var hero: some View {
@@ -79,7 +91,17 @@ struct SchoolDetailView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(
+            LinearGradient(
+                colors: [
+                    LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.coral),
+                    LumaTheme.color(hex: school.secondaryColor, fallback: LumaTheme.aqua)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+        )
     }
 
     private var quickStats: some View {
@@ -93,37 +115,95 @@ struct SchoolDetailView: View {
 
     private var programSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Programs to compare")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(LumaTheme.ink)
+            HStack {
+                Text("Programs to compare")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(LumaTheme.ink)
 
-            ForEach(school.programs) { program in
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(program.name)
-                            .font(.headline)
-                            .foregroundStyle(LumaTheme.ink)
+                Spacer()
 
-                        Text("\(program.credential) • \(program.typicalDurationYears) years")
-                            .font(.caption)
-                            .foregroundStyle(LumaTheme.slate)
-                    }
-
-                    Spacer()
-
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(program.medianEarnings.formatted(LumaFormat.currency))
-                            .font(.headline.weight(.heavy))
-                            .foregroundStyle(LumaTheme.ink)
-
-                        Text("median pay")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(LumaTheme.slate)
-                    }
+                if viewModel.isLoadingPrograms {
+                    ProgressView()
+                        .tint(LumaTheme.coral)
                 }
-                .padding(14)
-                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             }
+
+            if viewModel.programs.isEmpty {
+                EmptyStateView(
+                    title: "Program data unavailable",
+                    message: "College Scorecard does not publish field-of-study outcomes for every school or program.",
+                    systemImage: "list.bullet.clipboard"
+                )
+                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else {
+                ForEach(viewModel.programs.prefix(subscriptionManager.state.isPro ? 12 : 3)) { program in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(program.name)
+                                .font(.headline)
+                                .foregroundStyle(LumaTheme.ink)
+
+                            Text(programSubtitle(program))
+                                .font(.caption)
+                                .foregroundStyle(LumaTheme.slate)
+                                .lineLimit(2)
+                        }
+
+                        Spacer()
+
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "N/A")
+                                .font(.headline.weight(.heavy))
+                                .foregroundStyle(LumaTheme.ink)
+
+                            Text("median pay")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(LumaTheme.slate)
+                        }
+                    }
+                    .padding(14)
+                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                }
+
+                if !subscriptionManager.state.isPro && viewModel.programs.count > 3 {
+                    FeatureLock(
+                        title: "Unlock program ROI",
+                        message: "Compare more program outcomes, payback period, and advanced ROI with Pro.",
+                        feature: .roiScore,
+                        action: { isShowingPaywall = true }
+                    )
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var dataQualitySection: some View {
+        if viewModel.isLoadingDetails {
+            LoadingStateView(title: "Refreshing live College Scorecard data...")
+                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        } else if let errorMessage = viewModel.errorMessage {
+            ErrorStateView(message: errorMessage) {
+                Task { await viewModel.load() }
+            }
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        } else if !school.missingDataFields.isEmpty {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "info.circle.fill")
+                    .foregroundStyle(LumaTheme.outcomeTeal)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Some federal fields are unavailable")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text(school.missingDataFields.prefix(4).joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                }
+            }
+            .padding(14)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
     }
 
@@ -167,7 +247,7 @@ struct SchoolDetailView: View {
                 .foregroundStyle(LumaTheme.ink)
 
             ComparisonRow(title: "Students", values: [LumaFormat.number(school.studentCount)])
-            ComparisonRow(title: "Acceptance rate", values: [school.acceptanceRate.formatted(LumaFormat.percent)])
+            ComparisonRow(title: "Acceptance rate", values: [school.admissionRate?.formatted(LumaFormat.percent) ?? "N/A"])
             ComparisonRow(title: "Graduation rate", values: [school.graduationRate.formatted(LumaFormat.percent)])
         }
         .padding(16)
@@ -196,6 +276,68 @@ struct SchoolDetailView: View {
 
         if result == .limitReached {
             isShowingPaywall = true
+        }
+    }
+
+    private func programSubtitle(_ program: Program) -> String {
+        [
+            program.credential,
+            program.cipCode.map { "CIP \($0)" },
+            program.debt.map { "Debt \($0.formatted(LumaFormat.currency))" },
+            program.completionCount.map { "\($0) completions" }
+        ]
+        .compactMap { $0 }
+        .joined(separator: " • ")
+    }
+}
+
+@MainActor
+final class SchoolDetailViewModel: ObservableObject {
+    @Published var school: School
+    @Published var programs: [Program] = []
+    @Published var isLoadingDetails = false
+    @Published var isLoadingPrograms = false
+    @Published var errorMessage: String?
+
+    private let provider: SchoolDataProviding
+
+    init(school: School, provider: SchoolDataProviding = CollegeScorecardService()) {
+        self.school = school
+        self.programs = school.programs
+        self.provider = provider
+    }
+
+    func load() async {
+        guard let scorecardID = school.scorecardID else {
+            return
+        }
+
+        await loadDetails(scorecardID: scorecardID)
+        await loadPrograms(scorecardID: scorecardID)
+    }
+
+    private func loadDetails(scorecardID: Int) async {
+        isLoadingDetails = true
+        errorMessage = nil
+        defer { isLoadingDetails = false }
+
+        do {
+            school = try await provider.fetchSchoolDetails(schoolId: scorecardID)
+        } catch CollegeScorecardError.missingAPIKey {
+            errorMessage = "Set COLLEGE_SCORECARD_API_KEY to refresh live school details."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadPrograms(scorecardID: Int) async {
+        isLoadingPrograms = true
+        defer { isLoadingPrograms = false }
+
+        do {
+            programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
+        } catch {
+            programs = []
         }
     }
 }

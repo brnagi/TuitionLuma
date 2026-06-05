@@ -8,7 +8,8 @@ struct School: Identifiable, Hashable, Codable {
         case communityCollege = "Community"
     }
 
-    let id: UUID
+    let id: String
+    var scorecardID: Int?
     var name: String
     var city: String
     var state: String
@@ -30,9 +31,12 @@ struct School: Identifiable, Hashable, Codable {
     var highlights: [String]
     var isSaved: Bool
     var isCompared: Bool
+    var admissionRate: Double?
+    var missingDataFields: [String]
 
     init(
-        id: UUID = UUID(),
+        id: String = UUID().uuidString,
+        scorecardID: Int? = nil,
         name: String,
         city: String,
         state: String,
@@ -53,9 +57,12 @@ struct School: Identifiable, Hashable, Codable {
         costEstimate: CostEstimate,
         highlights: [String],
         isSaved: Bool = false,
-        isCompared: Bool = false
+        isCompared: Bool = false,
+        admissionRate: Double? = nil,
+        missingDataFields: [String] = []
     ) {
-        self.id = id
+        self.id = scorecardID.map(String.init) ?? id
+        self.scorecardID = scorecardID
         self.name = name
         self.city = city
         self.state = state
@@ -77,5 +84,7 @@ struct School: Identifiable, Hashable, Codable {
         self.highlights = highlights
         self.isSaved = isSaved
         self.isCompared = isCompared
+        self.admissionRate = admissionRate
+        self.missingDataFields = missingDataFields
     }
 }

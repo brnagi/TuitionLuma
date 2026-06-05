@@ -19,12 +19,22 @@ struct ExploreView: View {
                         content
                     }
                     .padding()
+                    .padding(.bottom, 72)
                 }
             }
             .task {
                 if viewModel.loadState == .idle {
-                    await viewModel.load()
+                    await viewModel.refreshForCurrentQuery()
+                    appViewModel.remember(viewModel.schools)
                 }
+            }
+            .task(id: viewModel.query) {
+                guard viewModel.loadState != .idle else { return }
+                await viewModel.searchDebounced()
+                appViewModel.remember(viewModel.schools)
+            }
+            .onChange(of: viewModel.schools) { _, schools in
+                appViewModel.remember(schools)
             }
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
@@ -43,7 +53,7 @@ struct ExploreView: View {
                 .font(.title2.weight(.heavy))
                 .foregroundStyle(.white)
 
-            Text("Search by school, city, state, or program.")
+            Text("Search by school name or state abbreviation.")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.9))
         }
@@ -65,7 +75,7 @@ struct ExploreView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(LumaTheme.slate)
 
-                TextField("Search schools or programs", text: $viewModel.query)
+                TextField("Search schools or state", text: $viewModel.query)
 
                 if !viewModel.query.isEmpty {
                     Button {
@@ -102,26 +112,34 @@ struct ExploreView: View {
         switch viewModel.loadState {
         case .idle, .loading:
             LoadingStateView()
+        case .missingAPIKey:
+            MissingAPIKeyStateView {
+                viewModel.useSampleFallback()
+                appViewModel.remember(viewModel.schools)
+            }
         case .empty:
             EmptyStateView(
-                title: "No schools yet",
-                message: "When live College Scorecard search is connected, schools will appear here.",
+                title: "No colleges found",
+                message: "Try a school name, state abbreviation, or another search.",
                 systemImage: "building.columns"
             )
         case .failed(let message):
             ErrorStateView(message: message) {
-                Task { await viewModel.load() }
+                Task {
+                    await viewModel.refreshForCurrentQuery()
+                    appViewModel.remember(viewModel.schools)
+                }
             }
         case .loaded:
-            if viewModel.filteredSchools.isEmpty {
+            if viewModel.visibleSchools.isEmpty {
                 EmptyStateView(
                     title: "No matches",
-                    message: "Try a different school, state, or program.",
+                    message: "Try another school type or search.",
                     systemImage: "magnifyingglass"
                 )
             } else {
                 LazyVStack(spacing: 14) {
-                    ForEach(viewModel.filteredSchools) { school in
+                    ForEach(viewModel.visibleSchools) { school in
                         NavigationLink {
                             SchoolDetailView(school: school)
                         } label: {
@@ -132,6 +150,30 @@ struct ExploreView: View {
                                 onSaveTapped: { saveTapped(school) },
                                 onCompareTapped: { compareTapped(school) }
                             )
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    if viewModel.canLoadMore {
+                        Button {
+                            Task {
+                                await viewModel.loadMore()
+                                appViewModel.remember(viewModel.schools)
+                            }
+                        } label: {
+                            if viewModel.isLoadingMore {
+                                ProgressView()
+                                    .tint(LumaTheme.coral)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            } else {
+                                Label("Load More Colleges", systemImage: "arrow.down.circle.fill")
+                                    .font(.headline)
+                                    .foregroundStyle(LumaTheme.coral)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                            }
                         }
                         .buttonStyle(.plain)
                     }

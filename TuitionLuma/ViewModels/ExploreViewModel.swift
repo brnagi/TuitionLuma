@@ -5,6 +5,7 @@ enum LoadState: Equatable {
     case loading
     case loaded
     case empty
+    case missingAPIKey
     case failed(String)
 }
 
@@ -14,36 +15,87 @@ final class ExploreViewModel: ObservableObject {
     @Published var query = ""
     @Published var selectedType: School.SchoolType?
     @Published var loadState: LoadState = .idle
+    @Published var isLoadingMore = false
 
     private let provider: SchoolDataProviding
+    private var currentPage = 0
+    private var hasMoreResults = false
+    private let perPage = 20
 
-    init(provider: SchoolDataProviding = MockSchoolService()) {
+    init(provider: SchoolDataProviding = CollegeScorecardService()) {
         self.provider = provider
     }
 
-    var filteredSchools: [School] {
-        let searched = query.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return schools.filter { school in
-            let matchesQuery = searched.isEmpty
-                || school.name.localizedCaseInsensitiveContains(searched)
-                || school.city.localizedCaseInsensitiveContains(searched)
-                || school.state.localizedCaseInsensitiveContains(searched)
-                || school.programs.contains { $0.name.localizedCaseInsensitiveContains(searched) }
-
-            let matchesType = selectedType == nil || school.type == selectedType
-            return matchesQuery && matchesType
-        }
+    var visibleSchools: [School] {
+        guard let selectedType else { return schools }
+        return schools.filter { $0.type == selectedType }
     }
 
-    func load() async {
+    var canLoadMore: Bool {
+        hasMoreResults && loadState == .loaded && !isLoadingMore
+    }
+
+    func refreshForCurrentQuery() async {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        currentPage = 0
+        hasMoreResults = false
         loadState = .loading
 
         do {
-            schools = try await provider.fetchSchools()
+            let page = try await fetchPage(query: trimmedQuery, page: 0)
+            schools = page.schools
+            hasMoreResults = page.hasMore
             loadState = schools.isEmpty ? .empty : .loaded
+        } catch CollegeScorecardError.missingAPIKey {
+            schools = []
+            loadState = .missingAPIKey
         } catch {
-            loadState = .failed("We could not load schools right now. Try again in a moment.")
+            schools = []
+            loadState = .failed(error.localizedDescription)
         }
+    }
+
+    func searchDebounced() async {
+        try? await Task.sleep(nanoseconds: 350_000_000)
+        guard !Task.isCancelled else { return }
+        await refreshForCurrentQuery()
+    }
+
+    func loadMore() async {
+        guard canLoadMore else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+
+        do {
+            let nextPage = currentPage + 1
+            let page = try await fetchPage(query: query.trimmingCharacters(in: .whitespacesAndNewlines), page: nextPage)
+            currentPage = page.page
+            hasMoreResults = page.hasMore
+            schools.append(contentsOf: page.schools)
+        } catch {
+            loadState = .failed(error.localizedDescription)
+        }
+    }
+
+    func useSampleFallback() {
+        schools = MockSchools.all
+        hasMoreResults = false
+        currentPage = 0
+        loadState = .loaded
+    }
+
+    private func fetchPage(query: String, page: Int) async throws -> PaginatedSchools {
+        let result: PaginatedSchools
+
+        if query.count == 2, query.rangeOfCharacter(from: CharacterSet.letters.inverted) == nil {
+            result = try await provider.fetchSchoolsByState(state: query, page: page, perPage: perPage)
+        } else if query.isEmpty {
+            result = try await provider.fetchFeaturedSchools(page: page, perPage: perPage)
+        } else {
+            result = try await provider.searchSchools(query: query, page: page, perPage: perPage)
+        }
+
+        currentPage = result.page
+        return result
     }
 }

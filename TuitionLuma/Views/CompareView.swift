@@ -15,9 +15,18 @@ struct CompareView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
-                    selectors
-                    compareLimitPrompt
-                    comparisonTable
+                    if viewModel.selectedSchools.isEmpty {
+                        EmptyStateView(
+                            title: "No schools selected",
+                            message: "Use Explore to search live College Scorecard schools, then tap compare on the cards.",
+                            systemImage: "rectangle.split.3x1"
+                        )
+                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    } else {
+                        selectors
+                        compareLimitPrompt
+                        comparisonTable
+                    }
                 }
                 .padding()
             }
@@ -79,7 +88,7 @@ struct CompareView: View {
                             }
                         )
                     ) {
-                        ForEach(viewModel.allSchools) { school in
+                        ForEach(appViewModel.knownSchools) { school in
                             Text(school.name).tag(school)
                         }
                     }
@@ -113,7 +122,7 @@ struct CompareView: View {
                 }
             }
 
-            if viewModel.selectedSchools.count < compareLimit {
+            if viewModel.selectedSchools.count < compareLimit && !appViewModel.knownSchools.isEmpty {
                 Button {
                     addNextSchoolToCompare()
                 } label: {
@@ -180,7 +189,10 @@ struct CompareView: View {
     }
 
     private func addNextSchoolToCompare() {
-        let nextSchool = viewModel.allSchools.first { !appViewModel.isCompared($0) } ?? viewModel.allSchools[0]
+        guard let nextSchool = appViewModel.knownSchools.first(where: { !appViewModel.isCompared($0) }) else {
+            return
+        }
+
         let result = appViewModel.addToCompare(nextSchool, compareLimit: compareLimit)
 
         if result == .limitReached {

@@ -63,3 +63,27 @@ struct ErrorStateView: View {
         }
     }
 }
+
+struct MissingAPIKeyStateView: View {
+    var useSampleData: () -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            EmptyStateView(
+                title: "Connect live college data",
+                message: "Set COLLEGE_SCORECARD_API_KEY to search real U.S. colleges from the College Scorecard API.",
+                systemImage: "key.fill"
+            )
+
+            VStack(spacing: 10) {
+                LumaButton(title: "Use Sample Data", systemImage: "tray.full", style: .secondary, action: useSampleData)
+
+                Text("Sample data is only for local development, previews, or missing-key demos.")
+                    .font(.footnote)
+                    .foregroundStyle(LumaTheme.slate)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal)
+        }
+    }
+}
