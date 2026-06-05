@@ -15,6 +15,7 @@
 		B00000000000000000000006 /* School.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* School.swift */; };
 		B00000000000000000000007 /* MockSchools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000007 /* MockSchools.swift */; };
 		B00000000000000000000008 /* CollegeScorecardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* CollegeScorecardService.swift */; };
+		B00000000000000000000029 /* Monetization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000029 /* Monetization.swift */; };
 		B00000000000000000000009 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000009 /* AppViewModel.swift */; };
 		B00000000000000000000010 /* ExploreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000010 /* ExploreViewModel.swift */; };
 		B00000000000000000000011 /* CalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000011 /* CalculatorViewModel.swift */; };
@@ -46,6 +47,7 @@
 		F00000000000000000000006 /* School.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = School.swift; sourceTree = "<group>"; };
 		F00000000000000000000007 /* MockSchools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSchools.swift; sourceTree = "<group>"; };
 		F00000000000000000000008 /* CollegeScorecardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeScorecardService.swift; sourceTree = "<group>"; };
+		F00000000000000000000029 /* Monetization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monetization.swift; sourceTree = "<group>"; };
 		F00000000000000000000009 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		F00000000000000000000010 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
 		F00000000000000000000011 /* CalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorViewModel.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 			isa = PBXGroup;
 			children = (
 				F00000000000000000000008 /* CollegeScorecardService.swift */,
+				F00000000000000000000029 /* Monetization.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -260,6 +263,7 @@
 				B00000000000000000000006 /* School.swift in Sources */,
 				B00000000000000000000007 /* MockSchools.swift in Sources */,
 				B00000000000000000000008 /* CollegeScorecardService.swift in Sources */,
+				B00000000000000000000029 /* Monetization.swift in Sources */,
 				B00000000000000000000009 /* AppViewModel.swift in Sources */,
 				B00000000000000000000010 /* ExploreViewModel.swift in Sources */,
 				B00000000000000000000011 /* CalculatorViewModel.swift in Sources */,

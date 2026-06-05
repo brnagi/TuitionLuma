@@ -2,7 +2,9 @@ import SwiftUI
 
 struct ExploreView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
+    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
     @StateObject private var viewModel = ExploreViewModel()
+    @State private var isShowingPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -23,6 +25,10 @@ struct ExploreView: View {
                 if viewModel.loadState == .idle {
                     await viewModel.load()
                 }
+            }
+            .sheet(isPresented: $isShowingPaywall) {
+                PaywallView()
+                    .environmentObject(subscriptionManager)
             }
         }
     }
@@ -45,6 +51,12 @@ struct ExploreView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LumaTheme.warmGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .foregroundStyle(.white)
+        .overlay(alignment: .topTrailing) {
+            if subscriptionManager.state.isPro {
+                ProBadge()
+                    .padding(14)
+            }
+        }
     }
 
     private var searchAndFilters: some View {
@@ -116,7 +128,7 @@ struct ExploreView: View {
                             SchoolCard(
                                 school: school,
                                 isSaved: appViewModel.isSaved(school),
-                                onSaveTapped: { appViewModel.toggleSaved(school) }
+                                onSaveTapped: { saveTapped(school) }
                             )
                         }
                         .buttonStyle(.plain)
@@ -136,5 +148,14 @@ struct ExploreView: View {
                 .background(isSelected ? AnyShapeStyle(LumaTheme.heroGradient) : AnyShapeStyle(.white), in: Capsule())
         }
         .buttonStyle(.plain)
+    }
+
+    private func saveTapped(_ school: School) {
+        let limit = SubscriptionPolicy.savedSchoolLimit(for: subscriptionManager.state)
+        let result = appViewModel.toggleSaved(school, savedLimit: limit)
+
+        if result == .limitReached {
+            isShowingPaywall = true
+        }
     }
 }

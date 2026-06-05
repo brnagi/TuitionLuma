@@ -1,5 +1,11 @@
 import Foundation
 
+enum SaveSchoolResult {
+    case saved
+    case removed
+    case limitReached
+}
+
 @MainActor
 final class AppViewModel: ObservableObject {
     @Published private(set) var savedSchoolIDs: Set<School.ID> = []
@@ -14,11 +20,17 @@ final class AppViewModel: ObservableObject {
         schools.filter { savedSchoolIDs.contains($0.id) }
     }
 
-    func toggleSaved(_ school: School) {
+    func toggleSaved(_ school: School, savedLimit: Int? = nil) -> SaveSchoolResult {
         if savedSchoolIDs.contains(school.id) {
             savedSchoolIDs.remove(school.id)
+            return .removed
+        }
+
+        if let savedLimit, savedSchoolIDs.count >= savedLimit {
+            return .limitReached
         } else {
             savedSchoolIDs.insert(school.id)
+            return .saved
         }
     }
 

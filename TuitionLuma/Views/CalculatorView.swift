@@ -2,7 +2,9 @@ import SwiftUI
 
 struct CalculatorView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
+    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
     @StateObject private var viewModel = CalculatorViewModel()
+    @State private var isShowingPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -11,11 +13,16 @@ struct CalculatorView: View {
                     schoolPicker
                     headlineNumbers
                     aidInputs
-                    repaymentCard
+                    planningModeCard
+                    advancedCalculatorSection
                 }
                 .padding()
             }
             .background(LumaTheme.canvas)
+            .sheet(isPresented: $isShowingPaywall) {
+                PaywallView()
+                    .environmentObject(subscriptionManager)
+            }
         }
     }
 
@@ -38,6 +45,14 @@ struct CalculatorView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+            if !subscriptionManager.state.isPro {
+                UpgradePrompt(
+                    title: "Unlock advanced planning",
+                    message: "Model loan payments, scholarships, grants, and living scenarios with Pro.",
+                    action: { isShowingPaywall = true }
+                )
+            }
         }
     }
 
@@ -85,9 +100,17 @@ struct CalculatorView: View {
 
     private var aidInputs: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Aid and borrowing")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(LumaTheme.ink)
+            HStack {
+                Text(subscriptionManager.state.isPro ? "Aid, borrowing, and scholarships" : "Basic calculator")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+
+                if subscriptionManager.state.isPro {
+                    ProBadge(compact: true)
+                }
+            }
 
             moneySlider(
                 title: "Grants and scholarships",
@@ -144,6 +167,58 @@ struct CalculatorView: View {
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
+    @ViewBuilder
+    private var advancedCalculatorSection: some View {
+        if subscriptionManager.state.isPro {
+            repaymentCard
+            scenarioModelingCard
+            reportExportCard
+        } else {
+            FeatureLock(
+                title: "Advanced repayment forecast",
+                message: "Upgrade to see monthly loan payment projections, 10-year repayment, and debt scenarios.",
+                feature: .advancedDebtCalculator,
+                action: { isShowingPaywall = true }
+            )
+
+            FeatureLock(
+                title: "Scholarship and grant planning",
+                message: "Model awards and family contributions across different college paths.",
+                feature: .scholarshipPlanning,
+                action: { isShowingPaywall = true }
+            )
+        }
+    }
+
+    private var planningModeCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Planning mode", systemImage: "person.2.fill")
+                    .font(.headline)
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+
+                if subscriptionManager.state.isPro {
+                    ProBadge(compact: true)
+                } else {
+                    Button("Unlock") {
+                        isShowingPaywall = true
+                    }
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LumaTheme.coral)
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Text(subscriptionManager.state.isPro ? "Switch between student and parent planning views as you refine the plan." : "Free mode shows one shared planning view.")
+                .font(.subheadline)
+                .foregroundStyle(LumaTheme.slate)
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
     private var repaymentCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -185,6 +260,51 @@ struct CalculatorView: View {
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
+    private var scenarioModelingCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label("Scenario modeling", systemImage: "slider.horizontal.3")
+                    .font(.headline)
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+                ProBadge(compact: true)
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                scenarioChip("On campus")
+                scenarioChip("Off campus")
+                scenarioChip("In-state")
+                scenarioChip("Out-of-state")
+                scenarioChip("2-year path")
+                scenarioChip("4-year path")
+            }
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var reportExportCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Family report", systemImage: "square.and.arrow.up.fill")
+                    .font(.headline)
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+                ProBadge(compact: true)
+            }
+
+            Text("PDF export is mocked for the MVP and ready for a future report generator.")
+                .font(.subheadline)
+                .foregroundStyle(LumaTheme.slate)
+
+            LumaButton(title: "Share Cost Report", systemImage: "doc.richtext") {}
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
     private func moneySlider(title: String, value: Binding<Double>, range: ClosedRange<Double>, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -215,5 +335,16 @@ struct CalculatorView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func scenarioChip(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.bold))
+            .foregroundStyle(LumaTheme.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(LumaTheme.mint.opacity(0.14), in: Capsule())
     }
 }

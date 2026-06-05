@@ -2,6 +2,8 @@ import SwiftUI
 
 struct SchoolDetailView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
+    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @State private var isShowingPaywall = false
     var school: School
 
     var body: some View {
@@ -10,6 +12,7 @@ struct SchoolDetailView: View {
                 hero
                 quickStats
                 CostBreakdownCard(cost: school.costEstimate)
+                proPlanningSection
                 programSection
                 outcomesSection
             }
@@ -20,13 +23,17 @@ struct SchoolDetailView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
-                    appViewModel.toggleSaved(school)
+                    saveTapped()
                 } label: {
                     Image(systemName: appViewModel.isSaved(school) ? "bookmark.fill" : "bookmark")
                         .foregroundStyle(appViewModel.isSaved(school) ? LumaTheme.coral : LumaTheme.ink)
                 }
                 .accessibilityLabel(appViewModel.isSaved(school) ? "Remove saved school" : "Save school")
             }
+        }
+        .sheet(isPresented: $isShowingPaywall) {
+            PaywallView()
+                .environmentObject(subscriptionManager)
         }
     }
 
@@ -120,6 +127,39 @@ struct SchoolDetailView: View {
         }
     }
 
+    private var proPlanningSection: some View {
+        VStack(spacing: 12) {
+            if subscriptionManager.state.isPro {
+                HStack {
+                    Label("ROI score", systemImage: "chart.line.uptrend.xyaxis")
+                        .font(.headline)
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Spacer()
+
+                    Text(roiScore)
+                        .font(.title2.weight(.heavy))
+                        .foregroundStyle(LumaTheme.mint)
+                }
+                .padding(16)
+                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+                HStack(spacing: 10) {
+                    scenarioPill("On campus")
+                    scenarioPill("Off campus")
+                    scenarioPill(school.type == .publicUniversity ? "In-state" : "Aid path")
+                }
+            } else {
+                FeatureLock(
+                    title: "Unlock deeper planning",
+                    message: "See ROI score, affordability guidance, PDF sharing, and scenario modeling for this school.",
+                    feature: .roiScore,
+                    action: { isShowingPaywall = true }
+                )
+            }
+        }
+    }
+
     private var outcomesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Outcome snapshot")
@@ -132,5 +172,30 @@ struct SchoolDetailView: View {
         }
         .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var roiScore: String {
+        let value = min(99, max(35, Int((school.medianEarnings / max(school.costEstimate.averageNetPrice, 1)) * 18)))
+        return "\(value)/100"
+    }
+
+    private func scenarioPill(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.bold))
+            .foregroundStyle(LumaTheme.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(LumaTheme.aqua.opacity(0.12), in: Capsule())
+    }
+
+    private func saveTapped() {
+        let limit = SubscriptionPolicy.savedSchoolLimit(for: subscriptionManager.state)
+        let result = appViewModel.toggleSaved(school, savedLimit: limit)
+
+        if result == .limitReached {
+            isShowingPaywall = true
+        }
     }
 }

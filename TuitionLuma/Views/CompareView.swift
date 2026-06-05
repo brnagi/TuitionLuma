@@ -1,7 +1,13 @@
 import SwiftUI
 
 struct CompareView: View {
+    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
     @StateObject private var viewModel = CompareViewModel()
+    @State private var isShowingPaywall = false
+
+    private var compareLimit: Int {
+        SubscriptionPolicy.compareSchoolLimit(for: subscriptionManager.state)
+    }
 
     var body: some View {
         NavigationStack {
@@ -9,11 +15,22 @@ struct CompareView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     header
                     selectors
+                    compareLimitPrompt
                     comparisonTable
                 }
                 .padding()
             }
             .background(LumaTheme.canvas)
+            .onAppear {
+                viewModel.trimSelection(to: compareLimit)
+            }
+            .onChange(of: subscriptionManager.state) { _, newState in
+                viewModel.trimSelection(to: SubscriptionPolicy.compareSchoolLimit(for: newState))
+            }
+            .sheet(isPresented: $isShowingPaywall) {
+                PaywallView()
+                    .environmentObject(subscriptionManager)
+            }
         }
     }
 
@@ -30,6 +47,16 @@ struct CompareView: View {
             Text("Swap schools to compare cost, debt, earnings, and completion side by side.")
                 .font(.subheadline)
                 .foregroundStyle(LumaTheme.slate)
+
+            HStack {
+                Text(subscriptionManager.state.isPro ? "Pro compare: up to 5 schools" : "Free compare: up to 2 schools")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(subscriptionManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
+
+                if subscriptionManager.state.isPro {
+                    ProBadge(compact: true)
+                }
+            }
         }
     }
 
@@ -77,6 +104,33 @@ struct CompareView: View {
                     .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 }
             }
+
+            if viewModel.selectedSchools.count < compareLimit {
+                Button {
+                    viewModel.addSchool(limit: compareLimit)
+                } label: {
+                    Label("Add School", systemImage: "plus.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(LumaTheme.coral)
+                        .frame(maxWidth: .infinity)
+                        .padding(14)
+                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var compareLimitPrompt: some View {
+        if subscriptionManager.state.isPro {
+            EmptyView()
+        } else {
+            UpgradePrompt(
+                title: "Need a bigger shortlist?",
+                message: "Pro lets families compare up to 5 schools side by side.",
+                action: { isShowingPaywall = true }
+            )
         }
     }
 

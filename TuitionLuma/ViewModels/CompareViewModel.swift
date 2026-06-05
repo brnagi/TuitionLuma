@@ -13,7 +13,7 @@ final class CompareViewModel: ObservableObject {
 
     init(allSchools: [School] = MockSchools.all) {
         self.allSchools = allSchools
-        self.selectedSchools = Array(allSchools.prefix(3))
+        self.selectedSchools = Array(allSchools.prefix(2))
     }
 
     var metrics: [ComparisonMetric] {
@@ -30,5 +30,16 @@ final class CompareViewModel: ObservableObject {
     func replaceSchool(at index: Int, with school: School) {
         guard selectedSchools.indices.contains(index) else { return }
         selectedSchools[index] = school
+    }
+
+    func addSchool(limit: Int) {
+        guard selectedSchools.count < limit else { return }
+        let nextSchool = allSchools.first { !selectedSchools.contains($0) } ?? allSchools[0]
+        selectedSchools.append(nextSchool)
+    }
+
+    func trimSelection(to limit: Int) {
+        guard selectedSchools.count > limit else { return }
+        selectedSchools = Array(selectedSchools.prefix(limit))
     }
 }
