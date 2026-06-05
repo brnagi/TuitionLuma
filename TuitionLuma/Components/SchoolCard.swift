@@ -35,12 +35,10 @@ struct SchoolCard: View {
     private var campusImage: some View {
         ZStack(alignment: .topTrailing) {
             ZStack(alignment: .bottomLeading) {
-                campusGradient
+                campusBackground
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(school.state)
-                        .font(.system(size: 42, weight: .heavy))
-                        .foregroundStyle(.white)
+                    logoMark
 
                     Text(school.type.rawValue)
                         .font(.caption.weight(.heavy))
@@ -73,6 +71,60 @@ struct SchoolCard: View {
         .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .padding(10)
         .padding(.bottom, -4)
+    }
+
+    @ViewBuilder
+    private var campusBackground: some View {
+        if let campusImageURL = school.campusImageURL {
+            // TODO: Replace mock URLs with verified campus image URLs from a licensed data source.
+            AsyncImage(url: campusImageURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .overlay(.black.opacity(0.18))
+                case .failure, .empty:
+                    schoolBrandGradient
+                @unknown default:
+                    schoolBrandGradient
+                }
+            }
+        } else {
+            schoolBrandGradient
+        }
+    }
+
+    @ViewBuilder
+    private var logoMark: some View {
+        if let logoURL = school.logoURL {
+            // TODO: Connect logoURL once school logo assets are available.
+            AsyncImage(url: logoURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .padding(10)
+                        .frame(width: 70, height: 70)
+                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                case .failure, .empty:
+                    fallbackLogoMark
+                @unknown default:
+                    fallbackLogoMark
+                }
+            }
+        } else {
+            fallbackLogoMark
+        }
+    }
+
+    private var fallbackLogoMark: some View {
+        Text(school.state)
+            .font(.system(size: 38, weight: .heavy))
+            .foregroundStyle(.white)
+            .frame(width: 70, height: 70)
+            .background(.white.opacity(0.14), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private var titleBlock: some View {
@@ -135,25 +187,30 @@ struct SchoolCard: View {
         .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private var campusGradient: LinearGradient {
-        let colors: [Color]
-
-        switch school.type {
-        case .publicUniversity:
-            colors = [LumaTheme.aqua, LumaTheme.mint]
-        case .privateNonprofit:
-            colors = [LumaTheme.scorePurple, LumaTheme.aqua]
-        case .liberalArts:
-            colors = [LumaTheme.sun, LumaTheme.scorePurple]
-        case .communityCollege:
-            colors = [LumaTheme.valueGreen, LumaTheme.aqua]
-        }
-
-        return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+    private var schoolBrandGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.aqua),
+                LumaTheme.color(hex: school.secondaryColor, fallback: LumaTheme.mint)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     private var scoreTint: Color {
-        school.lumaScore >= 90 ? LumaTheme.scoreGold : LumaTheme.scorePurple
+        switch school.valueLabel {
+        case "Excellent Value":
+            LumaTheme.valueGreen
+        case "Good Value":
+            LumaTheme.outcomeTeal
+        case "Fair Value":
+            LumaTheme.scoreGold
+        case "Expensive":
+            LumaTheme.warningOrange
+        default:
+            LumaTheme.scorePurple
+        }
     }
 
     private var netPriceTint: Color {

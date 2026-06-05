@@ -34,4 +34,18 @@ enum LumaTheme {
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
+
+    static func color(hex: String?, fallback: Color) -> Color {
+        guard let hex else { return fallback }
+
+        let sanitized = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        guard sanitized.count == 6, let value = Int(sanitized, radix: 16) else {
+            return fallback
+        }
+
+        let red = Double((value >> 16) & 0xFF) / 255
+        let green = Double((value >> 8) & 0xFF) / 255
+        let blue = Double(value & 0xFF) / 255
+        return Color(red: red, green: green, blue: blue)
+    }
 }

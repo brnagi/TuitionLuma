@@ -17,6 +17,10 @@ struct School: Identifiable, Hashable, Codable {
     var graduationRate: Double
     var lumaScore: Int
     var valueLabel: String
+    var primaryColor: String?
+    var secondaryColor: String?
+    var logoURL: URL?
+    var campusImageURL: URL?
     var medianEarnings: Double
     var averageDebt: Double
     var studentCount: Int
@@ -37,6 +41,10 @@ struct School: Identifiable, Hashable, Codable {
         graduationRate: Double,
         lumaScore: Int,
         valueLabel: String,
+        primaryColor: String? = nil,
+        secondaryColor: String? = nil,
+        logoURL: URL? = nil,
+        campusImageURL: URL? = nil,
         medianEarnings: Double,
         averageDebt: Double,
         studentCount: Int,
@@ -56,6 +64,10 @@ struct School: Identifiable, Hashable, Codable {
         self.graduationRate = graduationRate
         self.lumaScore = lumaScore
         self.valueLabel = valueLabel
+        self.primaryColor = primaryColor
+        self.secondaryColor = secondaryColor
+        self.logoURL = logoURL
+        self.campusImageURL = campusImageURL
         self.medianEarnings = medianEarnings
         self.averageDebt = averageDebt
         self.studentCount = studentCount
