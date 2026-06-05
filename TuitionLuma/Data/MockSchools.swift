@@ -9,6 +9,8 @@ enum MockSchools {
             type: .publicUniversity,
             acceptanceRate: 0.18,
             graduationRate: 0.93,
+            lumaScore: 94,
+            valueLabel: "Excellent Value",
             medianEarnings: 78_500,
             averageDebt: 22_800,
             studentCount: 51_225,
@@ -19,7 +21,9 @@ enum MockSchools {
                 Program(name: "Public Policy", credential: "BA", medianEarnings: 67_000, typicalDurationYears: 4)
             ],
             costEstimate: CostEstimate(tuitionAndFees: 17_786, housingAndMeals: 14_460, booksAndSupplies: 1_124, transportation: 1_200, personalExpenses: 2_454, averageGrantAid: 19_100),
-            highlights: ["Top public research university", "Strong earnings after graduation", "Large campus network"]
+            highlights: ["Top public research university", "Strong earnings after graduation", "Large campus network"],
+            isSaved: true,
+            isCompared: true
         ),
         School(
             name: "Arizona State University",
@@ -28,6 +32,8 @@ enum MockSchools {
             type: .publicUniversity,
             acceptanceRate: 0.90,
             graduationRate: 0.71,
+            lumaScore: 82,
+            valueLabel: "Good Value",
             medianEarnings: 58_700,
             averageDebt: 20_400,
             studentCount: 79_593,
@@ -38,7 +44,8 @@ enum MockSchools {
                 Program(name: "Digital Audiences", credential: "BA", medianEarnings: 54_000, typicalDurationYears: 4)
             ],
             costEstimate: CostEstimate(tuitionAndFees: 12_698, housingAndMeals: 15_116, booksAndSupplies: 1_320, transportation: 1_386, personalExpenses: 2_200, averageGrantAid: 12_750),
-            highlights: ["Large online and campus options", "Broad program selection", "Good transfer pathways"]
+            highlights: ["Large online and campus options", "Broad program selection", "Good transfer pathways"],
+            isCompared: true
         ),
         School(
             name: "Spelman College",
@@ -47,6 +54,8 @@ enum MockSchools {
             type: .liberalArts,
             acceptanceRate: 0.28,
             graduationRate: 0.76,
+            lumaScore: 76,
+            valueLabel: "Good Value",
             medianEarnings: 61_900,
             averageDebt: 25_300,
             studentCount: 2_417,
@@ -66,6 +75,8 @@ enum MockSchools {
             type: .publicUniversity,
             acceptanceRate: 0.53,
             graduationRate: 0.84,
+            lumaScore: 96,
+            valueLabel: "Excellent Value",
             medianEarnings: 70_800,
             averageDebt: 19_700,
             studentCount: 52_211,
@@ -76,7 +87,8 @@ enum MockSchools {
                 Program(name: "Supply Chain", credential: "BS", medianEarnings: 74_000, typicalDurationYears: 4)
             ],
             costEstimate: CostEstimate(tuitionAndFees: 9_992, housingAndMeals: 10_030, booksAndSupplies: 1_010, transportation: 1_250, personalExpenses: 1_830, averageGrantAid: 9_600),
-            highlights: ["Tuition freeze value", "Excellent engineering reputation", "High ROI programs"]
+            highlights: ["Tuition freeze value", "Excellent engineering reputation", "High ROI programs"],
+            isSaved: true
         ),
         School(
             name: "Howard University",
@@ -85,6 +97,8 @@ enum MockSchools {
             type: .privateNonprofit,
             acceptanceRate: 0.35,
             graduationRate: 0.65,
+            lumaScore: 68,
+            valueLabel: "Fair Value",
             medianEarnings: 64_300,
             averageDebt: 27_600,
             studentCount: 12_886,
@@ -104,6 +118,8 @@ enum MockSchools {
             type: .publicUniversity,
             acceptanceRate: 0.29,
             graduationRate: 0.88,
+            lumaScore: 91,
+            valueLabel: "Excellent Value",
             medianEarnings: 72_600,
             averageDebt: 21_100,
             studentCount: 53_082,
@@ -123,6 +139,8 @@ enum MockSchools {
             type: .communityCollege,
             acceptanceRate: 1.00,
             graduationRate: 0.36,
+            lumaScore: 79,
+            valueLabel: "Good Value",
             medianEarnings: 42_400,
             averageDebt: 6_400,
             studentCount: 24_891,
@@ -142,6 +160,8 @@ enum MockSchools {
             type: .privateNonprofit,
             acceptanceRate: 0.07,
             graduationRate: 0.91,
+            lumaScore: 72,
+            valueLabel: "Good Value",
             medianEarnings: 79_200,
             averageDebt: 25_900,
             studentCount: 30_013,
@@ -161,6 +181,8 @@ enum MockSchools {
             type: .communityCollege,
             acceptanceRate: 1.00,
             graduationRate: 0.34,
+            lumaScore: 74,
+            valueLabel: "Good Value",
             medianEarnings: 39_800,
             averageDebt: 5_900,
             studentCount: 47_245,
@@ -180,6 +202,8 @@ enum MockSchools {
             type: .liberalArts,
             acceptanceRate: 0.31,
             graduationRate: 0.79,
+            lumaScore: 63,
+            valueLabel: "Fair Value",
             medianEarnings: 60_100,
             averageDebt: 21_700,
             studentCount: 1_566,

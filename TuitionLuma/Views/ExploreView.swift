@@ -49,7 +49,7 @@ struct ExploreView: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(LumaTheme.warmGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.coolGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .foregroundStyle(.white)
         .overlay(alignment: .topTrailing) {
             if subscriptionManager.state.isPro {
@@ -128,7 +128,9 @@ struct ExploreView: View {
                             SchoolCard(
                                 school: school,
                                 isSaved: appViewModel.isSaved(school),
-                                onSaveTapped: { saveTapped(school) }
+                                isCompared: appViewModel.isCompared(school),
+                                onSaveTapped: { saveTapped(school) },
+                                onCompareTapped: { compareTapped(school) }
                             )
                         }
                         .buttonStyle(.plain)
@@ -145,7 +147,7 @@ struct ExploreView: View {
                 .foregroundStyle(isSelected ? .white : LumaTheme.ink)
                 .padding(.vertical, 9)
                 .padding(.horizontal, 14)
-                .background(isSelected ? AnyShapeStyle(LumaTheme.heroGradient) : AnyShapeStyle(.white), in: Capsule())
+                .background(isSelected ? AnyShapeStyle(LumaTheme.coolGradient) : AnyShapeStyle(.white), in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -157,5 +159,21 @@ struct ExploreView: View {
         if result == .limitReached {
             isShowingPaywall = true
         }
+    }
+
+    private func compareTapped(_ school: School) {
+        if appViewModel.isCompared(school) {
+            _ = appViewModel.removeFromCompare(school)
+            return
+        }
+
+        let limit = SubscriptionPolicy.compareSchoolLimit(for: subscriptionManager.state)
+        let result = appViewModel.addToCompare(school, compareLimit: limit)
+
+        if result == .limitReached {
+            isShowingPaywall = true
+        }
+
+        // TODO: Consider switching to the Compare tab after add once tab selection is centralized.
     }
 }

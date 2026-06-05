@@ -20,6 +20,7 @@ final class CompareViewModel: ObservableObject {
         [
             ComparisonMetric(title: "Annual sticker cost", values: selectedSchools.map { $0.costEstimate.annualStickerCost.formatted(LumaFormat.currency) }),
             ComparisonMetric(title: "Average net price", values: selectedSchools.map { $0.costEstimate.averageNetPrice.formatted(LumaFormat.currency) }),
+            ComparisonMetric(title: "TuitionLuma Score", values: selectedSchools.map { "\($0.lumaScore)/100" }),
             ComparisonMetric(title: "Median earnings", values: selectedSchools.map { $0.medianEarnings.formatted(LumaFormat.currency) }),
             ComparisonMetric(title: "Average debt", values: selectedSchools.map { $0.averageDebt.formatted(LumaFormat.currency) }),
             ComparisonMetric(title: "Graduation rate", values: selectedSchools.map { $0.graduationRate.formatted(LumaFormat.percent) }),
@@ -41,5 +42,9 @@ final class CompareViewModel: ObservableObject {
     func trimSelection(to limit: Int) {
         guard selectedSchools.count > limit else { return }
         selectedSchools = Array(selectedSchools.prefix(limit))
+    }
+
+    func sync(with schools: [School]) {
+        selectedSchools = schools.isEmpty ? Array(allSchools.prefix(2)) : schools
     }
 }

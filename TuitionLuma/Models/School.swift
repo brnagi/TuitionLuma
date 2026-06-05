@@ -15,6 +15,8 @@ struct School: Identifiable, Hashable, Codable {
     var type: SchoolType
     var acceptanceRate: Double
     var graduationRate: Double
+    var lumaScore: Int
+    var valueLabel: String
     var medianEarnings: Double
     var averageDebt: Double
     var studentCount: Int
@@ -22,6 +24,8 @@ struct School: Identifiable, Hashable, Codable {
     var programs: [Program]
     var costEstimate: CostEstimate
     var highlights: [String]
+    var isSaved: Bool
+    var isCompared: Bool
 
     init(
         id: UUID = UUID(),
@@ -31,13 +35,17 @@ struct School: Identifiable, Hashable, Codable {
         type: SchoolType,
         acceptanceRate: Double,
         graduationRate: Double,
+        lumaScore: Int,
+        valueLabel: String,
         medianEarnings: Double,
         averageDebt: Double,
         studentCount: Int,
         campusVibe: String,
         programs: [Program],
         costEstimate: CostEstimate,
-        highlights: [String]
+        highlights: [String],
+        isSaved: Bool = false,
+        isCompared: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -46,6 +54,8 @@ struct School: Identifiable, Hashable, Codable {
         self.type = type
         self.acceptanceRate = acceptanceRate
         self.graduationRate = graduationRate
+        self.lumaScore = lumaScore
+        self.valueLabel = valueLabel
         self.medianEarnings = medianEarnings
         self.averageDebt = averageDebt
         self.studentCount = studentCount
@@ -53,5 +63,7 @@ struct School: Identifiable, Hashable, Codable {
         self.programs = programs
         self.costEstimate = costEstimate
         self.highlights = highlights
+        self.isSaved = isSaved
+        self.isCompared = isCompared
     }
 }

@@ -44,7 +44,9 @@ struct SavedSchoolsView: View {
                                     SchoolCard(
                                         school: school,
                                         isSaved: true,
-                                        onSaveTapped: { _ = appViewModel.toggleSaved(school) }
+                                        isCompared: appViewModel.isCompared(school),
+                                        onSaveTapped: { _ = appViewModel.toggleSaved(school) },
+                                        onCompareTapped: { compareTapped(school) }
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -81,5 +83,21 @@ struct SavedSchoolsView: View {
                 action: { isShowingPaywall = true }
             )
         }
+    }
+
+    private func compareTapped(_ school: School) {
+        if appViewModel.isCompared(school) {
+            _ = appViewModel.removeFromCompare(school)
+            return
+        }
+
+        let limit = SubscriptionPolicy.compareSchoolLimit(for: subscriptionManager.state)
+        let result = appViewModel.addToCompare(school, compareLimit: limit)
+
+        if result == .limitReached {
+            isShowingPaywall = true
+        }
+
+        // TODO: Route directly to Compare after adding once global tab selection is introduced.
     }
 }

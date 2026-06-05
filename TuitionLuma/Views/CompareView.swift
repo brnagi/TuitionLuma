@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CompareView: View {
+    @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
     @StateObject private var viewModel = CompareViewModel()
     @State private var isShowingPaywall = false
@@ -22,10 +23,14 @@ struct CompareView: View {
             }
             .background(LumaTheme.canvas)
             .onAppear {
-                viewModel.trimSelection(to: compareLimit)
+                syncCompareSelection()
             }
             .onChange(of: subscriptionManager.state) { _, newState in
-                viewModel.trimSelection(to: SubscriptionPolicy.compareSchoolLimit(for: newState))
+                appViewModel.trimComparedSchools(to: SubscriptionPolicy.compareSchoolLimit(for: newState))
+                syncCompareSelection()
+            }
+            .onChange(of: appViewModel.comparedSchoolIDs) { _, _ in
+                syncCompareSelection()
             }
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
@@ -68,7 +73,10 @@ struct CompareView: View {
                         "School \(index + 1)",
                         selection: Binding(
                             get: { viewModel.selectedSchools[index] },
-                            set: { viewModel.replaceSchool(at: index, with: $0) }
+                            set: { school in
+                                appViewModel.replaceComparedSchool(at: index, with: school)
+                                viewModel.replaceSchool(at: index, with: school)
+                            }
                         )
                     ) {
                         ForEach(viewModel.allSchools) { school in
@@ -107,7 +115,7 @@ struct CompareView: View {
 
             if viewModel.selectedSchools.count < compareLimit {
                 Button {
-                    viewModel.addSchool(limit: compareLimit)
+                    addNextSchoolToCompare()
                 } label: {
                     Label("Add School", systemImage: "plus.circle.fill")
                         .font(.headline)
@@ -164,5 +172,22 @@ struct CompareView: View {
 
     private func indexColor(_ index: Int) -> Color {
         [LumaTheme.coral, LumaTheme.aqua, LumaTheme.sun][index % 3]
+    }
+
+    private func syncCompareSelection() {
+        appViewModel.trimComparedSchools(to: compareLimit)
+        viewModel.sync(with: appViewModel.comparedSchools)
+    }
+
+    private func addNextSchoolToCompare() {
+        let nextSchool = viewModel.allSchools.first { !appViewModel.isCompared($0) } ?? viewModel.allSchools[0]
+        let result = appViewModel.addToCompare(nextSchool, compareLimit: compareLimit)
+
+        if result == .limitReached {
+            isShowingPaywall = true
+        }
+
+        // TODO: Replace this first-available-school behavior with a searchable add-to-compare picker.
+        syncCompareSelection()
     }
 }
