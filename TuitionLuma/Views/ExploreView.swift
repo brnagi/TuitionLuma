@@ -19,7 +19,6 @@ struct ExploreView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Explore")
             .task {
                 if viewModel.loadState == .idle {
                     await viewModel.load()
@@ -30,13 +29,17 @@ struct ExploreView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text("Explore")
+                .font(.largeTitle.weight(.heavy))
+                .foregroundStyle(.white)
+
             Text("Find a college that fits your future and your wallet.")
                 .font(.title2.weight(.heavy))
-                .foregroundStyle(LumaTheme.ink)
+                .foregroundStyle(.white)
 
             Text("Search by school, city, state, or program.")
                 .font(.subheadline)
-                .foregroundStyle(LumaTheme.slate)
+                .foregroundStyle(.white.opacity(0.9))
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)

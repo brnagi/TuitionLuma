@@ -14,12 +14,15 @@ struct CompareView: View {
                 .padding()
             }
             .background(LumaTheme.canvas)
-            .navigationTitle("Compare")
         }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text("Compare")
+                .font(.largeTitle.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+
             Text("Line up the tradeoffs.")
                 .font(.title2.weight(.heavy))
                 .foregroundStyle(LumaTheme.ink)

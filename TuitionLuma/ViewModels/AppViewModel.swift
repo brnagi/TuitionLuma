@@ -2,7 +2,6 @@ import Foundation
 
 @MainActor
 final class AppViewModel: ObservableObject {
-    @Published var hasCompletedOnboarding = false
     @Published private(set) var savedSchoolIDs: Set<School.ID> = []
 
     let schools: [School]

@@ -51,14 +51,14 @@ struct SchoolCard: View {
             HStack {
                 StatPill(
                     title: "Net price",
-                    value: school.costEstimate.averageNetPrice.formatted(LumaFormat.compactCurrency),
+                    value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice),
                     systemImage: "dollarsign",
                     tint: LumaTheme.mint
                 )
 
                 StatPill(
                     title: "Earnings",
-                    value: school.medianEarnings.formatted(LumaFormat.compactCurrency),
+                    value: LumaFormat.compactCurrency(school.medianEarnings),
                     systemImage: "chart.line.uptrend.xyaxis",
                     tint: LumaTheme.aqua
                 )

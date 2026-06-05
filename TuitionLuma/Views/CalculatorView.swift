@@ -16,12 +16,15 @@ struct CalculatorView: View {
                 .padding()
             }
             .background(LumaTheme.canvas)
-            .navigationTitle("Calculator")
         }
     }
 
     private var schoolPicker: some View {
         VStack(alignment: .leading, spacing: 10) {
+            Text("Calculator")
+                .font(.largeTitle.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+
             Text("Choose a school")
                 .font(.headline)
                 .foregroundStyle(LumaTheme.ink)

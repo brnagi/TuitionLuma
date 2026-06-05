@@ -77,10 +77,10 @@ struct SchoolDetailView: View {
 
     private var quickStats: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            StatPill(title: "Net price", value: school.costEstimate.averageNetPrice.formatted(LumaFormat.compactCurrency), systemImage: "dollarsign", tint: LumaTheme.mint)
-            StatPill(title: "Earnings", value: school.medianEarnings.formatted(LumaFormat.compactCurrency), systemImage: "chart.line.uptrend.xyaxis", tint: LumaTheme.aqua)
+            StatPill(title: "Net price", value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice), systemImage: "dollarsign", tint: LumaTheme.mint)
+            StatPill(title: "Earnings", value: LumaFormat.compactCurrency(school.medianEarnings), systemImage: "chart.line.uptrend.xyaxis", tint: LumaTheme.aqua)
             StatPill(title: "Grad rate", value: school.graduationRate.formatted(LumaFormat.percent), systemImage: "graduationcap.fill", tint: LumaTheme.coral)
-            StatPill(title: "Avg debt", value: school.averageDebt.formatted(LumaFormat.compactCurrency), systemImage: "creditcard.fill", tint: LumaTheme.sun)
+            StatPill(title: "Avg debt", value: LumaFormat.compactCurrency(school.averageDebt), systemImage: "creditcard.fill", tint: LumaTheme.sun)
         }
     }
 
