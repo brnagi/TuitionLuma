@@ -222,6 +222,7 @@ struct CollegeScorecardService: SchoolDataProviding {
         let medianEarnings = object.double("latest.earnings.10_yrs_after_entry.median")
         let averageDebt = object.double("latest.aid.median_debt.completers.overall")
         let studentSize = object.int("latest.student.size")
+        let stateFlagStyle = StateFlagStyles.style(for: state)
 
         var missingFields: [String] = []
         if tuitionInState == nil { missingFields.append("In-state tuition") }
@@ -259,6 +260,8 @@ struct CollegeScorecardService: SchoolDataProviding {
             graduationRate: graduationRate ?? 0,
             lumaScore: score,
             valueLabel: LumaScoreCalculator.label(for: score),
+            primaryColor: stateFlagStyle.primaryHex,
+            secondaryColor: stateFlagStyle.secondaryHex,
             medianEarnings: medianEarnings ?? 0,
             averageDebt: averageDebt ?? 0,
             studentCount: studentSize ?? 0,
