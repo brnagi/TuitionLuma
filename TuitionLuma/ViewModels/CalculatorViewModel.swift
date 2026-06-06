@@ -32,18 +32,49 @@ enum DegreePathScenario: Int, CaseIterable, Identifiable {
     }
 }
 
+enum RepaymentTerm: Int, CaseIterable, Identifiable, Codable {
+    case five = 5
+    case ten = 10
+    case fifteen = 15
+    case twenty = 20
+
+    var id: Int { rawValue }
+
+    var title: String {
+        "\(rawValue) years"
+    }
+}
+
+struct SavedRepaymentPlan: Identifiable, Codable, Equatable {
+    var id: UUID
+    var schoolName: String
+    var savedAt: Date
+    var repaymentYears: Int
+    var principal: Double
+    var monthlyPayment: Double
+    var totalRepayment: Double
+    var interestRate: Double
+    var scenarioSummary: String
+}
+
 @MainActor
 final class CalculatorViewModel: ObservableObject {
+    private let savedRepaymentPlansKey = "tuitionluma.savedRepaymentPlans"
+
     @Published var selectedSchool: School?
     @Published var aidInput: AidInput
     @Published var planningMode: PlanningMode = .student
     @Published var livingScenario: LivingScenario = .onCampus
     @Published var residencyScenario: ResidencyScenario = .inState
     @Published var degreePathScenario: DegreePathScenario = .fourYear
+    @Published var repaymentTerm: RepaymentTerm = .ten
+    @Published private(set) var savedRepaymentPlans: [SavedRepaymentPlan] = []
+    @Published var repaymentSaveMessage: String?
 
     init(school: School? = nil, aidInput: AidInput = .starter) {
         self.selectedSchool = school
         self.aidInput = aidInput
+        self.savedRepaymentPlans = Self.loadSavedRepaymentPlans()
     }
 
     var annualCost: Double {
@@ -69,12 +100,13 @@ final class CalculatorViewModel: ObservableObject {
     var monthlyPayment: Double {
         CalculatorEngine.monthlyLoanPayment(
             principal: loanPrincipal,
-            annualInterestRate: aidInput.interestRate
+            annualInterestRate: aidInput.interestRate,
+            repaymentYears: repaymentTerm.rawValue
         )
     }
 
-    var totalTenYearRepayment: Double {
-        monthlyPayment * 120
+    var totalRepayment: Double {
+        monthlyPayment * Double(repaymentTerm.rawValue * 12)
     }
 
     var annualFamilyContribution: Double {
@@ -137,6 +169,37 @@ final class CalculatorViewModel: ObservableObject {
         aidInput.yearsInSchool = scenario.rawValue
     }
 
+    func saveRepaymentPlan() {
+        guard let selectedSchool else {
+            repaymentSaveMessage = "Choose a school before saving."
+            return
+        }
+
+        let plan = SavedRepaymentPlan(
+            id: UUID(),
+            schoolName: selectedSchool.name,
+            savedAt: Date(),
+            repaymentYears: repaymentTerm.rawValue,
+            principal: loanPrincipal,
+            monthlyPayment: monthlyPayment,
+            totalRepayment: totalRepayment,
+            interestRate: aidInput.interestRate,
+            scenarioSummary: scenarioSummary
+        )
+
+        savedRepaymentPlans.insert(plan, at: 0)
+        savedRepaymentPlans = Array(savedRepaymentPlans.prefix(12))
+        persistSavedRepaymentPlans()
+        repaymentSaveMessage = "Saved on this device."
+    }
+
+    func deleteSavedRepaymentPlans(at offsets: IndexSet) {
+        for index in offsets.sorted(by: >) {
+            savedRepaymentPlans.remove(at: index)
+        }
+        persistSavedRepaymentPlans()
+    }
+
     private func modeledAnnualCost(for school: School) -> Double {
         let cost = school.costEstimate
         var annualCost = cost.estimatedAnnualCost
@@ -153,5 +216,20 @@ final class CalculatorViewModel: ObservableObject {
         }
 
         return annualCost
+    }
+
+    private func persistSavedRepaymentPlans() {
+        if let data = try? JSONEncoder().encode(savedRepaymentPlans) {
+            UserDefaults.standard.set(data, forKey: savedRepaymentPlansKey)
+        }
+    }
+
+    private static func loadSavedRepaymentPlans() -> [SavedRepaymentPlan] {
+        guard let data = UserDefaults.standard.data(forKey: "tuitionluma.savedRepaymentPlans"),
+              let plans = try? JSONDecoder().decode([SavedRepaymentPlan].self, from: data) else {
+            return []
+        }
+
+        return plans
     }
 }

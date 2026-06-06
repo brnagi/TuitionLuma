@@ -266,7 +266,7 @@ struct CalculatorView: View {
         } else {
             FeatureLock(
                 title: "Advanced repayment forecast",
-                message: "Upgrade to see monthly loan payment projections, 10-year repayment, and debt scenarios.",
+                message: "Upgrade to choose repayment terms, save plans on device, and compare debt scenarios.",
                 feature: .advancedDebtCalculator,
                 action: { isShowingPaywall = true }
             )
@@ -365,44 +365,49 @@ struct CalculatorView: View {
     private var repaymentCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Label(
-                    viewModel.planningMode == .student ? "Student loan estimate" : "Family funding plan",
-                    systemImage: viewModel.planningMode == .student ? "creditcard.fill" : "person.2.fill"
-                )
+                Label("Repayment calculator", systemImage: "creditcard.fill")
                     .font(.headline)
                     .foregroundStyle(LumaTheme.ink)
 
                 Spacer()
 
-                Text(viewModel.planningMode == .student ? "10 years" : "per year")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 9)
-                    .background(LumaTheme.coral, in: Capsule())
+                ProBadge(compact: true)
             }
 
-            if viewModel.planningMode == .student {
-                HStack(spacing: 10) {
-                    repaymentMetric("Borrowed", viewModel.loanPrincipal.formatted(LumaFormat.currency))
-                    repaymentMetric("Monthly", viewModel.monthlyPayment.formatted(LumaFormat.currency))
+            scenarioGroup(title: "Loan term") {
+                HStack(spacing: 8) {
+                    ForEach(RepaymentTerm.allCases) { term in
+                        scenarioChip(
+                            term.title,
+                            isSelected: viewModel.repaymentTerm == term
+                        ) {
+                            viewModel.repaymentTerm = term
+                        }
+                    }
                 }
-            } else {
-                HStack(spacing: 10) {
-                    repaymentMetric("Family total", viewModel.totalFamilyContribution.formatted(LumaFormat.currency))
-                    repaymentMetric("Annual gap", viewModel.annualFamilyFundingGap.formatted(LumaFormat.currency))
-                }
+            }
+
+            HStack(spacing: 10) {
+                repaymentMetric("Borrowed", viewModel.loanPrincipal.formatted(LumaFormat.currency))
+                repaymentMetric("Monthly", viewModel.monthlyPayment.formatted(LumaFormat.currency))
             }
 
             HStack {
-                Text(viewModel.planningMode == .student ? "Total repayment" : "Modeled net total")
+                Text("Total repayment")
                     .foregroundStyle(LumaTheme.slate)
 
                 Spacer()
 
-                Text((viewModel.planningMode == .student ? viewModel.totalTenYearRepayment : viewModel.netTotalCost).formatted(LumaFormat.currency))
+                Text(viewModel.totalRepayment.formatted(LumaFormat.currency))
                     .font(.title3.weight(.heavy))
                     .foregroundStyle(LumaTheme.ink)
+            }
+
+            if viewModel.planningMode == .parent {
+                HStack(spacing: 10) {
+                    repaymentMetric("Family total", viewModel.totalFamilyContribution.formatted(LumaFormat.currency), tint: LumaTheme.sun)
+                    repaymentMetric("Annual gap", viewModel.annualFamilyFundingGap.formatted(LumaFormat.currency))
+                }
             }
 
             HStack {
@@ -422,9 +427,36 @@ struct CalculatorView: View {
             Text(viewModel.planningGuidance)
                 .font(.footnote)
                 .foregroundStyle(LumaTheme.slate)
+
+            LumaButton(title: "Save Repayment Plan", systemImage: "tray.and.arrow.down.fill") {
+                viewModel.saveRepaymentPlan()
+            }
+
+            if let repaymentSaveMessage = viewModel.repaymentSaveMessage {
+                Text(repaymentSaveMessage)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LumaTheme.mint)
+            }
+
+            savedRepaymentPlansSection
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    @ViewBuilder
+    private var savedRepaymentPlansSection: some View {
+        if !viewModel.savedRepaymentPlans.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Saved on this device")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.slate)
+
+                ForEach(viewModel.savedRepaymentPlans.prefix(3)) { plan in
+                    savedRepaymentPlanRow(plan)
+                }
+            }
+        }
     }
 
     private var scenarioModelingCard: some View {
@@ -589,7 +621,43 @@ struct CalculatorView: View {
         return "Annual cost uses reported cost of attendance when available. Avg net price reflects typical costs after grant and scholarship aid."
     }
 
-    private func repaymentMetric(_ title: String, _ value: String) -> some View {
+    private func savedRepaymentPlanRow(_ plan: SavedRepaymentPlan) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "doc.text.fill")
+                .font(.subheadline)
+                .foregroundStyle(LumaTheme.coral)
+                .frame(width: 30, height: 30)
+                .background(LumaTheme.coral.opacity(0.10), in: Circle())
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(plan.schoolName)
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .lineLimit(1)
+
+                Text("\(plan.repaymentYears)-year term • \(plan.scenarioSummary)")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(LumaTheme.slate)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(plan.monthlyPayment.formatted(LumaFormat.currency))
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+
+                Text("monthly")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(LumaTheme.slate)
+            }
+        }
+        .padding(12)
+        .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func repaymentMetric(_ title: String, _ value: String, tint: Color = LumaTheme.aqua) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(value)
                 .font(.title2.weight(.heavy))
@@ -603,7 +671,7 @@ struct CalculatorView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private func planningMetric(title: String, value: String, tint: Color) -> some View {
