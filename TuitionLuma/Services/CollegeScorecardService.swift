@@ -48,10 +48,12 @@ enum APIConfig {
             return value
         }
 
-        if let value = Bundle.main.object(forInfoDictionaryKey: "COLLEGE_SCORECARD_API_KEY") as? String,
-           !value.isEmpty,
-           !value.hasPrefix("$(") {
-            return value
+        for key in ["CollegeScorecardAPIKey", "COLLEGE_SCORECARD_API_KEY"] {
+            if let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+               !value.isEmpty,
+               !value.hasPrefix("$(") {
+                return value
+            }
         }
 
         return nil

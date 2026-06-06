@@ -52,9 +52,17 @@ MVP pricing copy is a one-time `$4.99` purchase.
 
 ## College Scorecard API setup
 
-TuitionLuma reads the API key from `COLLEGE_SCORECARD_API_KEY`. Do not hardcode API keys in source files.
+TuitionLuma reads the API key from `COLLEGE_SCORECARD_API_KEY`. Do not hardcode API keys in source files or commit them to git.
 
-Recommended local setup in Xcode:
+Recommended local setup:
+
+1. Copy `Config/LocalSecrets.xcconfig.example` to `Config/LocalSecrets.xcconfig`.
+2. Replace the placeholder value with your College Scorecard API key.
+3. Build and run the app from Xcode.
+
+`Config/LocalSecrets.xcconfig` is ignored by git. Xcode injects the value into the generated app Info.plist through `Config/TuitionLuma.xcconfig`, so the simulator can still use live data if you relaunch the installed app directly.
+
+Alternative Run scheme setup in Xcode:
 
 1. Open `TuitionLuma.xcodeproj`.
 2. Select Product > Scheme > Edit Scheme.
@@ -73,7 +81,7 @@ xcodebuild -project TuitionLuma.xcodeproj \
   build
 ```
 
-The Xcode project also exposes an empty `COLLEGE_SCORECARD_API_KEY` build setting and maps it to `INFOPLIST_KEY_COLLEGE_SCORECARD_API_KEY`. You can override that locally with an untracked `.xcconfig` if preferred, but the runtime environment variable is the safest development path.
+The Xcode project exposes `COLLEGE_SCORECARD_API_KEY` as a build setting and maps it to the generated Info.plist key `CollegeScorecardAPIKey`. The checked-in `Config/TuitionLuma.xcconfig` keeps the default empty and optionally includes the ignored local secrets file.
 
 When the key is missing, Explore shows a polished missing-key state with an explicit “Use Sample Data” fallback. That sample fallback is not the default production flow.
 

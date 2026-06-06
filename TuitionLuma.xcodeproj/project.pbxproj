@@ -68,6 +68,9 @@
 		F00000000000000000000026 /* CalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorView.swift; sourceTree = "<group>"; };
 		F00000000000000000000027 /* CompareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareView.swift; sourceTree = "<group>"; };
 		F00000000000000000000028 /* SavedSchoolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSchoolsView.swift; sourceTree = "<group>"; };
+		F00000000000000000000030 /* TuitionLuma.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TuitionLuma.xcconfig; sourceTree = "<group>"; };
+		F00000000000000000000031 /* LocalSecrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LocalSecrets.xcconfig.example; sourceTree = "<group>"; };
+		F00000000000000000000032 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		P00000000000000000000001 /* TuitionLuma.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TuitionLuma.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -75,9 +78,19 @@
 		G00000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				G00000000000000000000012 /* Config */,
 				G00000000000000000000002 /* TuitionLuma */,
 				G00000000000000000000010 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		G00000000000000000000012 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000030 /* TuitionLuma.xcconfig */,
+				F00000000000000000000031 /* LocalSecrets.xcconfig.example */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		G00000000000000000000002 /* TuitionLuma */ = {
@@ -85,6 +98,7 @@
 			children = (
 				F00000000000000000000001 /* TuitionLumaApp.swift */,
 				F00000000000000000000002 /* AppRootView.swift */,
+				F00000000000000000000032 /* Info.plist */,
 				G00000000000000000000003 /* Models */,
 				G00000000000000000000004 /* Data */,
 				G00000000000000000000005 /* Services */,
@@ -401,21 +415,14 @@
 		};
 		C00000000000000000000006 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F00000000000000000000030 /* TuitionLuma.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				COLLEGE_SCORECARD_API_KEY = "";
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_COLLEGE_SCORECARD_API_KEY = "$(COLLEGE_SCORECARD_API_KEY)";
-				INFOPLIST_KEY_CFBundleDisplayName = TuitionLuma;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TuitionLuma/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.TuitionLuma;
@@ -427,21 +434,14 @@
 		};
 		C00000000000000000000007 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F00000000000000000000030 /* TuitionLuma.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				COLLEGE_SCORECARD_API_KEY = "";
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_COLLEGE_SCORECARD_API_KEY = "$(COLLEGE_SCORECARD_API_KEY)";
-				INFOPLIST_KEY_CFBundleDisplayName = TuitionLuma;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TuitionLuma/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.TuitionLuma;
