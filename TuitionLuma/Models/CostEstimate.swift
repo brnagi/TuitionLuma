@@ -3,6 +3,8 @@ import Foundation
 struct CostEstimate: Hashable, Codable {
     var tuitionAndFees: Double
     var outOfStateTuition: Double?
+    var costOfAttendance: Double?
+    var reportedAverageNetPrice: Double?
     var housingAndMeals: Double
     var booksAndSupplies: Double
     var transportation: Double
@@ -12,6 +14,8 @@ struct CostEstimate: Hashable, Codable {
     init(
         tuitionAndFees: Double,
         outOfStateTuition: Double? = nil,
+        costOfAttendance: Double? = nil,
+        reportedAverageNetPrice: Double? = nil,
         housingAndMeals: Double,
         booksAndSupplies: Double,
         transportation: Double,
@@ -20,6 +24,8 @@ struct CostEstimate: Hashable, Codable {
     ) {
         self.tuitionAndFees = tuitionAndFees
         self.outOfStateTuition = outOfStateTuition
+        self.costOfAttendance = costOfAttendance
+        self.reportedAverageNetPrice = reportedAverageNetPrice
         self.housingAndMeals = housingAndMeals
         self.booksAndSupplies = booksAndSupplies
         self.transportation = transportation
@@ -31,7 +37,23 @@ struct CostEstimate: Hashable, Codable {
         tuitionAndFees + housingAndMeals + booksAndSupplies + transportation + personalExpenses
     }
 
+    var estimatedAnnualCost: Double {
+        if let costOfAttendance, costOfAttendance > 0 {
+            return costOfAttendance
+        }
+
+        if annualStickerCost > 0 {
+            return annualStickerCost
+        }
+
+        return reportedAverageNetPrice ?? 0
+    }
+
     var averageNetPrice: Double {
-        max(0, annualStickerCost - averageGrantAid)
+        if let reportedAverageNetPrice, reportedAverageNetPrice > 0 {
+            return reportedAverageNetPrice
+        }
+
+        return max(0, estimatedAnnualCost - averageGrantAid)
     }
 }

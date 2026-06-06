@@ -3,14 +3,21 @@ import SwiftUI
 struct CostBreakdownCard: View {
     var cost: CostEstimate
 
-    private var rows: [(String, Double, Color)] {
-        [
-            ("Tuition and fees", cost.tuitionAndFees, LumaTheme.coral),
-            ("Housing and meals", cost.housingAndMeals, LumaTheme.sun),
-            ("Books and supplies", cost.booksAndSupplies, LumaTheme.aqua),
-            ("Transportation", cost.transportation, LumaTheme.mint),
-            ("Personal expenses", cost.personalExpenses, LumaTheme.slate)
+    private var rows: [(String, String, Color)] {
+        var rows = [
+            ("In-state tuition", moneyText(cost.tuitionAndFees), LumaTheme.valueGreen),
+            ("Out-of-state tuition", moneyText(cost.outOfStateTuition), LumaTheme.outcomeTeal),
+            ("Housing and meals", moneyText(cost.housingAndMeals), LumaTheme.sun),
+            ("Books and supplies", moneyText(cost.booksAndSupplies), LumaTheme.aqua),
+            ("Transportation", moneyText(cost.transportation), LumaTheme.mint),
+            ("Personal expenses", moneyText(cost.personalExpenses), LumaTheme.slate)
         ]
+
+        if cost.outOfStateTuition == nil {
+            rows.removeAll { $0.0 == "Out-of-state tuition" }
+        }
+
+        return rows
     }
 
     var body: some View {
@@ -28,7 +35,7 @@ struct CostBreakdownCard: View {
 
                 Spacer()
 
-                Text(cost.annualStickerCost.formatted(LumaFormat.currency))
+                Text(moneyText(cost.estimatedAnnualCost))
                     .font(.title2.weight(.heavy))
                     .foregroundStyle(LumaTheme.ink)
                     .lineLimit(1)
@@ -47,9 +54,9 @@ struct CostBreakdownCard: View {
 
                         Spacer()
 
-                        Text(row.1.formatted(LumaFormat.currency))
+                        Text(row.1)
                             .fontWeight(.semibold)
-                            .foregroundStyle(LumaTheme.ink)
+                            .foregroundStyle(row.1 == "Not reported" ? LumaTheme.slate : LumaTheme.ink)
                     }
                     .font(.subheadline)
                 }
@@ -61,7 +68,7 @@ struct CostBreakdownCard: View {
 
                 Spacer()
 
-                Text(cost.averageGrantAid.formatted(LumaFormat.currency))
+                Text(moneyText(cost.averageGrantAid))
                     .fontWeight(.bold)
                     .foregroundStyle(LumaTheme.mint)
             }
@@ -75,5 +82,13 @@ struct CostBreakdownCard: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(.black.opacity(0.06))
         }
+    }
+
+    private func moneyText(_ value: Double?) -> String {
+        guard let value, value > 0 else {
+            return "Not reported"
+        }
+
+        return value.formatted(LumaFormat.currency)
     }
 }

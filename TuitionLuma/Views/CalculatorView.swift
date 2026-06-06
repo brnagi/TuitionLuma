@@ -20,6 +20,7 @@ struct CalculatorView: View {
                         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                     } else {
                         headlineNumbers
+                        tuitionInfoCard
                         aidInputs
                         planningModeCard
                         advancedCalculatorSection
@@ -83,7 +84,7 @@ struct CalculatorView: View {
 
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.netAnnualCost.formatted(LumaFormat.currency))
+                    Text(headlineCostText(viewModel.netAnnualCost))
                         .font(.system(size: 40, weight: .heavy))
                         .foregroundStyle(.white)
                         .lineLimit(1)
@@ -97,7 +98,7 @@ struct CalculatorView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text(viewModel.netTotalCost.formatted(LumaFormat.currency))
+                    Text(headlineCostText(viewModel.netTotalCost))
                         .font(.title2.weight(.heavy))
                         .foregroundStyle(.white)
                         .lineLimit(1)
@@ -109,12 +110,66 @@ struct CalculatorView: View {
                 }
             }
 
-            Text("This subtracts grants, scholarships, family help, and work-study from the annual sticker price.")
+            Text(viewModel.annualCost > 0 ? "This subtracts grants, scholarships, family help, and work-study from the annual sticker price." : "College Scorecard has not reported enough cost data for this school yet.")
                 .font(.footnote)
                 .foregroundStyle(.white.opacity(0.88))
         }
         .padding(20)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    @ViewBuilder
+    private var tuitionInfoCard: some View {
+        if let school = viewModel.selectedSchool {
+            let cost = school.costEstimate
+
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("Tuition and cost data", systemImage: "dollarsign.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Spacer()
+
+                    Text("College Scorecard")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(LumaTheme.slate)
+                }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    costDataTile(
+                        title: "In-state tuition",
+                        value: moneyText(cost.tuitionAndFees),
+                        tint: LumaTheme.valueGreen
+                    )
+
+                    costDataTile(
+                        title: "Out-of-state tuition",
+                        value: moneyText(cost.outOfStateTuition),
+                        tint: LumaTheme.outcomeTeal
+                    )
+
+                    costDataTile(
+                        title: "Annual cost",
+                        value: moneyText(cost.estimatedAnnualCost),
+                        tint: LumaTheme.coral
+                    )
+
+                    costDataTile(
+                        title: "Avg net price",
+                        value: moneyText(cost.averageNetPrice),
+                        tint: LumaTheme.mint
+                    )
+                }
+
+                Text(costDataNote(for: school))
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(18)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
     }
 
     private var aidInputs: some View {
@@ -337,6 +392,54 @@ struct CalculatorView: View {
             Slider(value: value, in: range, step: 500)
                 .tint(tint)
         }
+    }
+
+    private func costDataTile(title: String, value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(value)
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(value == "Not reported" ? LumaTheme.slate : tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
+
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(LumaTheme.slate)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func moneyText(_ value: Double?) -> String {
+        guard let value, value > 0 else {
+            return "Not reported"
+        }
+
+        return value.formatted(LumaFormat.currency)
+    }
+
+    private func headlineCostText(_ value: Double) -> String {
+        guard viewModel.annualCost > 0 else {
+            return "N/A"
+        }
+
+        return value.formatted(LumaFormat.currency)
+    }
+
+    private func costDataNote(for school: School) -> String {
+        let cost = school.costEstimate
+        if cost.costOfAttendance == nil, cost.estimatedAnnualCost > 0 {
+            return "Annual cost uses the best available reported fields. Cost of attendance is not reported for this school, so housing or personal expenses may be incomplete."
+        }
+
+        if !school.missingDataFields.isEmpty {
+            return "Some fields are not reported yet: \(school.missingDataFields.prefix(3).joined(separator: ", "))."
+        }
+
+        return "Annual cost uses reported cost of attendance when available. Avg net price reflects typical costs after grant and scholarship aid."
     }
 
     private func repaymentMetric(_ title: String, _ value: String) -> some View {

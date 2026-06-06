@@ -2,7 +2,7 @@ import Foundation
 
 enum CalculatorEngine {
     static func annualCost(for school: School) -> Double {
-        school.costEstimate.annualStickerCost
+        school.costEstimate.estimatedAnnualCost
     }
 
     static func totalDegreeCost(for school: School, years: Int) -> Double {

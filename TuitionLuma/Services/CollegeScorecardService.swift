@@ -238,14 +238,23 @@ struct CollegeScorecardService: SchoolDataProviding {
         if averageDebt == nil { missingFields.append("Average debt") }
         if admissionRate == nil { missingFields.append("Admission rate") }
 
+        let averageGrantAid: Double
+        if let costOfAttendance, let averageNetPrice {
+            averageGrantAid = max(0, costOfAttendance - averageNetPrice)
+        } else {
+            averageGrantAid = 0
+        }
+
         let cost = CostEstimate(
-            tuitionAndFees: tuitionInState ?? averageNetPrice ?? 0,
+            tuitionAndFees: tuitionInState ?? 0,
             outOfStateTuition: tuitionOutOfState,
-            housingAndMeals: max(0, (costOfAttendance ?? 0) - (tuitionInState ?? 0)),
+            costOfAttendance: costOfAttendance,
+            reportedAverageNetPrice: averageNetPrice,
+            housingAndMeals: costOfAttendance.map { max(0, $0 - (tuitionInState ?? 0)) } ?? 0,
             booksAndSupplies: 0,
             transportation: 0,
             personalExpenses: 0,
-            averageGrantAid: max(0, (costOfAttendance ?? 0) - (averageNetPrice ?? costOfAttendance ?? 0))
+            averageGrantAid: averageGrantAid
         )
 
         let score = LumaScoreCalculator.score(
