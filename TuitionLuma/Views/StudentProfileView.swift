@@ -181,7 +181,9 @@ private struct StudentProfileEditorView: View {
                     majorSection
                     incomeSection
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 34)
+                .padding(.bottom)
             }
             .background(LumaTheme.canvas)
             .navigationTitle("Student Profile")
@@ -206,24 +208,49 @@ private struct StudentProfileEditorView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ProBadge()
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "sparkles.rectangle.stack.fill")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(.white.opacity(0.22), in: RoundedRectangle(cornerRadius: 8))
 
-            Text("Personalize your college search")
-                .font(.title.weight(.heavy))
-                .foregroundStyle(.white)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Build your profile")
+                        .font(.title2.weight(.heavy))
+                        .foregroundStyle(.white)
 
-            Text("TuitionLuma uses this only on device for MVP recommendations.")
-                .font(.subheadline)
+                    Text("Make each school card feel like it was written for you.")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.88))
+                }
+            }
+
+            HStack(spacing: 8) {
+                insightPill("Fit", systemImage: "checkmark.seal.fill")
+                insightPill("Net cost", systemImage: "dollarsign.circle.fill")
+                insightPill("ROI", systemImage: "chart.line.uptrend.xyaxis")
+            }
+
+            Text("Your answers stay on this device for the MVP and help tailor estimated net cost, affordability, and ROI signals.")
+                .font(.footnote)
                 .foregroundStyle(.white.opacity(0.88))
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .shadow(color: LumaTheme.coral.opacity(0.13), radius: 16, y: 8)
     }
 
     private var gpaSection: some View {
-        formSection(title: "GPA", systemImage: "graduationcap.fill") {
+        formSection(
+            title: "GPA",
+            subtitle: "Helps estimate academic fit and potential merit-aid upside.",
+            systemImage: "graduationcap.fill",
+            tint: LumaTheme.coral
+        ) {
             HStack {
                 Text("Current GPA")
                     .foregroundStyle(LumaTheme.ink)
@@ -241,7 +268,12 @@ private struct StudentProfileEditorView: View {
     }
 
     private var optionalTestSection: some View {
-        formSection(title: "SAT/ACT", systemImage: "pencil.and.list.clipboard") {
+        formSection(
+            title: "SAT/ACT",
+            subtitle: "Optional, but useful for sharper fit and scholarship estimates.",
+            systemImage: "pencil.and.list.clipboard",
+            tint: LumaTheme.scorePurple
+        ) {
             TextField("Optional, for example 1320 or 29", text: $draft.testScore)
                 .keyboardType(.numbersAndPunctuation)
                 .textInputAutocapitalization(.never)
@@ -251,7 +283,12 @@ private struct StudentProfileEditorView: View {
     }
 
     private var residencySection: some View {
-        formSection(title: "State residency", systemImage: "map.fill") {
+        formSection(
+            title: "State residency",
+            subtitle: "Used to estimate in-state versus out-of-state tuition.",
+            systemImage: "map.fill",
+            tint: LumaTheme.outcomeTeal
+        ) {
             TextField("Two-letter state, for example TX", text: $draft.stateResidency)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
@@ -264,7 +301,12 @@ private struct StudentProfileEditorView: View {
     }
 
     private var majorSection: some View {
-        formSection(title: "Intended major", systemImage: "book.closed.fill") {
+        formSection(
+            title: "Intended major",
+            subtitle: "Connects school outcomes and program data to your likely path.",
+            systemImage: "book.closed.fill",
+            tint: LumaTheme.scoreGold
+        ) {
             TextField("For example Computer Science", text: $draft.intendedMajor)
                 .textInputAutocapitalization(.words)
                 .padding(13)
@@ -273,7 +315,12 @@ private struct StudentProfileEditorView: View {
     }
 
     private var incomeSection: some View {
-        formSection(title: "Family income range", systemImage: "house.fill") {
+        formSection(
+            title: "Family income range",
+            subtitle: "Improves aid assumptions and personalized net-cost estimates.",
+            systemImage: "house.fill",
+            tint: LumaTheme.mint
+        ) {
             Picker("Family income range", selection: $draft.familyIncomeRange) {
                 ForEach(FamilyIncomeRange.allCases) { range in
                     Text(range.rawValue).tag(range)
@@ -286,19 +333,54 @@ private struct StudentProfileEditorView: View {
         }
     }
 
+    private func insightPill(_ title: String, systemImage: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.heavy))
+
+            Text(title)
+                .font(.caption.weight(.heavy))
+        }
+        .foregroundStyle(.white)
+        .padding(.vertical, 7)
+        .padding(.horizontal, 9)
+        .background(.white.opacity(0.18), in: Capsule())
+    }
+
     private func formSection<Content: View>(
         title: String,
+        subtitle: String,
         systemImage: String,
+        tint: Color,
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: systemImage)
-                .font(.headline)
-                .foregroundStyle(LumaTheme.ink)
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(tint)
+                    .frame(width: 28, height: 28)
+                    .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
 
             content()
         }
         .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.08))
+        }
     }
 }
