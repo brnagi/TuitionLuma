@@ -8,10 +8,11 @@ struct SchoolCard: View {
     var onCompareTapped: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 0) {
             campusImage
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
+                controlRow
                 titleBlock
                 valueBadge
                 metricRow
@@ -22,14 +23,9 @@ struct SchoolCard: View {
                     .lineLimit(2)
             }
             .padding(18)
-            .background(.white.opacity(0.97), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-            .padding(.horizontal, 10)
-            .padding(.bottom, 10)
         }
-        .background {
-            StateFlagBackdrop(style: stateFlagStyle)
-                .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        }
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(.black.opacity(0.06))
@@ -38,24 +34,20 @@ struct SchoolCard: View {
     }
 
     private var campusImage: some View {
-        ZStack(alignment: .topLeading) {
-            stateFlagHero
+        stateFlagHero
+            .frame(maxWidth: .infinity)
+            .frame(height: 124)
+            .clipped()
+    }
 
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top) {
-                    schoolTypeBadge
+    private var controlRow: some View {
+        HStack(alignment: .center, spacing: 10) {
+            schoolTypeBadge
 
-                    Spacer(minLength: 12)
+            Spacer(minLength: 8)
 
-                    actionButtons
-                }
-            }
-            .padding(16)
+            actionButtons
         }
-        .frame(height: 174)
-        .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .padding(10)
-        .padding(.bottom, -4)
     }
 
     private var schoolTypeBadge: some View {
@@ -66,11 +58,10 @@ struct SchoolCard: View {
             Text(school.type.rawValue)
                 .font(.subheadline.weight(.heavy))
         }
-        .foregroundStyle(LumaTheme.ink)
+        .foregroundStyle(.white)
         .padding(.vertical, 9)
         .padding(.horizontal, 12)
-        .background(.white.opacity(0.92), in: Capsule())
-        .shadow(color: .black.opacity(0.10), radius: 8, y: 4)
+        .background(LumaTheme.ink, in: Capsule())
     }
 
     private var actionButtons: some View {
@@ -155,7 +146,27 @@ struct SchoolCard: View {
 
     private var stateFlagHero: some View {
         StateFlagBackdrop(style: stateFlagStyle)
-            .overlay(.black.opacity(0.04))
+            .scaleEffect(1.02)
+            .saturation(1.10)
+            .contrast(1.04)
+            .overlay(flagDepthOverlay)
+    }
+
+    private var flagDepthOverlay: some View {
+        ZStack {
+            LinearGradient(
+                colors: [.white.opacity(0.12), .clear, .black.opacity(0.12)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            RadialGradient(
+                colors: [.clear, .black.opacity(0.14)],
+                center: .center,
+                startRadius: 90,
+                endRadius: 260
+            )
+        }
     }
 
     private var scoreTint: Color {
@@ -217,8 +228,11 @@ struct SchoolCard: View {
             .foregroundStyle(tint)
             .padding(.vertical, 8)
             .padding(.horizontal, 10)
-            .background(.white.opacity(0.94), in: Capsule())
-            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+            .background(.white, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(tint.opacity(0.14))
+            }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
@@ -229,51 +243,46 @@ private struct StateFlagBackdrop: View {
     var style: StateFlagStyle
 
     var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let height = proxy.size.height
-
-            ZStack {
-                HStack(spacing: 0) {
-                    primaryColor
-                        .frame(width: width * 0.36)
-
-                    VStack(spacing: 0) {
-                        secondaryColor
-                        accentColor
-                    }
-                }
-
-                LinearGradient(
-                    colors: [.white.opacity(0.08), .clear, .black.opacity(0.14)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-
-                Image(systemName: style.emblemSystemImage)
-                    .font(.system(size: 76, weight: .heavy))
-                    .foregroundStyle(.white.opacity(0.28))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .padding(.leading, width * 0.12)
-
-                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    .stroke(.white.opacity(0.20), lineWidth: 1)
-                    .padding(1)
+        AsyncImage(url: flagURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFill()
+                    .overlay(readabilityOverlay)
+            case .failure, .empty:
+                fallbackFlag
+            @unknown default:
+                fallbackFlag
             }
-            .frame(width: width, height: height)
         }
+        .clipped()
         .accessibilityHidden(true)
     }
 
-    private var primaryColor: Color {
-        LumaTheme.color(hex: style.primaryHex, fallback: LumaTheme.aqua)
+    private var flagURL: URL? {
+        URL(string: "https://flagcdn.com/w640/us-\(style.code.lowercased()).png")
     }
 
-    private var secondaryColor: Color {
-        LumaTheme.color(hex: style.secondaryHex, fallback: LumaTheme.mint)
+    private var readabilityOverlay: some View {
+        LinearGradient(
+            colors: [.black.opacity(0.16), .clear, .black.opacity(0.10)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
-    private var accentColor: Color {
-        LumaTheme.color(hex: style.accentHex, fallback: .white)
+    private var fallbackFlag: some View {
+        LinearGradient(
+            colors: [
+                LumaTheme.color(hex: style.primaryHex, fallback: LumaTheme.aqua),
+                LumaTheme.color(hex: style.secondaryHex, fallback: LumaTheme.mint),
+                LumaTheme.color(hex: style.accentHex, fallback: .white)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay(readabilityOverlay)
     }
 }
