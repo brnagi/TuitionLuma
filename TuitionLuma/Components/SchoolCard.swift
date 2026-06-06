@@ -8,7 +8,7 @@ struct SchoolCard: View {
     var onCompareTapped: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 10) {
             campusImage
 
             VStack(alignment: .leading, spacing: 14) {
@@ -21,10 +21,16 @@ struct SchoolCard: View {
                     .foregroundStyle(LumaTheme.slate)
                     .lineLimit(2)
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
+            .padding(18)
+            .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
         }
-        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background {
+            StateFlagBackdrop(style: stateFlagStyle)
+                .blur(radius: 2.4)
+                .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(.black.opacity(0.06))
@@ -85,13 +91,13 @@ struct SchoolCard: View {
                         .scaledToFill()
                         .overlay(.black.opacity(0.18))
                 case .failure, .empty:
-                    schoolBrandGradient
+                    stateFlagHero
                 @unknown default:
-                    schoolBrandGradient
+                    stateFlagHero
                 }
             }
         } else {
-            schoolBrandGradient
+            stateFlagHero
         }
     }
 
@@ -120,7 +126,7 @@ struct SchoolCard: View {
     }
 
     private var fallbackLogoMark: some View {
-        StateIdentityBadge(style: stateFlagStyle)
+        SchoolInitialMark(initials: schoolInitials)
     }
 
     private var titleBlock: some View {
@@ -183,19 +189,29 @@ struct SchoolCard: View {
         .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private var schoolBrandGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                LumaTheme.color(hex: school.primaryColor ?? stateFlagStyle.primaryHex, fallback: LumaTheme.aqua),
-                LumaTheme.color(hex: school.secondaryColor ?? stateFlagStyle.secondaryHex, fallback: LumaTheme.mint)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+    private var stateFlagHero: some View {
+        StateFlagBackdrop(style: stateFlagStyle)
+            .blur(radius: 1.2)
+            .overlay(.black.opacity(0.08))
     }
 
     private var stateFlagStyle: StateFlagStyle {
         StateFlagStyles.style(for: school.state)
+    }
+
+    private var schoolInitials: String {
+        let ignoredWords: Set<String> = ["of", "the", "and", "at", "for"]
+        let words = school.name
+            .split(separator: " ")
+            .filter { !ignoredWords.contains($0.lowercased()) }
+
+        let initials = words
+            .prefix(2)
+            .compactMap(\.first)
+            .map { String($0).uppercased() }
+            .joined()
+
+        return initials.isEmpty ? school.state : initials
     }
 
     private var scoreTint: Color {
@@ -249,30 +265,73 @@ struct SchoolCard: View {
     }
 }
 
-private struct StateIdentityBadge: View {
+private struct SchoolInitialMark: View {
+    var initials: String
+
+    var body: some View {
+        Text(initials)
+            .font(.system(size: initials.count > 2 ? 24 : 30, weight: .heavy))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
+            .frame(width: 70, height: 70)
+            .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(.white.opacity(0.26), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+            .accessibilityLabel("School initials")
+    }
+}
+
+private struct StateFlagBackdrop: View {
     var style: StateFlagStyle
 
     var body: some View {
-        ZStack {
-            Text(style.code)
-                .font(.system(size: 28, weight: .heavy))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
 
-            Image(systemName: style.emblemSystemImage)
-                .font(.system(size: 28, weight: .heavy))
-                .foregroundStyle(accentColor)
-                .opacity(0.18)
-                .offset(x: 18, y: -18)
+            ZStack {
+                LinearGradient(
+                    colors: [primaryColor, secondaryColor],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                Rectangle()
+                    .fill(.white.opacity(0.18))
+                    .frame(width: width * 0.38)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+
+                Rectangle()
+                    .fill(accentColor.opacity(0.30))
+                    .frame(width: width * 0.62, height: height * 0.22)
+                    .rotationEffect(.degrees(-16))
+                    .offset(x: width * 0.18, y: -height * 0.08)
+
+                Rectangle()
+                    .fill(.white.opacity(0.13))
+                    .frame(width: width * 0.84, height: height * 0.18)
+                    .rotationEffect(.degrees(-16))
+                    .offset(x: width * 0.28, y: height * 0.16)
+
+                Image(systemName: style.emblemSystemImage)
+                    .font(.system(size: 118, weight: .heavy))
+                    .foregroundStyle(accentColor.opacity(0.17))
+                    .offset(x: width * 0.30, y: -height * 0.18)
+            }
         }
-        .frame(width: 70, height: 70)
-        .background(.white.opacity(0.15), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(.white.opacity(0.24), lineWidth: 1)
-        }
-        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-        .accessibilityLabel("\(style.name) state marker")
+        .accessibilityHidden(true)
+    }
+
+    private var primaryColor: Color {
+        LumaTheme.color(hex: style.primaryHex, fallback: LumaTheme.aqua)
+    }
+
+    private var secondaryColor: Color {
+        LumaTheme.color(hex: style.secondaryHex, fallback: LumaTheme.mint)
     }
 
     private var accentColor: Color {
