@@ -77,6 +77,26 @@ final class CalculatorViewModel: ObservableObject {
         monthlyPayment * 120
     }
 
+    var annualFamilyContribution: Double {
+        aidInput.familyContribution
+    }
+
+    var totalFamilyContribution: Double {
+        annualFamilyContribution * Double(aidInput.yearsInSchool)
+    }
+
+    var annualStudentOutOfPocketGap: Double {
+        max(0, netAnnualCost - aidInput.annualLoanAmount)
+    }
+
+    var annualFamilyFundingGap: Double {
+        let plannedAnnualSupport = aidInput.grantsAndScholarships
+            + aidInput.workStudy
+            + aidInput.familyContribution
+            + aidInput.annualLoanAmount
+        return max(0, annualCost - plannedAnnualSupport)
+    }
+
     var annualAidTotal: Double {
         aidInput.grantsAndScholarships + aidInput.familyContribution + aidInput.workStudy
     }
@@ -88,9 +108,18 @@ final class CalculatorViewModel: ObservableObject {
     var planningModeSummary: String {
         switch planningMode {
         case .student:
-            "Student view focuses on yearly cost, borrowing, and monthly repayment."
+            "Student view highlights borrowing, monthly repayment, and the cash gap after loans."
         case .parent:
-            "Parent view highlights family contribution, aid gaps, and total plan cost."
+            "Parent view highlights family contribution, remaining annual gap, and total family support."
+        }
+    }
+
+    var planningGuidance: String {
+        switch planningMode {
+        case .student:
+            "Use this view to decide whether the loan amount and monthly payment feel manageable after graduation."
+        case .parent:
+            "Use this view to see what the family is committing each year and whether there is an unfunded gap to solve."
         }
     }
 
