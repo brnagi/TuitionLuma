@@ -246,23 +246,65 @@ private struct StateFlagBackdrop: View {
         AsyncImage(url: flagURL) { phase in
             switch phase {
             case .success(let image):
-                image
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFill()
-                    .overlay(readabilityOverlay)
+                GeometryReader { proxy in
+                    flagImage(image, in: proxy.size)
+                        .overlay(readabilityOverlay)
+                }
             case .failure, .empty:
                 fallbackFlag
             @unknown default:
                 fallbackFlag
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
         .accessibilityHidden(true)
     }
 
     private var flagURL: URL? {
         URL(string: "https://flagcdn.com/w640/us-\(style.code.lowercased()).png")
+    }
+
+    @ViewBuilder
+    private func flagImage(_ image: Image, in size: CGSize) -> some View {
+        if usesCenteredFullFlag {
+            ZStack {
+                image
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFill()
+                    .frame(width: size.width, height: size.height)
+                    .scaleEffect(1.08)
+                    .blur(radius: 10)
+                    .opacity(0.65)
+
+                image
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .frame(width: size.width - 36, height: size.height - 16)
+            }
+            .frame(width: size.width, height: size.height)
+        } else {
+            image
+                .resizable()
+                .interpolation(.high)
+                .scaledToFill()
+                .frame(width: size.width, height: size.height, alignment: flagAlignment)
+        }
+    }
+
+    private var usesCenteredFullFlag: Bool {
+        ["CA", "IL", "MA", "RI", "WV"].contains(style.code)
+    }
+
+    private var flagAlignment: Alignment {
+        switch style.code {
+        case "CA":
+            .bottom
+        default:
+            .center
+        }
     }
 
     private var readabilityOverlay: some View {
