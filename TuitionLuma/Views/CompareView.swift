@@ -2,12 +2,12 @@ import SwiftUI
 
 struct CompareView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @StateObject private var viewModel = CompareViewModel()
     @State private var isShowingPaywall = false
 
     private var compareLimit: Int {
-        SubscriptionPolicy.compareSchoolLimit(for: subscriptionManager.state)
+        ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state)
     }
 
     var body: some View {
@@ -34,8 +34,8 @@ struct CompareView: View {
             .onAppear {
                 syncCompareSelection()
             }
-            .onChange(of: subscriptionManager.state) { _, newState in
-                appViewModel.trimComparedSchools(to: SubscriptionPolicy.compareSchoolLimit(for: newState))
+            .onChange(of: proPurchaseManager.state) { _, newState in
+                appViewModel.trimComparedSchools(to: ProAccessPolicy.compareSchoolLimit(for: newState))
                 syncCompareSelection()
             }
             .onChange(of: appViewModel.comparedSchoolIDs) { _, _ in
@@ -43,7 +43,7 @@ struct CompareView: View {
             }
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
-                    .environmentObject(subscriptionManager)
+                    .environmentObject(proPurchaseManager)
             }
         }
     }
@@ -63,11 +63,11 @@ struct CompareView: View {
                 .foregroundStyle(LumaTheme.slate)
 
             HStack {
-                Text(subscriptionManager.state.isPro ? "Pro compare: up to 5 schools" : "Free compare: up to 2 schools")
+                Text(proPurchaseManager.state.isPro ? "Pro compare: up to 5 schools" : "Free compare: up to 2 schools")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(subscriptionManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
+                    .foregroundStyle(proPurchaseManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
 
-                if subscriptionManager.state.isPro {
+                if proPurchaseManager.state.isPro {
                     ProBadge(compact: true)
                 }
             }
@@ -140,7 +140,7 @@ struct CompareView: View {
 
     @ViewBuilder
     private var compareLimitPrompt: some View {
-        if subscriptionManager.state.isPro {
+        if proPurchaseManager.state.isPro {
             EmptyView()
         } else {
             UpgradePrompt(

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SchoolDetailView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @StateObject private var viewModel: SchoolDetailViewModel
     @State private var isShowingPaywall = false
 
@@ -41,7 +41,7 @@ struct SchoolDetailView: View {
         }
         .sheet(isPresented: $isShowingPaywall) {
             PaywallView()
-                .environmentObject(subscriptionManager)
+                .environmentObject(proPurchaseManager)
         }
     }
 
@@ -136,7 +136,7 @@ struct SchoolDetailView: View {
                 )
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             } else {
-                ForEach(viewModel.programs.prefix(subscriptionManager.state.isPro ? 12 : 3)) { program in
+                ForEach(viewModel.programs.prefix(proPurchaseManager.state.isPro ? 12 : 3)) { program in
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(program.name)
@@ -165,7 +165,7 @@ struct SchoolDetailView: View {
                     .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 }
 
-                if !subscriptionManager.state.isPro && viewModel.programs.count > 3 {
+                if !proPurchaseManager.state.isPro && viewModel.programs.count > 3 {
                     FeatureLock(
                         title: "Unlock program ROI",
                         message: "Compare more program outcomes, payback period, and advanced ROI with Pro.",
@@ -209,7 +209,7 @@ struct SchoolDetailView: View {
 
     private var proPlanningSection: some View {
         VStack(spacing: 12) {
-            if subscriptionManager.state.isPro {
+            if proPurchaseManager.state.isPro {
                 HStack {
                     Label("ROI score", systemImage: "chart.line.uptrend.xyaxis")
                         .font(.headline)
@@ -271,7 +271,7 @@ struct SchoolDetailView: View {
     }
 
     private func saveTapped() {
-        let limit = SubscriptionPolicy.savedSchoolLimit(for: subscriptionManager.state)
+        let limit = ProAccessPolicy.savedSchoolLimit(for: proPurchaseManager.state)
         let result = appViewModel.toggleSaved(school, savedLimit: limit)
 
         if result == .limitReached {

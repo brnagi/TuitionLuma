@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CalculatorView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @StateObject private var viewModel = CalculatorViewModel()
     @State private var isShowingPaywall = false
 
@@ -31,7 +31,7 @@ struct CalculatorView: View {
             .background(LumaTheme.canvas)
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
-                    .environmentObject(subscriptionManager)
+                    .environmentObject(proPurchaseManager)
             }
         }
     }
@@ -66,7 +66,7 @@ struct CalculatorView: View {
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             }
 
-            if !subscriptionManager.state.isPro {
+            if !proPurchaseManager.state.isPro {
                 UpgradePrompt(
                     title: "Unlock advanced planning",
                     message: "Model loan payments, scholarships, grants, and living scenarios with Pro.",
@@ -175,13 +175,13 @@ struct CalculatorView: View {
     private var aidInputs: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text(subscriptionManager.state.isPro ? "Aid, borrowing, and scholarships" : "Basic calculator")
+                Text(proPurchaseManager.state.isPro ? "Aid, borrowing, and scholarships" : "Basic calculator")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(LumaTheme.ink)
 
                 Spacer()
 
-                if subscriptionManager.state.isPro {
+                if proPurchaseManager.state.isPro {
                     ProBadge(compact: true)
                 }
             }
@@ -243,7 +243,7 @@ struct CalculatorView: View {
 
     @ViewBuilder
     private var advancedCalculatorSection: some View {
-        if subscriptionManager.state.isPro {
+        if proPurchaseManager.state.isPro {
             repaymentCard
             scenarioModelingCard
             reportExportCard
@@ -273,7 +273,7 @@ struct CalculatorView: View {
 
                 Spacer()
 
-                if subscriptionManager.state.isPro {
+                if proPurchaseManager.state.isPro {
                     ProBadge(compact: true)
                 } else {
                     Button("Unlock") {
@@ -285,7 +285,7 @@ struct CalculatorView: View {
                 }
             }
 
-            Text(subscriptionManager.state.isPro ? "Switch between student and parent planning views as you refine the plan." : "Free mode shows one shared planning view.")
+            Text(proPurchaseManager.state.isPro ? "Switch between student and parent planning views as you refine the plan." : "Free mode shows one shared planning view.")
                 .font(.subheadline)
                 .foregroundStyle(LumaTheme.slate)
         }

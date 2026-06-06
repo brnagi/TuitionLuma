@@ -14,7 +14,7 @@ The main app experience is real-data-first. Explore, school details, and program
 - Paginated search, featured colleges, state browsing, loading states, empty states, missing-key state, and API error handling
 - Reusable components: `SchoolCard`, `CostBreakdownCard`, `StatPill`, `ComparisonRow`, and `LumaButton`
 - Calculator logic for annual cost, total degree cost, net cost after aid, monthly loan payment, and 10-year repayment
-- Freemium model with mock TuitionLuma Pro subscription state
+- Freemium model with mock TuitionLuma Pro one-time purchase state
 - Paywall, Pro badge, feature lock, and upgrade prompt components
 - TODO placeholders for future StoreKit 2, campus image, logo, and report export integrations
 
@@ -42,7 +42,7 @@ TuitionLuma Pro unlocks:
 - Parent/student planning mode
 - Scenario modeling for on-campus, off-campus, in-state, out-of-state, 2-year, and 4-year paths
 
-MVP pricing copy is `$4.99 / month`.
+MVP pricing copy is a one-time `$4.99` purchase.
 
 ## Requirements
 
@@ -131,10 +131,10 @@ Mapped program fields include:
 
 ## Future StoreKit 2 integration
 
-`Services/Monetization.swift` contains the mock subscription boundary. To replace it with StoreKit 2 later:
+`Services/Monetization.swift` contains the mock one-time purchase boundary. To replace it with StoreKit 2 later:
 
-1. Create a subscription product in App Store Connect, for example `tuitionluma.pro.monthly`.
-2. Replace `MockSubscriptionManager` purchase and restore methods with StoreKit 2 `Product.products(for:)`, `purchase()`, and `Transaction.currentEntitlements`.
-3. Verify transactions before setting `SubscriptionState(tier: .pro)`.
-4. Observe `Transaction.updates` at app launch so Pro access changes immediately after renewal, cancellation, or refund events.
-5. Keep `SubscriptionPolicy` as the single place for Free vs Pro limits, so the UI rules stay separate from StoreKit code.
+1. Create a non-consumable in-app purchase in App Store Connect, for example `tuitionluma.pro.lifetime`.
+2. Replace `MockProPurchaseManager` purchase and restore methods with StoreKit 2 `Product.products(for:)`, `purchase()`, and `Transaction.currentEntitlements`.
+3. Verify transactions before setting `ProAccessState(tier: .pro)`.
+4. Observe `Transaction.updates` at app launch so Pro access changes immediately after purchase, restore, or refund events.
+5. Keep `ProAccessPolicy` as the single place for Free vs Pro limits, so the UI rules stay separate from StoreKit code.

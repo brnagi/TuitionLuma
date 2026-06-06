@@ -1,20 +1,20 @@
 import Foundation
 import SwiftUI
 
-enum SubscriptionTier: String, Codable {
+enum ProAccessTier: String, Codable {
     case free
     case pro
 }
 
-struct SubscriptionState: Equatable, Codable {
-    var tier: SubscriptionTier
-    var renewalDate: Date?
+struct ProAccessState: Equatable, Codable {
+    var tier: ProAccessTier
+    var purchasedAt: Date?
 
     var isPro: Bool {
         tier == .pro
     }
 
-    static let free = SubscriptionState(tier: .free, renewalDate: nil)
+    static let free = ProAccessState(tier: .free, purchasedAt: nil)
 }
 
 enum ProFeature: String, CaseIterable, Identifiable {
@@ -47,27 +47,27 @@ enum ProFeature: String, CaseIterable, Identifiable {
     }
 }
 
-enum SubscriptionPolicy {
-    static func savedSchoolLimit(for state: SubscriptionState) -> Int? {
+enum ProAccessPolicy {
+    static func savedSchoolLimit(for state: ProAccessState) -> Int? {
         state.isPro ? nil : 3
     }
 
-    static func compareSchoolLimit(for state: SubscriptionState) -> Int {
+    static func compareSchoolLimit(for state: ProAccessState) -> Int {
         state.isPro ? 5 : 2
     }
 
-    static func canUse(_ feature: ProFeature, state: SubscriptionState) -> Bool {
+    static func canUse(_ feature: ProFeature, state: ProAccessState) -> Bool {
         state.isPro
     }
 }
 
 @MainActor
-final class MockSubscriptionManager: ObservableObject {
-    @Published private(set) var state: SubscriptionState
+final class MockProPurchaseManager: ObservableObject {
+    @Published private(set) var state: ProAccessState
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
 
-    init(state: SubscriptionState = .free) {
+    init(state: ProAccessState = .free) {
         self.state = state
     }
 
@@ -77,9 +77,9 @@ final class MockSubscriptionManager: ObservableObject {
         defer { isLoading = false }
 
         try? await Task.sleep(nanoseconds: 450_000_000)
-        state = SubscriptionState(
+        state = ProAccessState(
             tier: .pro,
-            renewalDate: Calendar.current.date(byAdding: .month, value: 1, to: Date())
+            purchasedAt: Date()
         )
     }
 
@@ -96,8 +96,8 @@ final class MockSubscriptionManager: ObservableObject {
         state = .free
     }
 
-    // TODO: Replace this mock manager with StoreKit 2 Product, Transaction, and entitlement observation.
-    // TODO: Persist verified StoreKit 2 entitlement state instead of trusting local mock state.
+    // TODO: Replace this mock manager with StoreKit 2 non-consumable Product, Transaction, and entitlement observation.
+    // TODO: Persist verified StoreKit 2 one-time purchase entitlement state instead of trusting local mock state.
 }
 
 struct ProBadge: View {
@@ -203,7 +203,7 @@ struct UpgradePrompt: View {
 }
 
 struct PaywallView: View {
-    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @Environment(\.dismiss) private var dismiss
 
     private let benefits = [
@@ -308,31 +308,35 @@ struct PaywallView: View {
                     .font(.system(size: 42, weight: .heavy))
                     .foregroundStyle(LumaTheme.ink)
 
-                Text("/ month")
+                Text("one-time")
                     .font(.headline)
                     .foregroundStyle(LumaTheme.slate)
             }
 
-            Text("Mock purchase for this MVP. StoreKit 2 wiring comes next.")
+            Text("Buy once and keep TuitionLuma Pro. No subscription, renewals, or surprise bills.")
                 .font(.footnote)
                 .foregroundStyle(LumaTheme.slate)
 
-            if let errorMessage = subscriptionManager.errorMessage {
+            Text("Mock one-time purchase for this MVP. StoreKit 2 non-consumable wiring comes next.")
+                .font(.caption)
+                .foregroundStyle(LumaTheme.slate.opacity(0.78))
+
+            if let errorMessage = proPurchaseManager.errorMessage {
                 Text(errorMessage)
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(LumaTheme.coral)
             }
 
             LumaButton(
-                title: subscriptionManager.state.isPro ? "Pro Unlocked" : "Start TuitionLuma Pro",
-                systemImage: subscriptionManager.state.isPro ? "checkmark" : "sparkles"
+                title: proPurchaseManager.state.isPro ? "Pro Unlocked" : "Unlock Pro for $4.99",
+                systemImage: proPurchaseManager.state.isPro ? "checkmark" : "sparkles"
             ) {
                 Task {
-                    await subscriptionManager.purchasePro()
+                    await proPurchaseManager.purchasePro()
                     dismiss()
                 }
             }
-            .disabled(subscriptionManager.isLoading || subscriptionManager.state.isPro)
+            .disabled(proPurchaseManager.isLoading || proPurchaseManager.state.isPro)
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -341,16 +345,16 @@ struct PaywallView: View {
     private var restoreButton: some View {
         Button {
             Task {
-                await subscriptionManager.restorePurchases()
+                await proPurchaseManager.restorePurchases()
             }
         } label: {
-            Text(subscriptionManager.isLoading ? "Checking..." : "Restore Purchase")
+            Text(proPurchaseManager.isLoading ? "Checking..." : "Restore Purchase")
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
-        .disabled(subscriptionManager.isLoading)
+        .disabled(proPurchaseManager.isLoading)
     }
 }

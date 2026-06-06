@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SavedSchoolsView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @State private var isShowingPaywall = false
 
     var body: some View {
@@ -58,14 +58,14 @@ struct SavedSchoolsView: View {
             }
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
-                    .environmentObject(subscriptionManager)
+                    .environmentObject(proPurchaseManager)
             }
         }
     }
 
     @ViewBuilder
     private var savedLimitPrompt: some View {
-        if subscriptionManager.state.isPro {
+        if proPurchaseManager.state.isPro {
             HStack {
                 ProBadge()
                 Text("Unlimited saved schools are unlocked.")
@@ -76,7 +76,7 @@ struct SavedSchoolsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(LumaTheme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         } else {
-            let limit = SubscriptionPolicy.savedSchoolLimit(for: subscriptionManager.state) ?? 0
+            let limit = ProAccessPolicy.savedSchoolLimit(for: proPurchaseManager.state) ?? 0
             UpgradePrompt(
                 title: "\(appViewModel.savedSchools.count)/\(limit) free saves used",
                 message: "Upgrade for unlimited saved schools and richer family planning.",
@@ -91,7 +91,7 @@ struct SavedSchoolsView: View {
             return
         }
 
-        let limit = SubscriptionPolicy.compareSchoolLimit(for: subscriptionManager.state)
+        let limit = ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state)
         let result = appViewModel.addToCompare(school, compareLimit: limit)
 
         if result == .limitReached {

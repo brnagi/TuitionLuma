@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ExploreView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var subscriptionManager: MockSubscriptionManager
+    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isShowingPaywall = false
 
@@ -38,7 +38,7 @@ struct ExploreView: View {
             }
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
-                    .environmentObject(subscriptionManager)
+                    .environmentObject(proPurchaseManager)
             }
         }
     }
@@ -62,7 +62,7 @@ struct ExploreView: View {
         .background(LumaTheme.coolGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .foregroundStyle(.white)
         .overlay(alignment: .topTrailing) {
-            if subscriptionManager.state.isPro {
+            if proPurchaseManager.state.isPro {
                 ProBadge()
                     .padding(14)
             }
@@ -195,7 +195,7 @@ struct ExploreView: View {
     }
 
     private func saveTapped(_ school: School) {
-        let limit = SubscriptionPolicy.savedSchoolLimit(for: subscriptionManager.state)
+        let limit = ProAccessPolicy.savedSchoolLimit(for: proPurchaseManager.state)
         let result = appViewModel.toggleSaved(school, savedLimit: limit)
 
         if result == .limitReached {
@@ -209,7 +209,7 @@ struct ExploreView: View {
             return
         }
 
-        let limit = SubscriptionPolicy.compareSchoolLimit(for: subscriptionManager.state)
+        let limit = ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state)
         let result = appViewModel.addToCompare(school, compareLimit: limit)
 
         if result == .limitReached {
