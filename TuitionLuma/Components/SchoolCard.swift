@@ -255,11 +255,11 @@ private struct StateFlagBackdrop: View {
                             .interpolation(.high)
                             .scaledToFill()
                             .frame(width: proxy.size.width, height: proxy.size.height)
-                            .blur(radius: 1.25)
-                            .saturation(0.92)
-                            .contrast(0.96)
+                            .saturation(1.12)
+                            .contrast(1.05)
+                            .brightness(0.02)
                     }
-                    .overlay(diffusionOverlay)
+                    .overlay(flagFinishOverlay)
                 }
             case .failure, .empty:
                 fallbackFlag
@@ -276,23 +276,33 @@ private struct StateFlagBackdrop: View {
         URL(string: "https://flagcdn.com/w640/us-\(style.code.lowercased()).png")
     }
 
-    private var diffusionOverlay: some View {
+    private var flagFinishOverlay: some View {
         ZStack {
-            Rectangle()
-                .fill(.white.opacity(0.16))
-
             LinearGradient(
-                colors: [.white.opacity(0.18), .clear, .black.opacity(0.10)],
+                colors: [.white.opacity(0.24), .clear, .black.opacity(0.12)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.16)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
             RadialGradient(
-                colors: [.clear, .black.opacity(0.12)],
+                colors: [.clear, .black.opacity(0.10)],
                 center: .center,
                 startRadius: 80,
                 endRadius: 260
             )
+
+            Capsule()
+                .fill(.white.opacity(0.16))
+                .frame(width: 280, height: 34)
+                .blur(radius: 18)
+                .rotationEffect(.degrees(-16))
+                .offset(x: -54, y: -42)
         }
     }
 
@@ -318,6 +328,6 @@ private struct StateFlagBackdrop: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .overlay(diffusionOverlay)
+        .overlay(flagFinishOverlay)
     }
 }
