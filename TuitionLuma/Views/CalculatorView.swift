@@ -5,6 +5,9 @@ struct CalculatorView: View {
     @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
     @StateObject private var viewModel = CalculatorViewModel()
     @State private var isShowingPaywall = false
+    @State private var isGeneratingReport = false
+    @State private var reportErrorMessage: String?
+    @State private var shareableReport: ShareableReport?
 
     var body: some View {
         NavigationStack {
@@ -32,6 +35,9 @@ struct CalculatorView: View {
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
                     .environmentObject(proPurchaseManager)
+            }
+            .sheet(item: $shareableReport) { report in
+                ShareSheet(items: [report.url])
             }
         }
     }
@@ -548,14 +554,66 @@ struct CalculatorView: View {
                 ProBadge(compact: true)
             }
 
-            Text("PDF export is mocked for the MVP and ready for a future report generator.")
+            Text("Create a polished PDF with cost breakdowns, aid planning, repayment estimates, and scenario details to review with family.")
                 .font(.subheadline)
                 .foregroundStyle(LumaTheme.slate)
 
-            LumaButton(title: "Share Cost Report", systemImage: "doc.richtext") {}
+            LumaButton(
+                title: isGeneratingReport ? "Building Report..." : "Share Cost Report",
+                systemImage: isGeneratingReport ? "hourglass" : "doc.richtext"
+            ) {
+                generateAndShareReport()
+            }
+            .disabled(isGeneratingReport)
+
+            if let reportErrorMessage {
+                Text(reportErrorMessage)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LumaTheme.warningOrange)
+            }
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func generateAndShareReport() {
+        guard let selectedSchool = viewModel.selectedSchool else {
+            reportErrorMessage = "Choose a school before sharing a report."
+            return
+        }
+
+        isGeneratingReport = true
+        reportErrorMessage = nil
+
+        let payload = CostReportPayload(
+            school: selectedSchool,
+            aidInput: viewModel.aidInput,
+            planningMode: viewModel.planningMode,
+            livingScenario: viewModel.livingScenario,
+            residencyScenario: viewModel.residencyScenario,
+            degreePathScenario: viewModel.degreePathScenario,
+            repaymentTerm: viewModel.repaymentTerm,
+            annualCost: viewModel.annualCost,
+            totalDegreeCost: viewModel.totalDegreeCost,
+            netAnnualCost: viewModel.netAnnualCost,
+            netTotalCost: viewModel.netTotalCost,
+            loanPrincipal: viewModel.loanPrincipal,
+            monthlyPayment: viewModel.monthlyPayment,
+            totalRepayment: viewModel.totalRepayment,
+            annualAidTotal: viewModel.annualAidTotal,
+            totalFamilyContribution: viewModel.totalFamilyContribution,
+            annualFamilyFundingGap: viewModel.annualFamilyFundingGap,
+            annualStudentOutOfPocketGap: viewModel.annualStudentOutOfPocketGap
+        )
+
+        do {
+            let url = try CostReportPDFGenerator.generate(payload: payload)
+            shareableReport = ShareableReport(url: url)
+        } catch {
+            reportErrorMessage = "TuitionLuma could not create the PDF report."
+        }
+
+        isGeneratingReport = false
     }
 
     private func moneySlider(title: String, value: Binding<Double>, range: ClosedRange<Double>, tint: Color) -> some View {
@@ -716,4 +774,9 @@ struct CalculatorView: View {
         }
         .buttonStyle(.plain)
     }
+}
+
+private struct ShareableReport: Identifiable {
+    let id = UUID()
+    var url: URL
 }
