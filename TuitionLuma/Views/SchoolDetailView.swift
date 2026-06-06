@@ -11,19 +11,23 @@ struct SchoolDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                hero
-                quickStats
-                dataQualitySection
-                CostBreakdownCard(cost: school.costEstimate)
-                proPlanningSection
-                programSection
-                outcomesSection
+        GeometryReader { proxy in
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 18) {
+                    hero
+                    quickStats
+                    dataQualitySection
+                    CostBreakdownCard(cost: school.costEstimate)
+                    proPlanningSection
+                    programSection
+                    outcomesSection
+                }
+                .padding()
+                .frame(width: proxy.size.width, alignment: .leading)
+                .clipped()
             }
-            .padding()
+            .background(LumaTheme.canvas)
         }
-        .background(LumaTheme.canvas)
         .navigationTitle(school.name)
         .task {
             await viewModel.load()
@@ -137,32 +141,39 @@ struct SchoolDetailView: View {
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             } else {
                 ForEach(viewModel.programs.prefix(proPurchaseManager.state.isPro ? 12 : 3)) { program in
-                    HStack {
+                    HStack(alignment: .top, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(program.name)
                                 .font(.headline)
                                 .foregroundStyle(LumaTheme.ink)
+                                .lineLimit(3)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             Text(programSubtitle(program))
                                 .font(.caption)
                                 .foregroundStyle(LumaTheme.slate)
-                                .lineLimit(2)
+                                .lineLimit(3)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-
-                        Spacer()
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                         VStack(alignment: .trailing, spacing: 4) {
                             Text(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "N/A")
                                 .font(.headline.weight(.heavy))
                                 .foregroundStyle(LumaTheme.ink)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.76)
 
                             Text("median pay")
                                 .font(.caption2.weight(.medium))
                                 .foregroundStyle(LumaTheme.slate)
                         }
+                        .frame(width: 86, alignment: .trailing)
                     }
                     .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .clipped()
                 }
 
                 if !proPurchaseManager.state.isPro && viewModel.programs.count > 3 {
