@@ -23,22 +23,23 @@ struct StudentProfileCard: View {
     }
 
     private var proProfileCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
-                Image(systemName: "person.text.rectangle.fill")
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 42, height: 42)
-                    .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: 8))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(LumaTheme.heroGradient)
+
+                    Image(systemName: "person.crop.circle.badge.checkmark")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 44, height: 44)
+                .shadow(color: LumaTheme.aqua.opacity(0.20), radius: 10, y: 5)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text("Student Profile")
-                            .font(.headline)
-                            .foregroundStyle(LumaTheme.ink)
-
-                        ProBadge(compact: true)
-                    }
+                    Text("Student Profile")
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
 
                     Text(statusText)
                         .font(.caption)
@@ -52,14 +53,30 @@ struct StudentProfileCard: View {
                     isShowingEditor = true
                 }
                 .font(.caption.weight(.heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(LumaTheme.coral)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 12)
-                .background(LumaTheme.coral, in: Capsule())
+                .background(.white, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(LumaTheme.coral.opacity(0.18))
+                }
                 .buttonStyle(.plain)
             }
 
             if studentProfileStore.profile.isComplete {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.caption2.weight(.heavy))
+
+                    Text("Personalized")
+                        .font(.caption.weight(.heavy))
+                }
+                .foregroundStyle(LumaTheme.outcomeTeal)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 9)
+                .background(LumaTheme.aqua.opacity(0.11), in: Capsule())
+
                 profileSummary
             } else {
                 Text("Create a profile to personalize Explore cards with fit, estimated net cost, and ROI grade.")
@@ -69,21 +86,46 @@ struct StudentProfileCard: View {
             }
         }
         .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.aqua.opacity(0.18))
         }
+        .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
     }
 
     private var profileSummary: some View {
         let profile = studentProfileStore.profile
 
         return HStack(spacing: 8) {
-            profileChip("\(profile.gpa.formatted(.number.precision(.fractionLength(1)))) GPA")
-            profileChip(profile.normalizedStateResidency)
-            profileChip(profile.intendedMajor)
+            profileChip(
+                "\(profile.gpa.formatted(.number.precision(.fractionLength(1)))) GPA",
+                systemImage: "graduationcap.fill",
+                tint: LumaTheme.coral
+            )
+            profileChip(
+                profile.normalizedStateResidency,
+                systemImage: "map.fill",
+                tint: LumaTheme.outcomeTeal
+            )
+            profileChip(
+                profile.intendedMajor,
+                systemImage: "book.closed.fill",
+                tint: LumaTheme.scorePurple
+            )
         }
+    }
+
+    private var profileCardBackground: some ShapeStyle {
+        LinearGradient(
+            colors: [
+                .white,
+                LumaTheme.aqua.opacity(0.07),
+                LumaTheme.sun.opacity(0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     private var statusText: String {
@@ -96,15 +138,25 @@ struct StudentProfileCard: View {
         return "Tailor fit, net cost, and ROI guidance."
     }
 
-    private func profileChip(_ title: String) -> some View {
-        Text(title)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(LumaTheme.ink)
-            .lineLimit(1)
-            .minimumScaleFactor(0.75)
-            .padding(.vertical, 7)
-            .padding(.horizontal, 9)
-            .background(LumaTheme.canvas, in: Capsule())
+    private func profileChip(_ title: String, systemImage: String, tint: Color) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.heavy))
+                .foregroundStyle(tint)
+
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(LumaTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .padding(.vertical, 7)
+        .padding(.horizontal, 9)
+        .background(.white.opacity(0.82), in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(tint.opacity(0.12))
+        }
     }
 }
 
