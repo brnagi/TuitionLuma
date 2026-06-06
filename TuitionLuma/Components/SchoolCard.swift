@@ -247,8 +247,16 @@ private struct StateFlagBackdrop: View {
             switch phase {
             case .success(let image):
                 GeometryReader { proxy in
-                    flagImage(image, in: proxy.size)
-                        .overlay(readabilityOverlay)
+                    ZStack {
+                        flagBackground
+
+                        image
+                            .resizable()
+                            .interpolation(.high)
+                            .scaledToFit()
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                    }
+                    .overlay(readabilityOverlay)
                 }
             case .failure, .empty:
                 fallbackFlag
@@ -265,51 +273,21 @@ private struct StateFlagBackdrop: View {
         URL(string: "https://flagcdn.com/w640/us-\(style.code.lowercased()).png")
     }
 
-    @ViewBuilder
-    private func flagImage(_ image: Image, in size: CGSize) -> some View {
-        if usesCenteredFullFlag {
-            ZStack {
-                image
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFill()
-                    .frame(width: size.width, height: size.height)
-                    .scaleEffect(1.08)
-                    .blur(radius: 10)
-                    .opacity(0.65)
-
-                image
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFit()
-                    .frame(width: size.width - 36, height: size.height - 16)
-            }
-            .frame(width: size.width, height: size.height)
-        } else {
-            image
-                .resizable()
-                .interpolation(.high)
-                .scaledToFill()
-                .frame(width: size.width, height: size.height, alignment: flagAlignment)
-        }
-    }
-
-    private var usesCenteredFullFlag: Bool {
-        ["CA", "IL", "MA", "RI", "WV"].contains(style.code)
-    }
-
-    private var flagAlignment: Alignment {
-        switch style.code {
-        case "CA":
-            .bottom
-        default:
-            .center
-        }
-    }
-
     private var readabilityOverlay: some View {
         LinearGradient(
             colors: [.black.opacity(0.16), .clear, .black.opacity(0.10)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var flagBackground: some View {
+        LinearGradient(
+            colors: [
+                LumaTheme.color(hex: style.primaryHex, fallback: LumaTheme.aqua).opacity(0.22),
+                LumaTheme.color(hex: style.secondaryHex, fallback: LumaTheme.mint).opacity(0.18),
+                .white.opacity(0.35)
+            ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
