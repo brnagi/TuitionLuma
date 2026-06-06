@@ -22,12 +22,12 @@ struct SchoolCard: View {
                     .lineLimit(2)
             }
             .padding(18)
-            .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(.white.opacity(0.97), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .padding(.horizontal, 10)
             .padding(.bottom, 10)
         }
         .background {
-            SchoolBrandBackdrop(school: school)
+            StateFlagBackdrop(style: stateFlagStyle)
                 .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
         .overlay {
@@ -38,39 +38,19 @@ struct SchoolCard: View {
     }
 
     private var campusImage: some View {
-        ZStack(alignment: .topTrailing) {
-            ZStack(alignment: .bottomLeading) {
-                campusBackground
+        ZStack(alignment: .topLeading) {
+            stateFlagHero
 
-                VStack(alignment: .leading, spacing: 10) {
-                    logoMark
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    schoolTypeBadge
 
-                    Text(school.type.rawValue)
-                        .font(.caption.weight(.heavy))
-                        .foregroundStyle(.white.opacity(0.92))
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 10)
-                        .background(.white.opacity(0.20), in: Capsule())
+                    Spacer(minLength: 12)
+
+                    actionButtons
                 }
-                .padding(18)
             }
-
-            HStack(spacing: 8) {
-                iconButton(
-                    systemImage: isCompared ? "checkmark.circle.fill" : "plus.circle",
-                    tint: isCompared ? LumaTheme.scorePurple : LumaTheme.ink.opacity(0.72),
-                    label: isCompared ? "Remove school from compare" : "Compare school",
-                    action: onCompareTapped
-                )
-
-                iconButton(
-                    systemImage: isSaved ? "bookmark.fill" : "bookmark",
-                    tint: isSaved ? LumaTheme.valueGreen : LumaTheme.ink.opacity(0.72),
-                    label: isSaved ? "Remove saved school" : "Save school",
-                    action: onSaveTapped
-                )
-            }
-            .padding(12)
+            .padding(16)
         }
         .frame(height: 174)
         .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -78,58 +58,39 @@ struct SchoolCard: View {
         .padding(.bottom, -4)
     }
 
-    @ViewBuilder
-    private var campusBackground: some View {
-        if let campusImageURL = school.campusImageURL {
-            // TODO: Replace mock URLs with verified campus image URLs from a licensed data source.
-            AsyncImage(url: campusImageURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .overlay(.black.opacity(0.18))
-                case .failure, .empty:
-                    brandHero
-                @unknown default:
-                    brandHero
-                }
-            }
-        } else {
-            brandHero
+    private var schoolTypeBadge: some View {
+        HStack(spacing: 7) {
+            Image(systemName: school.type == .publicUniversity || school.type == .communityCollege ? "building.columns.fill" : "sparkle")
+                .font(.caption.weight(.bold))
+
+            Text(school.type.rawValue)
+                .font(.subheadline.weight(.heavy))
         }
+        .foregroundStyle(LumaTheme.ink)
+        .padding(.vertical, 9)
+        .padding(.horizontal, 12)
+        .background(.white.opacity(0.92), in: Capsule())
+        .shadow(color: .black.opacity(0.10), radius: 8, y: 4)
     }
 
-    @ViewBuilder
-    private var logoMark: some View {
-        if !logoURLs.isEmpty {
-            ProgressiveRemoteImage(urls: logoURLs) { image in
-                logoImageTreatment(image)
-            } placeholder: {
-                fallbackLogoMark
-            }
-        } else {
-            fallbackLogoMark
+    private var actionButtons: some View {
+        HStack(spacing: 8) {
+            labeledActionButton(
+                title: isCompared ? "Added" : "Compare",
+                systemImage: isCompared ? "checkmark.circle.fill" : "plus.circle",
+                tint: isCompared ? LumaTheme.scorePurple : LumaTheme.ink,
+                accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
+                action: onCompareTapped
+            )
+
+            labeledActionButton(
+                title: isSaved ? "Saved" : "Save",
+                systemImage: isSaved ? "bookmark.fill" : "bookmark",
+                tint: isSaved ? LumaTheme.valueGreen : LumaTheme.ink,
+                accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
+                action: onSaveTapped
+            )
         }
-    }
-
-    private var fallbackLogoMark: some View {
-        SchoolInitialMark(initials: schoolInitials)
-    }
-
-    private func logoImageTreatment(_ image: Image) -> some View {
-        image
-            .resizable()
-            .interpolation(.high)
-            .scaledToFit()
-            .padding(14)
-            .frame(width: 108, height: 108)
-            .background(.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 24))
-            .overlay {
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(.white.opacity(0.70), lineWidth: 1)
-            }
-            .shadow(color: brandShadow.opacity(0.26), radius: 18, y: 9)
     }
 
     private var titleBlock: some View {
@@ -192,46 +153,9 @@ struct SchoolCard: View {
         .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private var brandHero: some View {
-        SchoolBrandBackdrop(school: school)
-            .overlay(logoWatermark)
-            .overlay(.black.opacity(0.08))
-    }
-
-    @ViewBuilder
-    private var logoWatermark: some View {
-        if !logoURLs.isEmpty {
-            GeometryReader { proxy in
-                ProgressiveRemoteImage(urls: logoURLs) { image in
-                    image
-                        .resizable()
-                        .interpolation(.high)
-                        .scaledToFit()
-                        .frame(width: proxy.size.width * 0.72, height: proxy.size.height * 0.92)
-                        .opacity(0.16)
-                        .blur(radius: 0.2)
-                        .offset(x: proxy.size.width * 0.38, y: proxy.size.height * 0.03)
-                } placeholder: {
-                    EmptyView()
-                }
-            }
-            .allowsHitTesting(false)
-        }
-    }
-
-    private var schoolInitials: String {
-        let ignoredWords: Set<String> = ["of", "the", "and", "at", "for"]
-        let words = school.name
-            .split(separator: " ")
-            .filter { !ignoredWords.contains($0.lowercased()) }
-
-        let initials = words
-            .prefix(2)
-            .compactMap(\.first)
-            .map { String($0).uppercased() }
-            .joined()
-
-        return initials.isEmpty ? school.state : initials
+    private var stateFlagHero: some View {
+        StateFlagBackdrop(style: stateFlagStyle)
+            .overlay(.black.opacity(0.04))
     }
 
     private var scoreTint: Color {
@@ -253,12 +177,8 @@ struct SchoolCard: View {
         school.costEstimate.averageNetPrice > 45_000 ? LumaTheme.warningOrange : LumaTheme.valueGreen
     }
 
-    private var logoURLs: [URL] {
-        school.logoURLs.isEmpty ? school.logoURL.map { [$0] } ?? [] : school.logoURLs
-    }
-
-    private var brandShadow: Color {
-        LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.ink)
+    private var stateFlagStyle: StateFlagStyle {
+        StateFlagStyles.style(for: school.state)
     }
 
     private func compactMetric(title: String, value: String, tint: Color) -> some View {
@@ -279,104 +199,81 @@ struct SchoolCard: View {
         .padding(.horizontal, 10)
     }
 
-    private func iconButton(systemImage: String, tint: Color, label: String, action: @escaping () -> Void) -> some View {
+    private func labeledActionButton(
+        title: String,
+        systemImage: String,
+        tint: Color,
+        accessibilityLabel: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(tint)
-                .frame(width: 36, height: 36)
-                .background(.white.opacity(0.92), in: Circle())
-                .shadow(color: .black.opacity(0.10), radius: 8, y: 4)
+            HStack(spacing: 5) {
+                Image(systemName: systemImage)
+                    .font(.subheadline.weight(.semibold))
+
+                Text(title)
+                    .font(.caption.weight(.heavy))
+            }
+            .foregroundStyle(tint)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .background(.white.opacity(0.94), in: Capsule())
+            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 
-private struct SchoolInitialMark: View {
-    var initials: String
+private struct StateFlagBackdrop: View {
+    var style: StateFlagStyle
 
     var body: some View {
-        Text(initials)
-            .font(.system(size: initials.count > 2 ? 24 : 30, weight: .heavy))
-            .foregroundStyle(.white)
-            .lineLimit(1)
-            .minimumScaleFactor(0.72)
-            .frame(width: 108, height: 108)
-            .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 24))
-            .overlay {
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(.white.opacity(0.26), lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-            .accessibilityLabel("School initials")
-    }
-}
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
 
-private struct ProgressiveRemoteImage<Content: View, Placeholder: View>: View {
-    var urls: [URL]
-    @ViewBuilder var content: (Image) -> Content
-    @ViewBuilder var placeholder: () -> Placeholder
+            ZStack {
+                HStack(spacing: 0) {
+                    primaryColor
+                        .frame(width: width * 0.36)
 
-    @State private var index = 0
-
-    var body: some View {
-        if urls.indices.contains(index) {
-            AsyncImage(url: urls[index]) { phase in
-                switch phase {
-                case .success(let image):
-                    content(image)
-                case .failure:
-                    nextLogoCandidate
-                case .empty:
-                    placeholder()
-                @unknown default:
-                    nextLogoCandidate
+                    VStack(spacing: 0) {
+                        secondaryColor
+                        accentColor
+                    }
                 }
+
+                LinearGradient(
+                    colors: [.white.opacity(0.08), .clear, .black.opacity(0.14)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                Image(systemName: style.emblemSystemImage)
+                    .font(.system(size: 76, weight: .heavy))
+                    .foregroundStyle(.white.opacity(0.28))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .padding(.leading, width * 0.12)
+
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(.white.opacity(0.20), lineWidth: 1)
+                    .padding(1)
             }
-        } else {
-            placeholder()
-        }
-    }
-
-    private var nextLogoCandidate: some View {
-        placeholder()
-            .task {
-                if index < urls.count - 1 {
-                    index += 1
-                }
-            }
-    }
-}
-
-private struct SchoolBrandBackdrop: View {
-    var school: School
-
-    var body: some View {
-        LinearGradient(
-            colors: [
-                primaryColor.opacity(0.96),
-                secondaryColor.opacity(0.88),
-                LumaTheme.aqua.opacity(0.38)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .overlay {
-            LinearGradient(
-                colors: [.white.opacity(0.18), .clear, .black.opacity(0.08)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            .frame(width: width, height: height)
         }
         .accessibilityHidden(true)
     }
 
     private var primaryColor: Color {
-        LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.aqua)
+        LumaTheme.color(hex: style.primaryHex, fallback: LumaTheme.aqua)
     }
 
     private var secondaryColor: Color {
-        LumaTheme.color(hex: school.secondaryColor, fallback: LumaTheme.mint)
+        LumaTheme.color(hex: style.secondaryHex, fallback: LumaTheme.mint)
+    }
+
+    private var accentColor: Color {
+        LumaTheme.color(hex: style.accentHex, fallback: .white)
     }
 }
