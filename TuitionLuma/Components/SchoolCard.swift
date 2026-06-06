@@ -253,10 +253,13 @@ private struct StateFlagBackdrop: View {
                         image
                             .resizable()
                             .interpolation(.high)
-                            .scaledToFit()
+                            .scaledToFill()
                             .frame(width: proxy.size.width, height: proxy.size.height)
+                            .blur(radius: 1.25)
+                            .saturation(0.92)
+                            .contrast(0.96)
                     }
-                    .overlay(readabilityOverlay)
+                    .overlay(diffusionOverlay)
                 }
             case .failure, .empty:
                 fallbackFlag
@@ -273,12 +276,24 @@ private struct StateFlagBackdrop: View {
         URL(string: "https://flagcdn.com/w640/us-\(style.code.lowercased()).png")
     }
 
-    private var readabilityOverlay: some View {
-        LinearGradient(
-            colors: [.black.opacity(0.16), .clear, .black.opacity(0.10)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+    private var diffusionOverlay: some View {
+        ZStack {
+            Rectangle()
+                .fill(.white.opacity(0.16))
+
+            LinearGradient(
+                colors: [.white.opacity(0.18), .clear, .black.opacity(0.10)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            RadialGradient(
+                colors: [.clear, .black.opacity(0.12)],
+                center: .center,
+                startRadius: 80,
+                endRadius: 260
+            )
+        }
     }
 
     private var flagBackground: some View {
@@ -303,6 +318,6 @@ private struct StateFlagBackdrop: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .overlay(readabilityOverlay)
+        .overlay(diffusionOverlay)
     }
 }
