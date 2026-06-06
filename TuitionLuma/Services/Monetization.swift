@@ -63,12 +63,19 @@ enum ProAccessPolicy {
 
 @MainActor
 final class MockProPurchaseManager: ObservableObject {
+    private let storageKey = "tuitionluma.mockProAccessState"
+
     @Published private(set) var state: ProAccessState
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
 
     init(state: ProAccessState = .free) {
-        self.state = state
+        if let data = UserDefaults.standard.data(forKey: storageKey),
+           let savedState = try? JSONDecoder().decode(ProAccessState.self, from: data) {
+            self.state = savedState
+        } else {
+            self.state = state
+        }
     }
 
     func purchasePro() async {
@@ -81,6 +88,7 @@ final class MockProPurchaseManager: ObservableObject {
             tier: .pro,
             purchasedAt: Date()
         )
+        persistState()
     }
 
     func restorePurchases() async {
@@ -89,15 +97,28 @@ final class MockProPurchaseManager: ObservableObject {
         defer { isLoading = false }
 
         try? await Task.sleep(nanoseconds: 300_000_000)
-        errorMessage = "No mock Pro purchase found."
+        if let data = UserDefaults.standard.data(forKey: storageKey),
+           let savedState = try? JSONDecoder().decode(ProAccessState.self, from: data),
+           savedState.isPro {
+            state = savedState
+        } else {
+            errorMessage = "No mock Pro purchase found."
+        }
     }
 
     func resetToFreeForTesting() {
         state = .free
+        UserDefaults.standard.removeObject(forKey: storageKey)
     }
 
     // TODO: Replace this mock manager with StoreKit 2 non-consumable Product, Transaction, and entitlement observation.
     // TODO: Persist verified StoreKit 2 one-time purchase entitlement state instead of trusting local mock state.
+
+    private func persistState() {
+        if let data = try? JSONEncoder().encode(state) {
+            UserDefaults.standard.set(data, forKey: storageKey)
+        }
+    }
 }
 
 struct ProBadge: View {

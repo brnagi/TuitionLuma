@@ -113,6 +113,15 @@ struct CalculatorView: View {
             Text(viewModel.annualCost > 0 ? "This subtracts grants, scholarships, family help, and work-study from the annual sticker price." : "College Scorecard has not reported enough cost data for this school yet.")
                 .font(.footnote)
                 .foregroundStyle(.white.opacity(0.88))
+
+            if proPurchaseManager.state.isPro {
+                Text(viewModel.scenarioSummary)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.88))
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(.white.opacity(0.18), in: Capsule())
+            }
         }
         .padding(20)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -236,6 +245,13 @@ struct CalculatorView: View {
                 }
                 .foregroundStyle(LumaTheme.ink)
             }
+            .onChange(of: viewModel.aidInput.yearsInSchool) { _, newValue in
+                if newValue == 2 {
+                    viewModel.degreePathScenario = .twoYear
+                } else if newValue == 4 {
+                    viewModel.degreePathScenario = .fourYear
+                }
+            }
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -285,9 +301,29 @@ struct CalculatorView: View {
                 }
             }
 
-            Text(proPurchaseManager.state.isPro ? "Switch between student and parent planning views as you refine the plan." : "Free mode shows one shared planning view.")
-                .font(.subheadline)
-                .foregroundStyle(LumaTheme.slate)
+            if proPurchaseManager.state.isPro {
+                Picker("Planning mode", selection: $viewModel.planningMode) {
+                    ForEach(PlanningMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(viewModel.affordabilityFocus)
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.coral)
+
+                    Text(viewModel.planningModeSummary)
+                        .font(.subheadline)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else {
+                Text("Free mode shows one shared planning view.")
+                    .font(.subheadline)
+                    .foregroundStyle(LumaTheme.slate)
+            }
         }
         .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -326,6 +362,20 @@ struct CalculatorView: View {
                     .foregroundStyle(LumaTheme.ink)
             }
 
+            HStack {
+                Text(viewModel.affordabilityFocus)
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.coral)
+
+                Spacer()
+
+                Text(viewModel.scenarioSummary)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+
             Text("Use this as a planning estimate. Real loan terms can vary by federal loan limits, private loans, fees, and repayment plan.")
                 .font(.footnote)
                 .foregroundStyle(LumaTheme.slate)
@@ -345,13 +395,67 @@ struct CalculatorView: View {
                 ProBadge(compact: true)
             }
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                scenarioChip("On campus")
-                scenarioChip("Off campus")
-                scenarioChip("In-state")
-                scenarioChip("Out-of-state")
-                scenarioChip("2-year path")
-                scenarioChip("4-year path")
+            VStack(alignment: .leading, spacing: 12) {
+                scenarioGroup(title: "Living") {
+                    HStack(spacing: 10) {
+                        ForEach(LivingScenario.allCases) { scenario in
+                            scenarioChip(
+                                scenario.rawValue,
+                                isSelected: viewModel.livingScenario == scenario
+                            ) {
+                                viewModel.livingScenario = scenario
+                            }
+                        }
+                    }
+                }
+
+                scenarioGroup(title: "Residency") {
+                    HStack(spacing: 10) {
+                        ForEach(ResidencyScenario.allCases) { scenario in
+                            scenarioChip(
+                                scenario.rawValue,
+                                isSelected: viewModel.residencyScenario == scenario
+                            ) {
+                                viewModel.residencyScenario = scenario
+                            }
+                        }
+                    }
+                }
+
+                scenarioGroup(title: "Path") {
+                    HStack(spacing: 10) {
+                        ForEach(DegreePathScenario.allCases) { scenario in
+                            scenarioChip(
+                                scenario.title,
+                                isSelected: viewModel.degreePathScenario == scenario
+                            ) {
+                                viewModel.selectDegreePath(scenario)
+                            }
+                        }
+                    }
+                }
+            }
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(viewModel.annualCost.formatted(LumaFormat.currency))
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+                    Text("modeled annual cost")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LumaTheme.slate)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(viewModel.netTotalCost.formatted(LumaFormat.currency))
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+                    Text("modeled net total")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LumaTheme.slate)
+                }
             }
         }
         .padding(18)
@@ -459,14 +563,27 @@ struct CalculatorView: View {
         .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private func scenarioChip(_ title: String) -> some View {
-        Text(title)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(LumaTheme.ink)
-            .lineLimit(1)
-            .minimumScaleFactor(0.75)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(LumaTheme.mint.opacity(0.14), in: Capsule())
+    private func scenarioGroup<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(LumaTheme.slate)
+
+            content()
+        }
+    }
+
+    private func scenarioChip(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(isSelected ? .white : LumaTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(isSelected ? LumaTheme.coral : LumaTheme.mint.opacity(0.14), in: Capsule())
+        }
+        .buttonStyle(.plain)
     }
 }
