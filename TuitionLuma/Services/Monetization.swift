@@ -341,7 +341,7 @@ struct PaywallView: View {
                 .font(.footnote)
                 .foregroundStyle(LumaTheme.slate)
 
-            Text("Mock one-time purchase for this MVP. StoreKit 2 non-consumable wiring comes next.")
+            Text("One-time Pro access for students and families who want deeper planning tools.")
                 .font(.caption)
                 .foregroundStyle(LumaTheme.slate.opacity(0.78))
 

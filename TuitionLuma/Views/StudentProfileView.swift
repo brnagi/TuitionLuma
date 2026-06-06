@@ -233,7 +233,7 @@ private struct StudentProfileEditorView: View {
                 insightPill("ROI", systemImage: "chart.line.uptrend.xyaxis")
             }
 
-            Text("Your answers stay on this device for the MVP and help tailor estimated net cost, affordability, and ROI signals.")
+            Text("Your answers stay on this device and help tailor estimated net cost, affordability, and ROI signals.")
                 .font(.footnote)
                 .foregroundStyle(.white.opacity(0.88))
                 .fixedSize(horizontal: false, vertical: true)

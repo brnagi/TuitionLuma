@@ -1,6 +1,6 @@
 # TuitionLuma
 
-TuitionLuma is a SwiftUI MVP that helps students and families compare the true cost of college, including tuition, fees, housing, aid, debt, and expected outcomes.
+TuitionLuma is a SwiftUI app that helps students and families compare the true cost of college, including tuition, fees, housing, aid, debt, and expected outcomes.
 
 The main app experience is real-data-first. Explore, school details, and program outcomes load from the U.S. Department of Education College Scorecard API by default. Sample data is kept only for SwiftUI previews, local development fallback, and missing-key demo states.
 
@@ -14,7 +14,7 @@ The main app experience is real-data-first. Explore, school details, and program
 - Paginated search, featured colleges, state browsing, loading states, empty states, missing-key state, and API error handling
 - Reusable components: `SchoolCard`, `CostBreakdownCard`, `StatPill`, `ComparisonRow`, and `LumaButton`
 - Calculator logic for annual cost, total degree cost, net cost after aid, monthly loan payment, and 10-year repayment
-- Freemium model with mock TuitionLuma Pro one-time purchase state
+- Freemium model with TuitionLuma Pro one-time purchase state
 - Paywall, Pro badge, feature lock, and upgrade prompt components
 - TODO placeholders for future StoreKit 2, campus image, logo, and report export integrations
 
@@ -42,7 +42,7 @@ TuitionLuma Pro unlocks:
 - Parent/student planning mode
 - Scenario modeling for on-campus, off-campus, in-state, out-of-state, 2-year, and 4-year paths
 
-MVP pricing copy is a one-time `$4.99` purchase.
+TuitionLuma Pro is presented as a one-time `$4.99` purchase.
 
 ## Requirements
 
