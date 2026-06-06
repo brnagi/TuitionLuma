@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SchoolCard: View {
     var school: School
+    var recommendation: ProfileRecommendation? = nil
     var isSaved: Bool
     var isCompared: Bool
     var onSaveTapped: () -> Void
@@ -14,7 +15,13 @@ struct SchoolCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 controlRow
                 titleBlock
-                valueBadge
+
+                if let recommendation {
+                    personalizedRecommendation(recommendation)
+                } else {
+                    valueBadge
+                }
+
                 metricRow
 
                 Text(school.campusVibe)
@@ -144,6 +151,49 @@ struct SchoolCard: View {
         .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
+    private func personalizedRecommendation(_ recommendation: ProfileRecommendation) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "sparkles")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .frame(width: 26, height: 26)
+                    .background(recommendationTint(for: recommendation).gradient, in: Circle())
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(recommendation.fitLabel)
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text(recommendation.summary)
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .lineLimit(2)
+                }
+            }
+
+            HStack(spacing: 10) {
+                recommendationMetric(
+                    title: "Estimated net cost",
+                    value: recommendation.estimatedNetCost.formatted(LumaFormat.currency),
+                    tint: LumaTheme.valueGreen
+                )
+
+                recommendationMetric(
+                    title: "ROI score",
+                    value: recommendation.roiGrade,
+                    tint: recommendationTint(for: recommendation)
+                )
+            }
+        }
+        .padding(14)
+        .background(recommendationTint(for: recommendation).opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(recommendationTint(for: recommendation).opacity(0.14))
+        }
+    }
+
     private var stateFlagHero: some View {
         StateFlagBackdrop(style: stateFlagStyle)
             .scaleEffect(1.02)
@@ -208,6 +258,38 @@ struct SchoolCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 10)
+    }
+
+    private func recommendationMetric(title: String, value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(value)
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+
+            Text(title)
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(LumaTheme.slate)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func recommendationTint(for recommendation: ProfileRecommendation) -> Color {
+        switch recommendation.roiGrade {
+        case "A":
+            LumaTheme.valueGreen
+        case "B+", "B":
+            LumaTheme.outcomeTeal
+        case "C+":
+            LumaTheme.scoreGold
+        default:
+            LumaTheme.warningOrange
+        }
     }
 
     private func labeledActionButton(

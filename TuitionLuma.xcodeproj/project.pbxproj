@@ -14,6 +14,7 @@
 		B00000000000000000000004 /* CostEstimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* CostEstimate.swift */; };
 		B00000000000000000000005 /* AidInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* AidInput.swift */; };
 		B00000000000000000000006 /* School.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* School.swift */; };
+		B00000000000000000000036 /* StudentProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000036 /* StudentProfile.swift */; };
 		B00000000000000000000007 /* MockSchools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000007 /* MockSchools.swift */; };
 		B00000000000000000000008 /* CollegeScorecardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* CollegeScorecardService.swift */; };
 		B00000000000000000000029 /* Monetization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000029 /* Monetization.swift */; };
@@ -39,6 +40,7 @@
 		B00000000000000000000026 /* CalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000026 /* CalculatorView.swift */; };
 		B00000000000000000000027 /* CompareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000027 /* CompareView.swift */; };
 		B00000000000000000000028 /* SavedSchoolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000028 /* SavedSchoolsView.swift */; };
+		B00000000000000000000037 /* StudentProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000037 /* StudentProfileView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +50,7 @@
 		F00000000000000000000004 /* CostEstimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostEstimate.swift; sourceTree = "<group>"; };
 		F00000000000000000000005 /* AidInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AidInput.swift; sourceTree = "<group>"; };
 		F00000000000000000000006 /* School.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = School.swift; sourceTree = "<group>"; };
+		F00000000000000000000036 /* StudentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentProfile.swift; sourceTree = "<group>"; };
 		F00000000000000000000007 /* MockSchools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSchools.swift; sourceTree = "<group>"; };
 		F00000000000000000000008 /* CollegeScorecardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeScorecardService.swift; sourceTree = "<group>"; };
 		F00000000000000000000029 /* Monetization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monetization.swift; sourceTree = "<group>"; };
@@ -73,6 +76,7 @@
 		F00000000000000000000026 /* CalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorView.swift; sourceTree = "<group>"; };
 		F00000000000000000000027 /* CompareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareView.swift; sourceTree = "<group>"; };
 		F00000000000000000000028 /* SavedSchoolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSchoolsView.swift; sourceTree = "<group>"; };
+		F00000000000000000000037 /* StudentProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentProfileView.swift; sourceTree = "<group>"; };
 		F00000000000000000000030 /* TuitionLuma.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TuitionLuma.xcconfig; sourceTree = "<group>"; };
 		F00000000000000000000031 /* LocalSecrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LocalSecrets.xcconfig.example; sourceTree = "<group>"; };
 		F00000000000000000000032 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -125,6 +129,7 @@
 				F00000000000000000000004 /* CostEstimate.swift */,
 				F00000000000000000000005 /* AidInput.swift */,
 				F00000000000000000000006 /* School.swift */,
+				F00000000000000000000036 /* StudentProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -207,6 +212,7 @@
 				F00000000000000000000026 /* CalculatorView.swift */,
 				F00000000000000000000027 /* CompareView.swift */,
 				F00000000000000000000028 /* SavedSchoolsView.swift */,
+				F00000000000000000000037 /* StudentProfileView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -285,6 +291,7 @@
 				B00000000000000000000004 /* CostEstimate.swift in Sources */,
 				B00000000000000000000005 /* AidInput.swift in Sources */,
 				B00000000000000000000006 /* School.swift in Sources */,
+				B00000000000000000000036 /* StudentProfile.swift in Sources */,
 				B00000000000000000000007 /* MockSchools.swift in Sources */,
 				B00000000000000000000008 /* CollegeScorecardService.swift in Sources */,
 				B00000000000000000000029 /* Monetization.swift in Sources */,
@@ -310,6 +317,7 @@
 				B00000000000000000000026 /* CalculatorView.swift in Sources */,
 				B00000000000000000000027 /* CompareView.swift in Sources */,
 				B00000000000000000000028 /* SavedSchoolsView.swift in Sources */,
+				B00000000000000000000037 /* StudentProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

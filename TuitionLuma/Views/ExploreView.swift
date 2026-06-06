@@ -3,6 +3,7 @@ import SwiftUI
 struct ExploreView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isShowingPaywall = false
 
@@ -16,6 +17,9 @@ struct ExploreView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         header
                         searchAndFilters
+                        StudentProfileCard {
+                            isShowingPaywall = true
+                        }
                         content
                     }
                     .padding()
@@ -139,6 +143,7 @@ struct ExploreView: View {
                         } label: {
                             SchoolCard(
                                 school: school,
+                                recommendation: recommendation(for: school),
                                 isSaved: appViewModel.isSaved(school),
                                 isCompared: appViewModel.isCompared(school),
                                 onSaveTapped: { saveTapped(school) },
@@ -211,5 +216,17 @@ struct ExploreView: View {
         }
 
         // TODO: Consider switching to the Compare tab after add once tab selection is centralized.
+    }
+
+    private func recommendation(for school: School) -> ProfileRecommendation? {
+        guard proPurchaseManager.state.isPro,
+              studentProfileStore.profile.isComplete else {
+            return nil
+        }
+
+        return StudentProfileRecommendationEngine.recommendation(
+            for: school,
+            profile: studentProfileStore.profile
+        )
     }
 }

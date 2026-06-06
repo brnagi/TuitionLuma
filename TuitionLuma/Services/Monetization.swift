@@ -26,6 +26,7 @@ enum ProFeature: String, CaseIterable, Identifiable {
     case monthlyLoanPayments = "Monthly loan payment projections"
     case pdfExport = "Export/share cost report as PDF"
     case affordabilityScore = "Personalized affordability score"
+    case studentProfile = "Personalized student profile"
     case planningMode = "Parent/student planning mode"
     case scenarioModeling = "Scenario modeling"
 
@@ -41,6 +42,7 @@ enum ProFeature: String, CaseIterable, Identifiable {
         case .monthlyLoanPayments: "calendar.badge.clock"
         case .pdfExport: "square.and.arrow.up.fill"
         case .affordabilityScore: "gauge.with.dots.needle.67percent"
+        case .studentProfile: "person.text.rectangle.fill"
         case .planningMode: "person.2.fill"
         case .scenarioModeling: "slider.horizontal.3"
         }
@@ -231,6 +233,7 @@ struct PaywallView: View {
         "Compare more schools",
         "Forecast student loan payments",
         "Estimate your real net cost",
+        "Personalize fit and ROI recommendations",
         "Model scholarships and grants",
         "Share reports with family"
     ]
@@ -305,7 +308,7 @@ struct PaywallView: View {
 
     private var proFeatureGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            ForEach(ProFeature.allCases.prefix(8)) { feature in
+            ForEach(ProFeature.allCases) { feature in
                 VStack(alignment: .leading, spacing: 8) {
                     Image(systemName: feature.systemImage)
                         .foregroundStyle(LumaTheme.coral)
