@@ -42,7 +42,7 @@ struct SchoolCard: View {
             ZStack(alignment: .bottomLeading) {
                 campusBackground
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 10) {
                     logoMark
 
                     Text(school.type.rawValue)
@@ -72,7 +72,7 @@ struct SchoolCard: View {
             }
             .padding(12)
         }
-        .frame(height: 150)
+        .frame(height: 174)
         .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .padding(10)
         .padding(.bottom, -4)
@@ -102,26 +102,11 @@ struct SchoolCard: View {
 
     @ViewBuilder
     private var logoMark: some View {
-        if let logoURL = school.logoURL {
-            AsyncImage(url: logoURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .padding(12)
-                        .frame(width: 82, height: 82)
-                        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(.white.opacity(0.56), lineWidth: 1)
-                        }
-                        .shadow(color: .black.opacity(0.12), radius: 14, y: 7)
-                case .failure, .empty:
-                    fallbackLogoMark
-                @unknown default:
-                    fallbackLogoMark
-                }
+        if !logoURLs.isEmpty {
+            ProgressiveRemoteImage(urls: logoURLs) { image in
+                logoImageTreatment(image)
+            } placeholder: {
+                fallbackLogoMark
             }
         } else {
             fallbackLogoMark
@@ -130,6 +115,21 @@ struct SchoolCard: View {
 
     private var fallbackLogoMark: some View {
         SchoolInitialMark(initials: schoolInitials)
+    }
+
+    private func logoImageTreatment(_ image: Image) -> some View {
+        image
+            .resizable()
+            .interpolation(.high)
+            .scaledToFit()
+            .padding(14)
+            .frame(width: 108, height: 108)
+            .background(.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 24))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(.white.opacity(0.70), lineWidth: 1)
+            }
+            .shadow(color: brandShadow.opacity(0.26), radius: 18, y: 9)
     }
 
     private var titleBlock: some View {
@@ -200,23 +200,19 @@ struct SchoolCard: View {
 
     @ViewBuilder
     private var logoWatermark: some View {
-        if let logoURL = school.logoURL {
+        if !logoURLs.isEmpty {
             GeometryReader { proxy in
-                AsyncImage(url: logoURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: proxy.size.width * 0.46, height: proxy.size.height * 0.86)
-                            .opacity(0.20)
-                            .blur(radius: 0.4)
-                            .offset(x: proxy.size.width * 0.58, y: proxy.size.height * 0.05)
-                    case .failure, .empty:
-                        EmptyView()
-                    @unknown default:
-                        EmptyView()
-                    }
+                ProgressiveRemoteImage(urls: logoURLs) { image in
+                    image
+                        .resizable()
+                        .interpolation(.high)
+                        .scaledToFit()
+                        .frame(width: proxy.size.width * 0.72, height: proxy.size.height * 0.92)
+                        .opacity(0.16)
+                        .blur(radius: 0.2)
+                        .offset(x: proxy.size.width * 0.38, y: proxy.size.height * 0.03)
+                } placeholder: {
+                    EmptyView()
                 }
             }
             .allowsHitTesting(false)
@@ -255,6 +251,14 @@ struct SchoolCard: View {
 
     private var netPriceTint: Color {
         school.costEstimate.averageNetPrice > 45_000 ? LumaTheme.warningOrange : LumaTheme.valueGreen
+    }
+
+    private var logoURLs: [URL] {
+        school.logoURLs.isEmpty ? school.logoURL.map { [$0] } ?? [] : school.logoURLs
+    }
+
+    private var brandShadow: Color {
+        LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.ink)
     }
 
     private func compactMetric(title: String, value: String, tint: Color) -> some View {
@@ -298,14 +302,50 @@ private struct SchoolInitialMark: View {
             .foregroundStyle(.white)
             .lineLimit(1)
             .minimumScaleFactor(0.72)
-            .frame(width: 82, height: 82)
-            .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 20))
+            .frame(width: 108, height: 108)
+            .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 24))
             .overlay {
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 24)
                     .stroke(.white.opacity(0.26), lineWidth: 1)
             }
             .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
             .accessibilityLabel("School initials")
+    }
+}
+
+private struct ProgressiveRemoteImage<Content: View, Placeholder: View>: View {
+    var urls: [URL]
+    @ViewBuilder var content: (Image) -> Content
+    @ViewBuilder var placeholder: () -> Placeholder
+
+    @State private var index = 0
+
+    var body: some View {
+        if urls.indices.contains(index) {
+            AsyncImage(url: urls[index]) { phase in
+                switch phase {
+                case .success(let image):
+                    content(image)
+                case .failure:
+                    nextLogoCandidate
+                case .empty:
+                    placeholder()
+                @unknown default:
+                    nextLogoCandidate
+                }
+            }
+        } else {
+            placeholder()
+        }
+    }
+
+    private var nextLogoCandidate: some View {
+        placeholder()
+            .task {
+                if index < urls.count - 1 {
+                    index += 1
+                }
+            }
     }
 }
 

@@ -21,6 +21,7 @@ struct School: Identifiable, Hashable, Codable {
     var primaryColor: String?
     var secondaryColor: String?
     var logoURL: URL?
+    var logoURLs: [URL]
     var campusImageURL: URL?
     var medianEarnings: Double
     var averageDebt: Double
@@ -48,6 +49,7 @@ struct School: Identifiable, Hashable, Codable {
         primaryColor: String? = nil,
         secondaryColor: String? = nil,
         logoURL: URL? = nil,
+        logoURLs: [URL] = [],
         campusImageURL: URL? = nil,
         medianEarnings: Double,
         averageDebt: Double,
@@ -74,6 +76,7 @@ struct School: Identifiable, Hashable, Codable {
         self.primaryColor = primaryColor
         self.secondaryColor = secondaryColor
         self.logoURL = logoURL
+        self.logoURLs = logoURLs.isEmpty ? logoURL.map { [$0] } ?? [] : logoURLs
         self.campusImageURL = campusImageURL
         self.medianEarnings = medianEarnings
         self.averageDebt = averageDebt

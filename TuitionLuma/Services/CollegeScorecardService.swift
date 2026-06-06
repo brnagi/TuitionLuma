@@ -225,6 +225,8 @@ struct CollegeScorecardService: SchoolDataProviding {
         let averageDebt = object.double("latest.aid.median_debt.completers.overall")
         let studentSize = object.int("latest.student.size")
         let stateFlagStyle = StateFlagStyles.style(for: state)
+        let brandProfile = SchoolBrandProfile.profile(for: schoolWebsite)
+        let logoURLs = SchoolLogoURLBuilder.logoURLs(from: schoolWebsite)
 
         var missingFields: [String] = []
         if tuitionInState == nil { missingFields.append("In-state tuition") }
@@ -262,9 +264,10 @@ struct CollegeScorecardService: SchoolDataProviding {
             graduationRate: graduationRate ?? 0,
             lumaScore: score,
             valueLabel: LumaScoreCalculator.label(for: score),
-            primaryColor: stateFlagStyle.primaryHex,
-            secondaryColor: stateFlagStyle.secondaryHex,
-            logoURL: SchoolLogoURLBuilder.logoURL(from: schoolWebsite),
+            primaryColor: brandProfile?.primaryHex ?? stateFlagStyle.primaryHex,
+            secondaryColor: brandProfile?.secondaryHex ?? stateFlagStyle.secondaryHex,
+            logoURL: logoURLs.first,
+            logoURLs: logoURLs,
             medianEarnings: medianEarnings ?? 0,
             averageDebt: averageDebt ?? 0,
             studentCount: studentSize ?? 0,
@@ -383,13 +386,32 @@ enum LumaScoreCalculator {
 
 enum SchoolLogoURLBuilder {
     static func logoURL(from website: String?) -> URL? {
-        guard let domain = normalizedDomain(from: website) else { return nil }
-
-        // TODO: Replace this public favicon lookup with a licensed school-logo provider or stored image CDN.
-        return URL(string: "https://www.google.com/s2/favicons?sz=256&domain=\(domain)")
+        logoURLs(from: website).first
     }
 
-    private static func normalizedDomain(from website: String?) -> String? {
+    static func logoURLs(from website: String?) -> [URL] {
+        guard let domain = normalizedDomain(from: website) else { return [] }
+        let hosts = orderedHosts(for: domain)
+
+        // TODO: Replace these public logo candidates with a licensed school-logo provider or stored image CDN.
+        let candidateStrings = curatedLogoURLs(for: domain) + hosts.flatMap { host in
+            [
+                "https://\(host)/apple-touch-icon-precomposed.png",
+                "https://\(host)/apple-touch-icon.png",
+                "https://\(host)/favicon.ico"
+            ]
+        } + [
+            "https://www.google.com/s2/favicons?sz=256&domain=\(domain)"
+        ]
+
+        var seen: Set<String> = []
+        return candidateStrings.compactMap { string in
+            guard seen.insert(string).inserted else { return nil }
+            return URL(string: string)
+        }
+    }
+
+    static func normalizedDomain(from website: String?) -> String? {
         guard var value = website?.trimmingCharacters(in: .whitespacesAndNewlines),
               !value.isEmpty else {
             return nil
@@ -407,6 +429,49 @@ enum SchoolLogoURLBuilder {
 
         return host
     }
+
+    private static func orderedHosts(for domain: String) -> [String] {
+        domain.hasPrefix("www.") ? [domain] : ["www.\(domain)", domain]
+    }
+
+    private static func curatedLogoURLs(for domain: String) -> [String] {
+        switch domain {
+        case "snhu.edu":
+            [
+                "https://www.snhu.edu/assets/img/icons/apple-touch-icon-precomposed.png",
+                "https://www.snhu.edu/assets/img/favicon.ico"
+            ]
+        default:
+            []
+        }
+    }
+}
+
+struct SchoolBrandProfile {
+    var primaryHex: String
+    var secondaryHex: String
+
+    static func profile(for website: String?) -> SchoolBrandProfile? {
+        guard let domain = SchoolLogoURLBuilder.normalizedDomain(from: website) else { return nil }
+
+        return profiles[domain]
+    }
+
+    private static let profiles: [String: SchoolBrandProfile] = [
+        "snhu.edu": SchoolBrandProfile(primaryHex: "#00244D", secondaryHex: "#F7C948"),
+        "wgu.edu": SchoolBrandProfile(primaryHex: "#003057", secondaryHex: "#F3B61F"),
+        "liberty.edu": SchoolBrandProfile(primaryHex: "#002D62", secondaryHex: "#A6192E"),
+        "asu.edu": SchoolBrandProfile(primaryHex: "#8C1D40", secondaryHex: "#FFC627"),
+        "purdue.edu": SchoolBrandProfile(primaryHex: "#111111", secondaryHex: "#CEB888"),
+        "umich.edu": SchoolBrandProfile(primaryHex: "#00274C", secondaryHex: "#FFCB05"),
+        "utexas.edu": SchoolBrandProfile(primaryHex: "#BF5700", secondaryHex: "#333F48"),
+        "northeastern.edu": SchoolBrandProfile(primaryHex: "#CC0000", secondaryHex: "#111111"),
+        "howard.edu": SchoolBrandProfile(primaryHex: "#003A70", secondaryHex: "#E51937"),
+        "mdc.edu": SchoolBrandProfile(primaryHex: "#005DAA", secondaryHex: "#F7B500"),
+        "smc.edu": SchoolBrandProfile(primaryHex: "#0057B8", secondaryHex: "#F6C343"),
+        "reed.edu": SchoolBrandProfile(primaryHex: "#A6192E", secondaryHex: "#111111"),
+        "spelman.edu": SchoolBrandProfile(primaryHex: "#005EB8", secondaryHex: "#9ED9FF")
+    ]
 }
 
 private struct ScorecardResponse: Decodable {
