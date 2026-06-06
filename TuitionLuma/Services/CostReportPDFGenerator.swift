@@ -211,6 +211,7 @@ enum CostReportPDFGenerator {
         let total = max(payload.annualCost, 1)
         let segments = [
             ("Aid", payload.annualAidTotal, mint),
+            ("Family", payload.aidInput.familyContribution, UIColor(red: 1.00, green: 0.78, blue: 0.25, alpha: 1)),
             ("Loans", payload.aidInput.annualLoanAmount, coral),
             ("Gap", payload.annualFamilyFundingGap, UIColor(red: 0.95, green: 0.38, blue: 0.16, alpha: 1))
         ].filter { $0.1 > 0 }
@@ -225,8 +226,9 @@ enum CostReportPDFGenerator {
         }
 
         drawMiniRow("Modeled annual cost", currency(payload.annualCost), x: card.minX + 18, y: card.minY + 82, width: card.width - 36)
-        drawMiniRow("Aid and family support", currency(payload.annualAidTotal), x: card.minX + 18, y: card.minY + 106, width: card.width - 36)
-        drawMiniRow("Student cash gap after loans", currency(payload.annualStudentOutOfPocketGap), x: card.minX + 18, y: card.minY + 130, width: card.width - 36)
+        drawMiniRow("Aid and work-study", currency(payload.annualAidTotal), x: card.minX + 18, y: card.minY + 106, width: card.width - 36)
+        drawMiniRow("Family contribution", currency(payload.aidInput.familyContribution), x: card.minX + 18, y: card.minY + 130, width: card.width - 36)
+        drawMiniRow("Student cash gap after loans", currency(payload.annualStudentOutOfPocketGap), x: card.minX + 18, y: card.minY + 146, width: card.width - 36)
     }
 
     private static func drawDataNotes(payload: CostReportPayload, startY: CGFloat, pageRect: CGRect) {

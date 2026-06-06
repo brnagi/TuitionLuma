@@ -118,7 +118,7 @@ final class CalculatorViewModel: ObservableObject {
     }
 
     var annualStudentOutOfPocketGap: Double {
-        max(0, netAnnualCost - aidInput.annualLoanAmount)
+        max(0, netAnnualCost - aidInput.familyContribution - aidInput.annualLoanAmount)
     }
 
     var annualFamilyFundingGap: Double {
@@ -130,7 +130,7 @@ final class CalculatorViewModel: ObservableObject {
     }
 
     var annualAidTotal: Double {
-        aidInput.grantsAndScholarships + aidInput.familyContribution + aidInput.workStudy
+        aidInput.grantsAndScholarships + aidInput.workStudy
     }
 
     var scenarioSummary: String {
@@ -167,6 +167,30 @@ final class CalculatorViewModel: ObservableObject {
     func selectDegreePath(_ scenario: DegreePathScenario) {
         degreePathScenario = scenario
         aidInput.yearsInSchool = scenario.rawValue
+    }
+
+    func applySchoolDefaults(for school: School?) {
+        selectedSchool = school
+
+        guard let school else {
+            aidInput = .starter
+            return
+        }
+
+        let cost = school.costEstimate
+        let modeledCost = modeledAnnualCost(for: school)
+        let reportedNetPrice = cost.averageNetPrice > 0 ? cost.averageNetPrice : modeledCost
+        let estimatedGrantAid = max(0, modeledCost - reportedNetPrice)
+        let annualLoanAmount = min(max(reportedNetPrice, 0), 5_500)
+
+        aidInput = AidInput(
+            grantsAndScholarships: estimatedGrantAid,
+            familyContribution: 0,
+            workStudy: 0,
+            annualLoanAmount: annualLoanAmount,
+            interestRate: aidInput.interestRate,
+            yearsInSchool: aidInput.yearsInSchool
+        )
     }
 
     func saveRepaymentPlan() {

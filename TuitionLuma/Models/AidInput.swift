@@ -9,10 +9,10 @@ struct AidInput: Hashable {
     var yearsInSchool: Int
 
     static let starter = AidInput(
-        grantsAndScholarships: 10_000,
-        familyContribution: 5_000,
-        workStudy: 2_000,
-        annualLoanAmount: 7_500,
+        grantsAndScholarships: 0,
+        familyContribution: 0,
+        workStudy: 0,
+        annualLoanAmount: 5_500,
         interestRate: 0.055,
         yearsInSchool: 4
     )

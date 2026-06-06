@@ -70,6 +70,9 @@ struct CalculatorView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .onChange(of: viewModel.selectedSchool) { _, newSchool in
+                    viewModel.applySchoolDefaults(for: newSchool)
+                }
             }
 
             if !proPurchaseManager.state.isPro {
@@ -116,7 +119,7 @@ struct CalculatorView: View {
                 }
             }
 
-            Text(viewModel.annualCost > 0 ? "This subtracts grants, scholarships, family help, and work-study from the annual sticker price." : "College Scorecard has not reported enough cost data for this school yet.")
+            Text(viewModel.annualCost > 0 ? "This starts with reported cost data, then subtracts grants, scholarships, and work-study. Family help and loans show how the remaining cost gets covered." : "College Scorecard has not reported enough cost data for this school yet.")
                 .font(.footnote)
                 .foregroundStyle(.white.opacity(0.88))
 

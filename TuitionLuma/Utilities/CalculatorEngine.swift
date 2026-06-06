@@ -10,7 +10,7 @@ enum CalculatorEngine {
     }
 
     static func netAnnualCost(for school: School, aid: AidInput) -> Double {
-        let aidTotal = aid.grantsAndScholarships + aid.familyContribution + aid.workStudy
+        let aidTotal = aid.grantsAndScholarships + aid.workStudy
         return max(0, annualCost(for: school) - aidTotal)
     }
 
