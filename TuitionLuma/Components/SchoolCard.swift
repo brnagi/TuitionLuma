@@ -27,8 +27,7 @@ struct SchoolCard: View {
             .padding(.bottom, 10)
         }
         .background {
-            StateFlagBackdrop(style: stateFlagStyle)
-                .blur(radius: 2.4)
+            SchoolBrandBackdrop(school: school)
                 .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
         .overlay {
@@ -91,29 +90,33 @@ struct SchoolCard: View {
                         .scaledToFill()
                         .overlay(.black.opacity(0.18))
                 case .failure, .empty:
-                    stateFlagHero
+                    brandHero
                 @unknown default:
-                    stateFlagHero
+                    brandHero
                 }
             }
         } else {
-            stateFlagHero
+            brandHero
         }
     }
 
     @ViewBuilder
     private var logoMark: some View {
         if let logoURL = school.logoURL {
-            // TODO: Connect logoURL once school logo assets are available.
             AsyncImage(url: logoURL) { phase in
                 switch phase {
                 case .success(let image):
                     image
                         .resizable()
                         .scaledToFit()
-                        .padding(10)
-                        .frame(width: 70, height: 70)
-                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .padding(12)
+                        .frame(width: 82, height: 82)
+                        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(.white.opacity(0.56), lineWidth: 1)
+                        }
+                        .shadow(color: .black.opacity(0.12), radius: 14, y: 7)
                 case .failure, .empty:
                     fallbackLogoMark
                 @unknown default:
@@ -189,14 +192,35 @@ struct SchoolCard: View {
         .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private var stateFlagHero: some View {
-        StateFlagBackdrop(style: stateFlagStyle)
-            .blur(radius: 1.2)
+    private var brandHero: some View {
+        SchoolBrandBackdrop(school: school)
+            .overlay(logoWatermark)
             .overlay(.black.opacity(0.08))
     }
 
-    private var stateFlagStyle: StateFlagStyle {
-        StateFlagStyles.style(for: school.state)
+    @ViewBuilder
+    private var logoWatermark: some View {
+        if let logoURL = school.logoURL {
+            GeometryReader { proxy in
+                AsyncImage(url: logoURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: proxy.size.width * 0.46, height: proxy.size.height * 0.86)
+                            .opacity(0.20)
+                            .blur(radius: 0.4)
+                            .offset(x: proxy.size.width * 0.58, y: proxy.size.height * 0.05)
+                    case .failure, .empty:
+                        EmptyView()
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            }
+            .allowsHitTesting(false)
+        }
     }
 
     private var schoolInitials: String {
@@ -274,10 +298,10 @@ private struct SchoolInitialMark: View {
             .foregroundStyle(.white)
             .lineLimit(1)
             .minimumScaleFactor(0.72)
-            .frame(width: 70, height: 70)
-            .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .frame(width: 82, height: 82)
+            .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 20))
             .overlay {
-                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                RoundedRectangle(cornerRadius: 20)
                     .stroke(.white.opacity(0.26), lineWidth: 1)
             }
             .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
@@ -285,56 +309,34 @@ private struct SchoolInitialMark: View {
     }
 }
 
-private struct StateFlagBackdrop: View {
-    var style: StateFlagStyle
+private struct SchoolBrandBackdrop: View {
+    var school: School
 
     var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let height = proxy.size.height
-
-            ZStack {
-                LinearGradient(
-                    colors: [primaryColor, secondaryColor],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-
-                Rectangle()
-                    .fill(.white.opacity(0.18))
-                    .frame(width: width * 0.38)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-
-                Rectangle()
-                    .fill(accentColor.opacity(0.30))
-                    .frame(width: width * 0.62, height: height * 0.22)
-                    .rotationEffect(.degrees(-16))
-                    .offset(x: width * 0.18, y: -height * 0.08)
-
-                Rectangle()
-                    .fill(.white.opacity(0.13))
-                    .frame(width: width * 0.84, height: height * 0.18)
-                    .rotationEffect(.degrees(-16))
-                    .offset(x: width * 0.28, y: height * 0.16)
-
-                Image(systemName: style.emblemSystemImage)
-                    .font(.system(size: 118, weight: .heavy))
-                    .foregroundStyle(accentColor.opacity(0.17))
-                    .offset(x: width * 0.30, y: -height * 0.18)
-            }
+        LinearGradient(
+            colors: [
+                primaryColor.opacity(0.96),
+                secondaryColor.opacity(0.88),
+                LumaTheme.aqua.opacity(0.38)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay {
+            LinearGradient(
+                colors: [.white.opacity(0.18), .clear, .black.opacity(0.08)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
         .accessibilityHidden(true)
     }
 
     private var primaryColor: Color {
-        LumaTheme.color(hex: style.primaryHex, fallback: LumaTheme.aqua)
+        LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.aqua)
     }
 
     private var secondaryColor: Color {
-        LumaTheme.color(hex: style.secondaryHex, fallback: LumaTheme.mint)
-    }
-
-    private var accentColor: Color {
-        LumaTheme.color(hex: style.accentHex, fallback: .white)
+        LumaTheme.color(hex: school.secondaryColor, fallback: LumaTheme.mint)
     }
 }

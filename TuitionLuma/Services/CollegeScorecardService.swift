@@ -68,6 +68,7 @@ struct CollegeScorecardService: SchoolDataProviding {
         "school.name",
         "school.city",
         "school.state",
+        "school.school_url",
         "school.ownership",
         "school.degrees_awarded.predominant",
         "latest.cost.tuition.in_state",
@@ -211,6 +212,7 @@ struct CollegeScorecardService: SchoolDataProviding {
         let name = object.string("school.name") ?? "Unknown college"
         let city = object.string("school.city") ?? "Unknown city"
         let state = object.string("school.state") ?? ""
+        let schoolWebsite = object.string("school.school_url")
         let ownership = object.int("school.ownership")
         let tuitionInState = object.double("latest.cost.tuition.in_state")
         let tuitionOutOfState = object.double("latest.cost.tuition.out_of_state")
@@ -262,6 +264,7 @@ struct CollegeScorecardService: SchoolDataProviding {
             valueLabel: LumaScoreCalculator.label(for: score),
             primaryColor: stateFlagStyle.primaryHex,
             secondaryColor: stateFlagStyle.secondaryHex,
+            logoURL: SchoolLogoURLBuilder.logoURL(from: schoolWebsite),
             medianEarnings: medianEarnings ?? 0,
             averageDebt: averageDebt ?? 0,
             studentCount: studentSize ?? 0,
@@ -375,6 +378,34 @@ enum LumaScoreCalculator {
         default:
             "Expensive"
         }
+    }
+}
+
+enum SchoolLogoURLBuilder {
+    static func logoURL(from website: String?) -> URL? {
+        guard let domain = normalizedDomain(from: website) else { return nil }
+
+        // TODO: Replace this public favicon lookup with a licensed school-logo provider or stored image CDN.
+        return URL(string: "https://www.google.com/s2/favicons?sz=256&domain=\(domain)")
+    }
+
+    private static func normalizedDomain(from website: String?) -> String? {
+        guard var value = website?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty else {
+            return nil
+        }
+
+        if !value.localizedCaseInsensitiveContains("://") {
+            value = "https://\(value)"
+        }
+
+        guard let host = URL(string: value)?.host(percentEncoded: false)?
+            .lowercased()
+            .replacingOccurrences(of: "www.", with: "") else {
+            return nil
+        }
+
+        return host
     }
 }
 
