@@ -77,6 +77,11 @@ struct CollegeScorecardService: SchoolDataProviding {
         "latest.cost.tuition.out_of_state",
         "latest.cost.avg_net_price.overall",
         "latest.cost.attendance.academic_year",
+        "latest.cost.booksupply",
+        "latest.cost.roomboard.oncampus",
+        "latest.cost.roomboard.offcampus",
+        "latest.cost.otherexpense.oncampus",
+        "latest.cost.otherexpense.offcampus",
         "latest.completion.rate_suppressed.overall",
         "latest.admissions.admission_rate.overall",
         "latest.earnings.10_yrs_after_entry.median",
@@ -220,6 +225,11 @@ struct CollegeScorecardService: SchoolDataProviding {
         let tuitionOutOfState = object.double("latest.cost.tuition.out_of_state")
         let averageNetPrice = object.double("latest.cost.avg_net_price.overall")
         let costOfAttendance = object.double("latest.cost.attendance.academic_year")
+        let booksAndSupplies = object.double("latest.cost.booksupply")
+        let roomAndBoardOnCampus = object.double("latest.cost.roomboard.oncampus")
+        let roomAndBoardOffCampus = object.double("latest.cost.roomboard.offcampus")
+        let otherExpensesOnCampus = object.double("latest.cost.otherexpense.oncampus")
+        let otherExpensesOffCampus = object.double("latest.cost.otherexpense.offcampus")
         let graduationRate = object.double("latest.completion.rate_suppressed.overall")
             ?? object.double("latest.completion.rate")
         let admissionRate = object.double("latest.admissions.admission_rate.overall")
@@ -235,28 +245,24 @@ struct CollegeScorecardService: SchoolDataProviding {
         if tuitionOutOfState == nil { missingFields.append("Out-of-state tuition") }
         if averageNetPrice == nil { missingFields.append("Average net price") }
         if costOfAttendance == nil { missingFields.append("Cost of attendance") }
+        if booksAndSupplies == nil { missingFields.append("Books and supplies") }
+        if roomAndBoardOnCampus == nil && roomAndBoardOffCampus == nil { missingFields.append("Housing and meals") }
+        if otherExpensesOnCampus == nil && otherExpensesOffCampus == nil { missingFields.append("Other living expenses") }
         if graduationRate == nil { missingFields.append("Graduation rate") }
         if medianEarnings == nil { missingFields.append("Median earnings") }
         if averageDebt == nil { missingFields.append("Average debt") }
         if admissionRate == nil { missingFields.append("Admission rate") }
 
-        let averageGrantAid: Double
-        if let costOfAttendance, let averageNetPrice {
-            averageGrantAid = max(0, costOfAttendance - averageNetPrice)
-        } else {
-            averageGrantAid = 0
-        }
-
-        let cost = CostEstimate(
-            tuitionAndFees: tuitionInState ?? 0,
-            outOfStateTuition: tuitionOutOfState,
+        let schoolType = ownershipType(ownership)
+        let cost = buildCostEstimate(
+            schoolType: schoolType,
+            tuitionInState: tuitionInState,
+            tuitionOutOfState: tuitionOutOfState,
+            averageNetPrice: averageNetPrice,
             costOfAttendance: costOfAttendance,
-            reportedAverageNetPrice: averageNetPrice,
-            housingAndMeals: costOfAttendance.map { max(0, $0 - (tuitionInState ?? 0)) } ?? 0,
-            booksAndSupplies: 0,
-            transportation: 0,
-            personalExpenses: 0,
-            averageGrantAid: averageGrantAid
+            booksAndSupplies: booksAndSupplies,
+            roomAndBoard: roomAndBoardOnCampus ?? roomAndBoardOffCampus,
+            otherExpenses: otherExpensesOnCampus ?? otherExpensesOffCampus
         )
 
         let score = LumaScoreCalculator.score(
@@ -270,7 +276,7 @@ struct CollegeScorecardService: SchoolDataProviding {
             name: name,
             city: city,
             state: state,
-            type: ownershipType(ownership),
+            type: schoolType,
             acceptanceRate: admissionRate ?? 0,
             graduationRate: graduationRate ?? 0,
             lumaScore: score,
@@ -282,13 +288,136 @@ struct CollegeScorecardService: SchoolDataProviding {
             medianEarnings: medianEarnings ?? 0,
             averageDebt: averageDebt ?? 0,
             studentCount: studentSize ?? 0,
-            campusVibe: campusVibe(for: ownershipType(ownership), city: city, state: state),
+            campusVibe: campusVibe(for: schoolType, city: city, state: state),
             programs: [],
             costEstimate: cost,
             highlights: highlights(for: averageNetPrice, medianEarnings: medianEarnings, graduationRate: graduationRate),
             admissionRate: admissionRate,
             missingDataFields: missingFields
         )
+    }
+
+    private func buildCostEstimate(
+        schoolType: School.SchoolType,
+        tuitionInState: Double?,
+        tuitionOutOfState: Double?,
+        averageNetPrice: Double?,
+        costOfAttendance: Double?,
+        booksAndSupplies reportedBooksAndSupplies: Double?,
+        roomAndBoard reportedRoomAndBoard: Double?,
+        otherExpenses reportedOtherExpenses: Double?
+    ) -> CostEstimate {
+        var estimatedComponents: Set<CostComponent> = []
+        let tuition = tuitionInState ?? 0
+
+        let outOfStateTuition: Double?
+        if let tuitionOutOfState, tuitionOutOfState > 0 {
+            outOfStateTuition = tuitionOutOfState
+        } else if tuition > 0 {
+            estimatedComponents.insert(.outOfStateTuition)
+            outOfStateTuition = schoolType == .publicUniversity ? roundToNearestDollar(tuition * 2.35) : tuition
+        } else {
+            outOfStateTuition = nil
+        }
+
+        let booksAndSupplies: Double
+        if let reportedBooksAndSupplies, reportedBooksAndSupplies > 0 {
+            booksAndSupplies = reportedBooksAndSupplies
+        } else {
+            estimatedComponents.insert(.booksAndSupplies)
+            booksAndSupplies = defaultBooksAndSupplies(for: schoolType)
+        }
+
+        let otherExpenses: Double
+        if let reportedOtherExpenses, reportedOtherExpenses > 0 {
+            otherExpenses = reportedOtherExpenses
+        } else {
+            estimatedComponents.insert(.transportation)
+            estimatedComponents.insert(.personalExpenses)
+            otherExpenses = defaultOtherExpenses(for: schoolType)
+        }
+
+        let housingAndMeals: Double
+        if let reportedRoomAndBoard, reportedRoomAndBoard > 0 {
+            housingAndMeals = reportedRoomAndBoard
+        } else if let costOfAttendance, costOfAttendance > 0, tuition > 0 {
+            estimatedComponents.insert(.housingAndMeals)
+            housingAndMeals = max(0, costOfAttendance - tuition - booksAndSupplies - otherExpenses)
+        } else {
+            estimatedComponents.insert(.housingAndMeals)
+            housingAndMeals = defaultHousingAndMeals(for: schoolType)
+        }
+
+        let transportation = roundToNearestDollar(otherExpenses * 0.35)
+        let personalExpenses = max(0, otherExpenses - transportation)
+        estimatedComponents.insert(.transportation)
+        estimatedComponents.insert(.personalExpenses)
+
+        let annualCost = costOfAttendance ?? tuition + housingAndMeals + booksAndSupplies + transportation + personalExpenses
+        var averageGrantAid = max(0, annualCost - (averageNetPrice ?? annualCost))
+        if averageNetPrice == nil {
+            estimatedComponents.insert(.averageGrantAid)
+            averageGrantAid = min(defaultAverageGrantAid(for: schoolType), annualCost * 0.45)
+        }
+
+        return CostEstimate(
+            tuitionAndFees: tuition,
+            outOfStateTuition: outOfStateTuition,
+            costOfAttendance: costOfAttendance,
+            reportedAverageNetPrice: averageNetPrice,
+            housingAndMeals: housingAndMeals,
+            booksAndSupplies: booksAndSupplies,
+            transportation: transportation,
+            personalExpenses: personalExpenses,
+            averageGrantAid: averageGrantAid,
+            estimatedComponents: estimatedComponents
+        )
+    }
+
+    private func defaultBooksAndSupplies(for schoolType: School.SchoolType) -> Double {
+        switch schoolType {
+        case .communityCollege:
+            1_100
+        default:
+            1_250
+        }
+    }
+
+    private func defaultHousingAndMeals(for schoolType: School.SchoolType) -> Double {
+        switch schoolType {
+        case .communityCollege:
+            12_400
+        case .privateNonprofit, .liberalArts:
+            16_200
+        case .publicUniversity:
+            14_300
+        }
+    }
+
+    private func defaultOtherExpenses(for schoolType: School.SchoolType) -> Double {
+        switch schoolType {
+        case .communityCollege:
+            4_800
+        case .privateNonprofit, .liberalArts:
+            3_900
+        case .publicUniversity:
+            4_200
+        }
+    }
+
+    private func defaultAverageGrantAid(for schoolType: School.SchoolType) -> Double {
+        switch schoolType {
+        case .communityCollege:
+            4_000
+        case .privateNonprofit, .liberalArts:
+            18_000
+        case .publicUniversity:
+            10_000
+        }
+    }
+
+    private func roundToNearestDollar(_ value: Double) -> Double {
+        value.rounded()
     }
 
     private func mapProgram(_ object: [String: ScorecardValue]) -> Program? {

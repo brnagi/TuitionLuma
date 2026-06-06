@@ -1,5 +1,15 @@
 import Foundation
 
+enum CostComponent: String, Hashable, Codable {
+    case tuitionAndFees
+    case outOfStateTuition
+    case housingAndMeals
+    case booksAndSupplies
+    case transportation
+    case personalExpenses
+    case averageGrantAid
+}
+
 struct CostEstimate: Hashable, Codable {
     var tuitionAndFees: Double
     var outOfStateTuition: Double?
@@ -10,6 +20,7 @@ struct CostEstimate: Hashable, Codable {
     var transportation: Double
     var personalExpenses: Double
     var averageGrantAid: Double
+    var estimatedComponents: Set<CostComponent>
 
     init(
         tuitionAndFees: Double,
@@ -20,7 +31,8 @@ struct CostEstimate: Hashable, Codable {
         booksAndSupplies: Double,
         transportation: Double,
         personalExpenses: Double,
-        averageGrantAid: Double
+        averageGrantAid: Double,
+        estimatedComponents: Set<CostComponent> = []
     ) {
         self.tuitionAndFees = tuitionAndFees
         self.outOfStateTuition = outOfStateTuition
@@ -31,6 +43,7 @@ struct CostEstimate: Hashable, Codable {
         self.transportation = transportation
         self.personalExpenses = personalExpenses
         self.averageGrantAid = averageGrantAid
+        self.estimatedComponents = estimatedComponents
     }
 
     var annualStickerCost: Double {
@@ -55,5 +68,13 @@ struct CostEstimate: Hashable, Codable {
         }
 
         return max(0, estimatedAnnualCost - averageGrantAid)
+    }
+
+    var hasEstimatedComponents: Bool {
+        !estimatedComponents.isEmpty
+    }
+
+    func isEstimated(_ component: CostComponent) -> Bool {
+        estimatedComponents.contains(component)
     }
 }

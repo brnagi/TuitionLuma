@@ -198,24 +198,52 @@ struct SchoolDetailView: View {
                 Task { await viewModel.load() }
             }
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        } else if !school.missingDataFields.isEmpty {
+        } else if !unresolvedMissingDataFields.isEmpty || school.costEstimate.hasEstimatedComponents {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "info.circle.fill")
                     .foregroundStyle(LumaTheme.outcomeTeal)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Some federal fields are unavailable")
+                    Text(dataQualityTitle)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Text(school.missingDataFields.prefix(4).joined(separator: ", "))
+                    Text(dataQualityMessage)
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(14)
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
+    }
+
+    private var unresolvedMissingDataFields: [String] {
+        let estimatedCostFields = Set(["Out-of-state tuition", "Books and supplies", "Housing and meals", "Other living expenses"])
+        return school.missingDataFields.filter { !estimatedCostFields.contains($0) }
+    }
+
+    private var dataQualityTitle: String {
+        if unresolvedMissingDataFields.isEmpty {
+            return "Some costs are estimated"
+        }
+
+        return "Some federal fields are unavailable"
+    }
+
+    private var dataQualityMessage: String {
+        var messages: [String] = []
+
+        if school.costEstimate.hasEstimatedComponents {
+            messages.append("Missing cost line items are filled with reported Scorecard totals and TuitionLuma planning assumptions.")
+        }
+
+        if !unresolvedMissingDataFields.isEmpty {
+            messages.append("Unavailable: \(unresolvedMissingDataFields.prefix(4).joined(separator: ", ")).")
+        }
+
+        return messages.joined(separator: " ")
     }
 
     private var proPlanningSection: some View {
