@@ -7,60 +7,54 @@ struct SavedSchoolsView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                LumaTheme.canvas
-                    .ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("Saved")
+                        .font(.largeTitle.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                if appViewModel.savedSchools.isEmpty {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Saved")
-                            .font(.largeTitle.weight(.heavy))
-                            .foregroundStyle(LumaTheme.ink)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    savedLimitPrompt
 
-                        savedLimitPrompt
-
+                    if appViewModel.savedSchools.isEmpty {
                         EmptyStateView(
                             title: "No saved schools yet",
                             message: "Tap the bookmark on any school to build a shortlist for your family conversation.",
                             systemImage: "bookmark"
                         )
-                    }
-                    .padding()
-                } else {
-                    ScrollView {
+                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    } else {
                         LazyVStack(alignment: .leading, spacing: 14) {
-                            Text("Saved")
-                                .font(.largeTitle.weight(.heavy))
-                                .foregroundStyle(LumaTheme.ink)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            savedLimitPrompt
-
                             ForEach(appViewModel.savedSchools) { school in
-                                NavigationLink {
-                                    SchoolDetailView(school: school)
-                                } label: {
-                                    SchoolCard(
-                                        school: school,
-                                        isSaved: true,
-                                        isCompared: appViewModel.isCompared(school),
-                                        onSaveTapped: { _ = appViewModel.toggleSaved(school) },
-                                        onCompareTapped: { compareTapped(school) }
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                                savedSchoolLink(school)
                             }
                         }
-                        .padding()
                     }
                 }
+                .padding()
+                .padding(.bottom, 72)
             }
+            .background(LumaTheme.canvas)
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
                     .environmentObject(proPurchaseManager)
             }
         }
+    }
+
+    private func savedSchoolLink(_ school: School) -> some View {
+        NavigationLink {
+            SchoolDetailView(school: school)
+        } label: {
+            SchoolCard(
+                school: school,
+                isSaved: true,
+                isCompared: appViewModel.isCompared(school),
+                onSaveTapped: { _ = appViewModel.toggleSaved(school) },
+                onCompareTapped: { compareTapped(school) }
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder

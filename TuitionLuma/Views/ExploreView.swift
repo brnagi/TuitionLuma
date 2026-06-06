@@ -61,12 +61,6 @@ struct ExploreView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LumaTheme.coolGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .foregroundStyle(.white)
-        .overlay(alignment: .topTrailing) {
-            if proPurchaseManager.state.isPro {
-                ProBadge()
-                    .padding(14)
-            }
-        }
     }
 
     private var searchAndFilters: some View {
