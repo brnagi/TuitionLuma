@@ -27,7 +27,7 @@ struct School: Identifiable, Hashable, Codable {
     var averageDebt: Double
     var studentCount: Int
     var campusVibe: String
-    var programs: [Program]
+    var programs: [AcademicProgram]
     var costEstimate: CostEstimate
     var highlights: [String]
     var isSaved: Bool
@@ -55,7 +55,7 @@ struct School: Identifiable, Hashable, Codable {
         averageDebt: Double,
         studentCount: Int,
         campusVibe: String,
-        programs: [Program],
+        programs: [AcademicProgram],
         costEstimate: CostEstimate,
         highlights: [String],
         isSaved: Bool = false,

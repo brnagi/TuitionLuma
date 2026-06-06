@@ -62,6 +62,10 @@ final class CalculatorViewModel: ObservableObject {
     private let savedRepaymentPlansKey = "tuitionluma.savedRepaymentPlans"
 
     @Published var selectedSchool: School?
+    @Published var selectedProgram: AcademicProgram?
+    @Published var availablePrograms: [AcademicProgram] = []
+    @Published var isLoadingPrograms = false
+    @Published var programErrorMessage: String?
     @Published var aidInput: AidInput
     @Published var planningMode: PlanningMode = .student
     @Published var livingScenario: LivingScenario = .onCampus
@@ -71,9 +75,16 @@ final class CalculatorViewModel: ObservableObject {
     @Published private(set) var savedRepaymentPlans: [SavedRepaymentPlan] = []
     @Published var repaymentSaveMessage: String?
 
-    init(school: School? = nil, aidInput: AidInput = .starter) {
+    private let provider: SchoolDataProviding
+
+    init(
+        school: School? = nil,
+        aidInput: AidInput = .starter,
+        provider: SchoolDataProviding = CollegeScorecardService()
+    ) {
         self.selectedSchool = school
         self.aidInput = aidInput
+        self.provider = provider
         self.savedRepaymentPlans = Self.loadSavedRepaymentPlans()
     }
 
@@ -107,6 +118,15 @@ final class CalculatorViewModel: ObservableObject {
 
     var totalRepayment: Double {
         monthlyPayment * Double(repaymentTerm.rawValue * 12)
+    }
+
+    var roiOutcome: ROIOutcomeResult? {
+        guard let selectedSchool else { return nil }
+        return ROIOutcomeCalculator.result(
+            for: selectedSchool,
+            program: selectedProgram,
+            estimatedNetCost: netAnnualCost
+        )
     }
 
     var annualFamilyContribution: Double {
@@ -171,6 +191,9 @@ final class CalculatorViewModel: ObservableObject {
 
     func applySchoolDefaults(for school: School?) {
         selectedSchool = school
+        selectedProgram = nil
+        availablePrograms = school?.programs ?? []
+        programErrorMessage = nil
 
         guard let school else {
             aidInput = .starter
@@ -191,6 +214,38 @@ final class CalculatorViewModel: ObservableObject {
             interestRate: aidInput.interestRate,
             yearsInSchool: aidInput.yearsInSchool
         )
+    }
+
+    func loadProgramsForSelectedSchool() async {
+        guard let selectedSchool else {
+            availablePrograms = []
+            selectedProgram = nil
+            return
+        }
+
+        guard let scorecardID = selectedSchool.scorecardID else {
+            availablePrograms = selectedSchool.programs
+            selectedProgram = selectedSchool.programs.first
+            return
+        }
+
+        isLoadingPrograms = true
+        programErrorMessage = nil
+        defer { isLoadingPrograms = false }
+
+        do {
+            let programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
+            availablePrograms = programs
+            selectedProgram = programs.first
+        } catch CollegeScorecardError.missingAPIKey {
+            availablePrograms = selectedSchool.programs
+            selectedProgram = selectedSchool.programs.first
+            programErrorMessage = "Set COLLEGE_SCORECARD_API_KEY to load program outcomes."
+        } catch {
+            availablePrograms = selectedSchool.programs
+            selectedProgram = selectedSchool.programs.first
+            programErrorMessage = selectedSchool.programs.isEmpty ? "Program outcomes are not available for this school yet." : nil
+        }
     }
 
     func saveRepaymentPlan() {

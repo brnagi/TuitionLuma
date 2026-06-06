@@ -69,7 +69,12 @@ enum StudentProfileRecommendationEngine {
     static func recommendation(for school: School, profile: StudentProfile) -> ProfileRecommendation {
         let estimatedNetCost = estimateNetCost(for: school, profile: profile)
         let fitScore = calculateFitScore(for: school, profile: profile, estimatedNetCost: estimatedNetCost)
-        let roiGrade = calculateROIGrade(for: school, estimatedNetCost: estimatedNetCost)
+        let matchedProgram = bestMatchingProgram(for: school, profile: profile)
+        let roiGrade = ROIOutcomeCalculator.result(
+            for: school,
+            program: matchedProgram,
+            estimatedNetCost: estimatedNetCost
+        ).grade
 
         return ProfileRecommendation(
             fitLabel: fitLabel(for: fitScore),
@@ -142,6 +147,17 @@ enum StudentProfileRecommendationEngine {
         return 7
     }
 
+    private static func bestMatchingProgram(for school: School, profile: StudentProfile) -> AcademicProgram? {
+        let major = profile.normalizedMajor
+        guard !major.isEmpty else { return nil }
+
+        let keywords = majorKeywords(from: major)
+        return school.programs.first { program in
+            let normalizedName = program.name.lowercased()
+            return keywords.contains { normalizedName.contains($0) }
+        }
+    }
+
     private static func academicScore(for school: School, profile: StudentProfile) -> Double {
         guard let admissionRate = school.admissionRate, admissionRate > 0 else {
             return profile.gpa >= 3.4 ? 13 : 10
@@ -172,18 +188,6 @@ enum StudentProfileRecommendationEngine {
         if burden < 0.20 { return 15 }
         if burden < 0.30 { return 10 }
         return 5
-    }
-
-    private static func calculateROIGrade(for school: School, estimatedNetCost: Double) -> String {
-        let earnings = school.medianEarnings > 0 ? school.medianEarnings : 45_000
-        let ratio = earnings / max(estimatedNetCost, 1)
-        let score = ratio * 16 + Double(school.lumaScore) * 0.45 + school.graduationRate * 18
-
-        if score >= 92 { return "A" }
-        if score >= 82 { return "B+" }
-        if score >= 72 { return "B" }
-        if score >= 62 { return "C+" }
-        return "C"
     }
 
     private static func fitLabel(for score: Double) -> String {

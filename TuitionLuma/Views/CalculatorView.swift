@@ -22,6 +22,7 @@ struct CalculatorView: View {
                         )
                         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                     } else {
+                        programPicker
                         headlineNumbers
                         tuitionInfoCard
                         aidInputs
@@ -72,6 +73,9 @@ struct CalculatorView: View {
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .onChange(of: viewModel.selectedSchool) { _, newSchool in
                     viewModel.applySchoolDefaults(for: newSchool)
+                    Task {
+                        await viewModel.loadProgramsForSelectedSchool()
+                    }
                 }
             }
 
@@ -81,6 +85,99 @@ struct CalculatorView: View {
                     message: "Model loan payments, scholarships, grants, and living scenarios with Pro.",
                     action: { isShowingPaywall = true }
                 )
+            }
+        }
+    }
+
+    private var programPicker: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Academic program", systemImage: "book.closed.fill")
+                    .font(.headline)
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+
+                if viewModel.isLoadingPrograms {
+                    ProgressView()
+                        .tint(LumaTheme.coral)
+                }
+            }
+
+            if viewModel.availablePrograms.isEmpty {
+                Text("Institution-level earnings and debt will be used until program outcomes are available.")
+                    .font(.subheadline)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else {
+                Picker("Academic program", selection: $viewModel.selectedProgram) {
+                    Text("Use institution average").tag(Optional<AcademicProgram>.none)
+                    ForEach(viewModel.availablePrograms) { program in
+                        Text(program.name).tag(Optional(program))
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+                if let selectedProgram = viewModel.selectedProgram {
+                    programOutcomePreview(selectedProgram)
+                }
+            }
+
+            if let programErrorMessage = viewModel.programErrorMessage {
+                Text(programErrorMessage)
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+            }
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func programOutcomePreview(_ program: AcademicProgram) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                programMetric(
+                    title: "Program earnings",
+                    value: program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "Not reported",
+                    tint: LumaTheme.outcomeTeal
+                )
+
+                programMetric(
+                    title: "Program debt",
+                    value: program.debt.map { $0.formatted(LumaFormat.currency) } ?? "Not reported",
+                    tint: LumaTheme.sun
+                )
+            }
+
+            if let roiOutcome = viewModel.roiOutcome {
+                HStack(spacing: 10) {
+                    programMetric(
+                        title: "ROI grade",
+                        value: roiOutcome.grade,
+                        tint: LumaTheme.mint
+                    )
+
+                    programMetric(
+                        title: "Outcome source",
+                        value: roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "Program" : "School",
+                        tint: LumaTheme.coral
+                    )
+                }
+
+                Text(roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "Using program-level outcomes where College Scorecard reports them." : "Program outcomes are incomplete, so this falls back to institution-level earnings and debt.")
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if !program.pathLabels.isEmpty {
+                pathLabelWrap(program.pathLabels)
             }
         }
     }
@@ -651,6 +748,41 @@ struct CalculatorView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func programMetric(title: String, value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(value)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(value == "Not reported" ? LumaTheme.slate : tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(LumaTheme.slate)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func pathLabelWrap(_ labels: [AcademicPathLabel]) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 7)], alignment: .leading, spacing: 7) {
+            ForEach(labels, id: \.self) { label in
+                Text(label.rawValue)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(LumaTheme.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 9)
+                    .background(LumaTheme.aqua.opacity(0.12), in: Capsule())
+            }
+        }
     }
 
     private func moneyText(_ value: Double?) -> String {

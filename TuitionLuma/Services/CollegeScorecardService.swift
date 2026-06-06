@@ -37,7 +37,7 @@ struct PaginatedSchools {
 protocol SchoolDataProviding {
     func searchSchools(query: String, page: Int, perPage: Int) async throws -> PaginatedSchools
     func fetchSchoolDetails(schoolId: Int) async throws -> School
-    func fetchProgramsForSchool(schoolId: Int) async throws -> [Program]
+    func fetchProgramsForSchool(schoolId: Int) async throws -> [AcademicProgram]
     func fetchSchoolsByState(state: String, page: Int, perPage: Int) async throws -> PaginatedSchools
     func fetchFeaturedSchools(page: Int, perPage: Int) async throws -> PaginatedSchools
 }
@@ -114,7 +114,7 @@ struct CollegeScorecardService: SchoolDataProviding {
         return school
     }
 
-    func fetchProgramsForSchool(schoolId: Int) async throws -> [Program] {
+    func fetchProgramsForSchool(schoolId: Int) async throws -> [AcademicProgram] {
         var parameters = [
             "id": String(schoolId),
             "fields": "id,latest.programs.cip_4_digit",
@@ -420,7 +420,7 @@ struct CollegeScorecardService: SchoolDataProviding {
         value.rounded()
     }
 
-    private func mapProgram(_ object: [String: ScorecardValue]) -> Program? {
+    private func mapProgram(_ object: [String: ScorecardValue]) -> AcademicProgram? {
         let title = object.string("title")
             ?? object.string(at: ["cip_4_digit", "title"])
             ?? object.string("cipdesc")
@@ -457,15 +457,56 @@ struct CollegeScorecardService: SchoolDataProviding {
 
         guard let title else { return nil }
 
-        return Program(
+        return AcademicProgram(
             name: title,
             credential: credential,
             cipCode: cipCode,
             medianEarnings: earnings,
             debt: debt,
             completionCount: completionCount,
-            typicalDurationYears: credential.localizedCaseInsensitiveContains("associate") ? 2 : 4
+            typicalDurationYears: credential.localizedCaseInsensitiveContains("associate") ? 2 : 4,
+            category: academicCategory(for: title, cipCode: cipCode)
         )
+    }
+
+    private func academicCategory(for title: String, cipCode: String?) -> String? {
+        if let prefix = cipCode?.prefix(2).description {
+            switch prefix {
+            case "01": return "Agriculture"
+            case "03": return "Natural resources"
+            case "04": return "Architecture"
+            case "09", "10": return "Communications"
+            case "11": return "Computer and information sciences"
+            case "13": return "Education"
+            case "14", "15": return "Engineering and technology"
+            case "19": return "Family and consumer sciences"
+            case "22": return "Legal studies"
+            case "23": return "English and writing"
+            case "24": return "Liberal arts"
+            case "26": return "Biological sciences"
+            case "27": return "Mathematics"
+            case "30": return "Interdisciplinary studies"
+            case "31": return "Parks and fitness"
+            case "38": return "Philosophy and religion"
+            case "40": return "Physical sciences"
+            case "42": return "Psychology"
+            case "43": return "Public safety"
+            case "44": return "Public administration"
+            case "45": return "Social sciences"
+            case "50": return "Visual and performing arts"
+            case "51": return "Health professions"
+            case "52": return "Business"
+            case "54": return "History"
+            default: break
+            }
+        }
+
+        let lowercasedTitle = title.lowercased()
+        if lowercasedTitle.contains("business") { return "Business" }
+        if lowercasedTitle.contains("computer") { return "Computer and information sciences" }
+        if lowercasedTitle.contains("health") || lowercasedTitle.contains("nursing") { return "Health professions" }
+        if lowercasedTitle.contains("engineering") { return "Engineering and technology" }
+        return nil
     }
 
     private func ownershipType(_ ownership: Int?) -> School.SchoolType {

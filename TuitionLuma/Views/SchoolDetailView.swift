@@ -140,39 +140,70 @@ struct SchoolDetailView: View {
                 )
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             } else {
+                programFocusCard
+
                 ForEach(viewModel.programs.prefix(proPurchaseManager.state.isPro ? 12 : 3)) { program in
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(program.name)
-                                .font(.headline)
-                                .foregroundStyle(LumaTheme.ink)
-                                .lineLimit(3)
-                                .fixedSize(horizontal: false, vertical: true)
+                    let isSelected = viewModel.selectedProgram == program
+                    Button {
+                        viewModel.selectedProgram = program
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(program.name)
+                                    .font(.headline)
+                                    .foregroundStyle(LumaTheme.ink)
+                                    .lineLimit(3)
+                                    .fixedSize(horizontal: false, vertical: true)
 
-                            Text(programSubtitle(program))
-                                .font(.caption)
-                                .foregroundStyle(LumaTheme.slate)
-                                .lineLimit(3)
-                                .fixedSize(horizontal: false, vertical: true)
+                                Text(programSubtitle(program))
+                                    .font(.caption)
+                                    .foregroundStyle(LumaTheme.slate)
+                                    .lineLimit(3)
+                                    .fixedSize(horizontal: false, vertical: true)
+
+                                programPathChips(program.pathLabels.prefix(2).map { $0 }, isSelected: isSelected)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "N/A")
+                                    .font(.headline.weight(.heavy))
+                                    .foregroundStyle(LumaTheme.ink)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.76)
+
+                                Text("median pay")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(LumaTheme.slate)
+
+                                if isSelected {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.caption.weight(.bold))
+                                        .foregroundStyle(LumaTheme.mint)
+                                }
+                            }
+                            .frame(width: 86, alignment: .trailing)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "N/A")
-                                .font(.headline.weight(.heavy))
-                                .foregroundStyle(LumaTheme.ink)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.76)
-
-                            Text("median pay")
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(LumaTheme.slate)
-                        }
-                        .frame(width: 86, alignment: .trailing)
                     }
+                    .buttonStyle(.plain)
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .background(
+                        Color.white,
+                        in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                            .stroke(isSelected ? LumaTheme.mint.opacity(0.40) : Color.black.opacity(0.04), lineWidth: 1)
+                    )
+                    .overlay(alignment: .leading) {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(LumaTheme.mint)
+                                .frame(width: 4)
+                                .padding(.vertical, 12)
+                        }
+                    }
                     .clipped()
                 }
 
@@ -186,6 +217,89 @@ struct SchoolDetailView: View {
                 }
             }
         }
+    }
+
+    private var programFocusCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label("Academic focus", systemImage: "book.closed.fill")
+                    .font(.headline)
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+
+                Text(viewModel.selectedProgram == nil ? "School average" : "Program outcomes")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(viewModel.selectedProgram == nil ? LumaTheme.slate : LumaTheme.outcomeTeal)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(
+                        (viewModel.selectedProgram == nil ? LumaTheme.canvas : LumaTheme.aqua.opacity(0.12)),
+                        in: Capsule()
+                    )
+            }
+
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(selectedProgramTitle)
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(selectedProgramSubtitle)
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Menu {
+                    Button("Use institution average") {
+                        viewModel.selectedProgram = nil
+                    }
+
+                    ForEach(viewModel.programs) { program in
+                        Button(program.name) {
+                            viewModel.selectedProgram = program
+                        }
+                    }
+                } label: {
+                    Label("Change", systemImage: "chevron.up.chevron.down")
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.coral)
+                        .labelStyle(.titleAndIcon)
+                        .padding(.vertical, 9)
+                        .padding(.horizontal, 10)
+                        .background(.white, in: Capsule())
+                        .overlay(Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1))
+                }
+            }
+            .padding(14)
+            .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+            Text(roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "ROI uses program earnings or debt where reported." : "ROI falls back to institution-level outcomes because this program has missing data.")
+                .font(.caption)
+                .foregroundStyle(LumaTheme.slate)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var selectedProgramTitle: String {
+        viewModel.selectedProgram?.name ?? "Use institution average"
+    }
+
+    private var selectedProgramSubtitle: String {
+        guard let selectedProgram = viewModel.selectedProgram else {
+            return "Best when you are still deciding on a major."
+        }
+
+        let earnings = selectedProgram.medianEarnings > 0 ? selectedProgram.medianEarnings.formatted(LumaFormat.currency) : "not reported"
+        return "\(selectedProgram.credential) • Median pay \(earnings)"
     }
 
     @ViewBuilder
@@ -256,7 +370,7 @@ struct SchoolDetailView: View {
 
                     Spacer()
 
-                    Text(roiScore)
+                    Text("\(roiOutcome.grade) • \(roiScore)")
                         .font(.title2.weight(.heavy))
                         .foregroundStyle(LumaTheme.mint)
                 }
@@ -294,8 +408,11 @@ struct SchoolDetailView: View {
     }
 
     private var roiScore: String {
-        let value = min(99, max(35, Int((school.medianEarnings / max(school.costEstimate.averageNetPrice, 1)) * 18)))
-        return "\(value)/100"
+        "\(roiOutcome.score)/100"
+    }
+
+    private var roiOutcome: ROIOutcomeResult {
+        ROIOutcomeCalculator.result(for: school, program: viewModel.selectedProgram)
     }
 
     private func scenarioPill(_ title: String) -> some View {
@@ -318,22 +435,42 @@ struct SchoolDetailView: View {
         }
     }
 
-    private func programSubtitle(_ program: Program) -> String {
+    private func programSubtitle(_ program: AcademicProgram) -> String {
         [
             program.credential,
             program.cipCode.map { "CIP \($0)" },
+            program.category,
             program.debt.map { "Debt \($0.formatted(LumaFormat.currency))" },
             program.completionCount.map { "\($0) completions" }
         ]
         .compactMap { $0 }
         .joined(separator: " • ")
     }
+
+    @ViewBuilder
+    private func programPathChips(_ labels: [AcademicPathLabel], isSelected: Bool) -> some View {
+        if !labels.isEmpty {
+            HStack(spacing: 6) {
+                ForEach(labels, id: \.self) { label in
+                    Text(label.rawValue)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(LumaTheme.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 8)
+                        .background((isSelected ? LumaTheme.mint : LumaTheme.aqua).opacity(0.12), in: Capsule())
+                }
+            }
+        }
+    }
 }
 
 @MainActor
 final class SchoolDetailViewModel: ObservableObject {
     @Published var school: School
-    @Published var programs: [Program] = []
+    @Published var programs: [AcademicProgram] = []
+    @Published var selectedProgram: AcademicProgram?
     @Published var isLoadingDetails = false
     @Published var isLoadingPrograms = false
     @Published var errorMessage: String?
@@ -343,6 +480,7 @@ final class SchoolDetailViewModel: ObservableObject {
     init(school: School, provider: SchoolDataProviding = CollegeScorecardService()) {
         self.school = school
         self.programs = school.programs
+        self.selectedProgram = school.programs.first
         self.provider = provider
     }
 
@@ -375,8 +513,10 @@ final class SchoolDetailViewModel: ObservableObject {
 
         do {
             programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
+            selectedProgram = programs.first
         } catch {
-            programs = []
+            programs = school.programs
+            selectedProgram = school.programs.first
         }
     }
 }

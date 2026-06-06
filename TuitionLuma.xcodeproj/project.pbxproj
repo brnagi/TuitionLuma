@@ -32,6 +32,7 @@
 		B00000000000000000000018 /* LumaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000018 /* LumaTheme.swift */; };
 		B00000000000000000000019 /* CalculatorEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000019 /* CalculatorEngine.swift */; };
 		B00000000000000000000020 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000020 /* Formatters.swift */; };
+		B00000000000000000000038 /* ROIOutcomeCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000038 /* ROIOutcomeCalculator.swift */; };
 		B00000000000000000000021 /* StatusViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000021 /* StatusViews.swift */; };
 		B00000000000000000000022 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000022 /* OnboardingView.swift */; };
 		B00000000000000000000023 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000023 /* MainTabView.swift */; };
@@ -41,7 +42,18 @@
 		B00000000000000000000027 /* CompareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000027 /* CompareView.swift */; };
 		B00000000000000000000028 /* SavedSchoolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000028 /* SavedSchoolsView.swift */; };
 		B00000000000000000000037 /* StudentProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000037 /* StudentProfileView.swift */; };
+		B00000000000000000000039 /* ROIOutcomeCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000039 /* ROIOutcomeCalculatorTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CP0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PR0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T00000000000000000000001;
+			remoteInfo = TuitionLuma;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		F00000000000000000000001 /* TuitionLumaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TuitionLumaApp.swift; sourceTree = "<group>"; };
@@ -68,6 +80,7 @@
 		F00000000000000000000018 /* LumaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LumaTheme.swift; sourceTree = "<group>"; };
 		F00000000000000000000019 /* CalculatorEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorEngine.swift; sourceTree = "<group>"; };
 		F00000000000000000000020 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		F00000000000000000000038 /* ROIOutcomeCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ROIOutcomeCalculator.swift; sourceTree = "<group>"; };
 		F00000000000000000000021 /* StatusViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusViews.swift; sourceTree = "<group>"; };
 		F00000000000000000000022 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		F00000000000000000000023 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -81,8 +94,20 @@
 		F00000000000000000000031 /* LocalSecrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LocalSecrets.xcconfig.example; sourceTree = "<group>"; };
 		F00000000000000000000032 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F00000000000000000000033 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F00000000000000000000039 /* ROIOutcomeCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ROIOutcomeCalculatorTests.swift; sourceTree = "<group>"; };
 		P00000000000000000000001 /* TuitionLuma.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TuitionLuma.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		P00000000000000000000002 /* TuitionLumaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TuitionLumaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FW0000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		G00000000000000000000001 = {
@@ -90,6 +115,7 @@
 			children = (
 				G00000000000000000000012 /* Config */,
 				G00000000000000000000002 /* TuitionLuma */,
+				G00000000000000000000013 /* TuitionLumaTests */,
 				G00000000000000000000010 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -189,6 +215,7 @@
 			children = (
 				F00000000000000000000019 /* CalculatorEngine.swift */,
 				F00000000000000000000020 /* Formatters.swift */,
+				F00000000000000000000038 /* ROIOutcomeCalculator.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -197,6 +224,7 @@
 			isa = PBXGroup;
 			children = (
 				P00000000000000000000001 /* TuitionLuma.app */,
+				P00000000000000000000002 /* TuitionLumaTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -215,6 +243,14 @@
 				F00000000000000000000037 /* StudentProfileView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000013 /* TuitionLumaTests */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000039 /* ROIOutcomeCalculatorTests.swift */,
+			);
+			path = TuitionLumaTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -236,6 +272,23 @@
 			productReference = P00000000000000000000001 /* TuitionLuma.app */;
 			productType = "com.apple.product-type.application";
 		};
+		T00000000000000000000002 /* TuitionLumaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C00000000000000000000010 /* Build configuration list for PBXNativeTarget "TuitionLumaTests" */;
+			buildPhases = (
+				S00000000000000000000002 /* Sources */,
+				FW0000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D00000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = TuitionLumaTests;
+			productName = TuitionLumaTests;
+			productReference = P00000000000000000000002 /* TuitionLumaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -248,6 +301,10 @@
 				TargetAttributes = {
 					T00000000000000000000001 = {
 						CreatedOnToolsVersion = 26.0;
+					};
+					T00000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = T00000000000000000000001;
 					};
 				};
 			};
@@ -265,6 +322,7 @@
 			projectRoot = "";
 			targets = (
 				T00000000000000000000001 /* TuitionLuma */,
+				T00000000000000000000002 /* TuitionLumaTests */,
 			);
 		};
 /* End PBXProject section */
@@ -309,6 +367,7 @@
 				B00000000000000000000018 /* LumaTheme.swift in Sources */,
 				B00000000000000000000019 /* CalculatorEngine.swift in Sources */,
 				B00000000000000000000020 /* Formatters.swift in Sources */,
+				B00000000000000000000038 /* ROIOutcomeCalculator.swift in Sources */,
 				B00000000000000000000021 /* StatusViews.swift in Sources */,
 				B00000000000000000000022 /* OnboardingView.swift in Sources */,
 				B00000000000000000000023 /* MainTabView.swift in Sources */,
@@ -321,7 +380,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		S00000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000039 /* ROIOutcomeCalculatorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D00000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T00000000000000000000001 /* TuitionLuma */;
+			targetProxy = CP0000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C00000000000000000000004 /* Debug */ = {
@@ -473,6 +548,48 @@
 			};
 			name = Release;
 		};
+		C00000000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.TuitionLumaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TuitionLuma.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TuitionLuma";
+			};
+			name = Debug;
+		};
+		C00000000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.TuitionLumaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TuitionLuma.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TuitionLuma";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -490,6 +607,15 @@
 			buildConfigurations = (
 				C00000000000000000000006 /* Debug */,
 				C00000000000000000000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C00000000000000000000010 /* Build configuration list for PBXNativeTarget "TuitionLumaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000008 /* Debug */,
+				C00000000000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
