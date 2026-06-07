@@ -8,6 +8,7 @@ struct CalculatorView: View {
     @State private var isGeneratingReport = false
     @State private var reportErrorMessage: String?
     @State private var shareableReport: ShareableReport?
+    @State private var isShowingProgramDetails = false
 
     var body: some View {
         NavigationStack {
@@ -72,6 +73,7 @@ struct CalculatorView: View {
                 .padding(14)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .onChange(of: viewModel.selectedSchool) { _, newSchool in
+                    isShowingProgramDetails = false
                     viewModel.applySchoolDefaults(for: newSchool)
                     Task {
                         await viewModel.loadProgramsForSelectedSchool()
@@ -113,16 +115,39 @@ struct CalculatorView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             } else {
-                Picker("Academic program", selection: $viewModel.selectedProgram) {
-                    Text("Use institution average").tag(Optional<AcademicProgram>.none)
-                    ForEach(viewModel.availablePrograms) { program in
-                        Text(program.name).tag(Optional(program))
+                Menu {
+                    Button("Use institution average") {
+                        viewModel.selectedProgram = nil
                     }
+
+                    ForEach(viewModel.availablePrograms) { program in
+                        Button(program.name) {
+                            viewModel.selectedProgram = program
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Text(selectedProgramTitle)
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(LumaTheme.ink)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+
+                        Spacer(minLength: 8)
+
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(LumaTheme.slate)
+                    }
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 }
-                .pickerStyle(.menu)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(14)
-                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .accessibilityLabel("Academic program")
+                .accessibilityValue(selectedProgramTitle)
+                .onChange(of: viewModel.selectedProgram) { _, _ in
+                    isShowingProgramDetails = false
+                }
 
                 if let selectedProgram = viewModel.selectedProgram {
                     programOutcomePreview(selectedProgram)
@@ -139,6 +164,10 @@ struct CalculatorView: View {
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
+    private var selectedProgramTitle: String {
+        viewModel.selectedProgram?.name ?? "Use institution average"
+    }
+
     private func programOutcomePreview(_ program: AcademicProgram) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
@@ -149,36 +178,49 @@ struct CalculatorView: View {
                 )
 
                 programMetric(
-                    title: "Program debt",
-                    value: program.debt.map { $0.formatted(LumaFormat.currency) } ?? "Not reported",
-                    tint: LumaTheme.sun
+                    title: "ROI grade",
+                    value: viewModel.roiOutcome?.grade ?? "Not reported",
+                    tint: LumaTheme.mint
                 )
             }
 
-            if let roiOutcome = viewModel.roiOutcome {
-                HStack(spacing: 10) {
-                    programMetric(
-                        title: "ROI grade",
-                        value: roiOutcome.grade,
-                        tint: LumaTheme.mint
-                    )
+            DisclosureGroup(isExpanded: $isShowingProgramDetails) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 10) {
+                        programMetric(
+                            title: "Program debt",
+                            value: program.debt.map { $0.formatted(LumaFormat.currency) } ?? "Not reported",
+                            tint: LumaTheme.sun
+                        )
 
-                    programMetric(
-                        title: "Outcome source",
-                        value: roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "Program" : "School",
-                        tint: LumaTheme.coral
-                    )
+                        if let roiOutcome = viewModel.roiOutcome {
+                            programMetric(
+                                title: "Outcome source",
+                                value: roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "Program" : "School",
+                                tint: LumaTheme.coral
+                            )
+                        }
+                    }
+
+                    if let roiOutcome = viewModel.roiOutcome {
+                        Text(roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "Using program-level outcomes where College Scorecard reports them." : "Program salary or debt information is unavailable. Using school-wide outcomes instead.")
+                            .font(.caption)
+                            .foregroundStyle(LumaTheme.slate)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    if !program.pathLabels.isEmpty {
+                        pathLabelWrap(program.pathLabels)
+                    }
                 }
-
-                Text(roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "Using program-level outcomes where College Scorecard reports them." : "Program outcomes are incomplete, so this falls back to institution-level earnings and debt.")
-                    .font(.caption)
-                    .foregroundStyle(LumaTheme.slate)
-                    .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 8)
+            } label: {
+                Text("More Program Details")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LumaTheme.ink)
             }
-
-            if !program.pathLabels.isEmpty {
-                pathLabelWrap(program.pathLabels)
-            }
+            .tint(LumaTheme.coral)
+            .padding(.top, 2)
         }
     }
 
@@ -755,28 +797,28 @@ struct CalculatorView: View {
             Text(value)
                 .font(.subheadline.weight(.heavy))
                 .foregroundStyle(value == "Not reported" ? LumaTheme.slate : tint)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .lineLimit(2)
+                .truncationMode(.tail)
 
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .lineLimit(2)
+                .truncationMode(.tail)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
         .padding(12)
         .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private func pathLabelWrap(_ labels: [AcademicPathLabel]) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 7)], alignment: .leading, spacing: 7) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 7)], alignment: .leading, spacing: 7) {
             ForEach(labels, id: \.self) { label in
                 Text(label.rawValue)
                     .font(.caption2.weight(.bold))
                     .foregroundStyle(LumaTheme.ink)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
                     .padding(.horizontal, 9)
