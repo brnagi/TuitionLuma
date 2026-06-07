@@ -73,7 +73,7 @@ enum APIConfig {
 }
 
 struct CollegeScorecardService: SchoolDataProviding {
-    private let baseURL = URL(string: "https://api.tuitionluma.com")!
+    private let baseURL = URL(string: "https://tuitionluma-scorecard-proxy.caseluma.workers.dev")!
     private let session: URLSession
     private let requestTimeout: TimeInterval = 15
 
