@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ExploreView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isShowingPaywall = false

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SavedSchoolsView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @State private var isShowingPaywall = false
 
     var body: some View {

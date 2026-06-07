@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CalculatorView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @StateObject private var viewModel = CalculatorViewModel()
     @State private var isShowingPaywall = false
     @State private var isGeneratingReport = false

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CompareView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
-    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @StateObject private var viewModel = CompareViewModel()
     @State private var isShowingPaywall = false
 

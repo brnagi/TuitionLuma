@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct StudentProfileCard: View {
-    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @State private var isShowingEditor = false
     var onUpgradeTapped: () -> Void

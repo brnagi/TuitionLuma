@@ -1,4 +1,5 @@
 import Foundation
+import StoreKit
 import SwiftUI
 
 enum ProAccessTier: String, Codable {
@@ -64,19 +65,57 @@ enum ProAccessPolicy {
 }
 
 @MainActor
-final class MockProPurchaseManager: ObservableObject {
-    private let storageKey = "tuitionluma.mockProAccessState"
+final class ProPurchaseManager: ObservableObject {
+    private enum StoreKitConfig {
+        static let proLifetimeProductID = "tuitionluma.pro.lifetime"
+        static let entitlementCacheKey = "tuitionLuma.proEntitlementCache"
+    }
 
     @Published private(set) var state: ProAccessState
     @Published private(set) var isLoading = false
+    @Published private(set) var proProduct: Product?
     @Published var errorMessage: String?
 
+    private var transactionUpdatesTask: Task<Void, Never>?
+
     init(state: ProAccessState = .free) {
-        if let data = UserDefaults.standard.data(forKey: storageKey),
+        if let data = UserDefaults.standard.data(forKey: StoreKitConfig.entitlementCacheKey),
            let savedState = try? JSONDecoder().decode(ProAccessState.self, from: data) {
             self.state = savedState
         } else {
             self.state = state
+        }
+
+        transactionUpdatesTask = Task { [weak self] in
+            for await result in StoreKit.Transaction.updates {
+                await self?.handleTransactionUpdate(result)
+            }
+        }
+
+        Task {
+            await loadProducts()
+            await refreshEntitlements()
+        }
+    }
+
+    deinit {
+        transactionUpdatesTask?.cancel()
+    }
+
+    var displayPrice: String {
+        proProduct?.displayPrice ?? "$4.99"
+    }
+
+    func loadProducts() async {
+        do {
+            let products = try await Product.products(for: [StoreKitConfig.proLifetimeProductID])
+            proProduct = products.first { $0.id == StoreKitConfig.proLifetimeProductID }
+
+            if proProduct == nil {
+                errorMessage = "TuitionLuma Pro is not available right now."
+            }
+        } catch {
+            errorMessage = "Unable to load TuitionLuma Pro. Please try again."
         }
     }
 
@@ -85,12 +124,41 @@ final class MockProPurchaseManager: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
-        try? await Task.sleep(nanoseconds: 450_000_000)
-        state = ProAccessState(
-            tier: .pro,
-            purchasedAt: Date()
-        )
-        persistState()
+        do {
+            if proProduct == nil {
+                await loadProducts()
+            }
+
+            guard let proProduct else {
+                errorMessage = "TuitionLuma Pro is not available right now."
+                return
+            }
+
+            let purchaseResult = try await proProduct.purchase()
+
+            switch purchaseResult {
+            case .success(let verificationResult):
+                let transaction = try verified(verificationResult)
+                guard transaction.productID == StoreKitConfig.proLifetimeProductID else {
+                    errorMessage = "This purchase could not be matched to TuitionLuma Pro."
+                    return
+                }
+
+                applyVerifiedProEntitlement(purchasedAt: transaction.purchaseDate)
+                await transaction.finish()
+
+            case .userCancelled:
+                break
+
+            case .pending:
+                errorMessage = "Purchase pending. TuitionLuma Pro will unlock after approval."
+
+            @unknown default:
+                errorMessage = "Purchase could not be completed. Please try again."
+            }
+        } catch {
+            errorMessage = "Purchase could not be verified. Please try again."
+        }
     }
 
     func restorePurchases() async {
@@ -98,29 +166,86 @@ final class MockProPurchaseManager: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        if let data = UserDefaults.standard.data(forKey: storageKey),
-           let savedState = try? JSONDecoder().decode(ProAccessState.self, from: data),
-           savedState.isPro {
-            state = savedState
-        } else {
-            errorMessage = "No mock Pro purchase found."
+        do {
+            try await AppStore.sync()
+            await refreshEntitlements()
+
+            if !state.isPro {
+                errorMessage = "No TuitionLuma Pro purchase was found for this Apple ID."
+            }
+        } catch {
+            errorMessage = "Unable to restore purchases. Please try again."
         }
     }
 
     func resetToFreeForTesting() {
         state = .free
-        UserDefaults.standard.removeObject(forKey: storageKey)
+        UserDefaults.standard.removeObject(forKey: StoreKitConfig.entitlementCacheKey)
     }
 
-    // TODO: Replace this mock manager with StoreKit 2 non-consumable Product, Transaction, and entitlement observation.
-    // TODO: Persist verified StoreKit 2 one-time purchase entitlement state instead of trusting local mock state.
+    private func refreshEntitlements() async {
+        var verifiedState = ProAccessState.free
+
+        for await result in StoreKit.Transaction.currentEntitlements {
+            guard let transaction = try? verified(result),
+                  transaction.productID == StoreKitConfig.proLifetimeProductID,
+                  transaction.revocationDate == nil else {
+                continue
+            }
+
+            verifiedState = ProAccessState(
+                tier: .pro,
+                purchasedAt: transaction.purchaseDate
+            )
+            break
+        }
+
+        state = verifiedState
+        persistState()
+    }
+
+    private func handleTransactionUpdate(_ result: VerificationResult<StoreKit.Transaction>) async {
+        do {
+            let transaction = try verified(result)
+
+            if transaction.productID == StoreKitConfig.proLifetimeProductID {
+                if transaction.revocationDate == nil {
+                    applyVerifiedProEntitlement(purchasedAt: transaction.purchaseDate)
+                } else {
+                    state = .free
+                    persistState()
+                }
+            }
+
+            await transaction.finish()
+        } catch {
+            errorMessage = "A StoreKit transaction could not be verified."
+        }
+    }
+
+    private func applyVerifiedProEntitlement(purchasedAt: Date) {
+        state = ProAccessState(tier: .pro, purchasedAt: purchasedAt)
+        persistState()
+    }
+
+    private func verified<T>(_ result: VerificationResult<T>) throws -> T {
+        switch result {
+        case .verified(let signedType):
+            return signedType
+        case .unverified:
+            throw StoreKitVerificationError.failedVerification
+        }
+    }
 
     private func persistState() {
         if let data = try? JSONEncoder().encode(state) {
-            UserDefaults.standard.set(data, forKey: storageKey)
+            UserDefaults.standard.set(data, forKey: StoreKitConfig.entitlementCacheKey)
         }
     }
+}
+
+private enum StoreKitVerificationError: Error {
+    case failedVerification
 }
 
 struct ProBadge: View {
@@ -226,7 +351,7 @@ struct UpgradePrompt: View {
 }
 
 struct PaywallView: View {
-    @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @Environment(\.dismiss) private var dismiss
 
     private let benefits = [
@@ -328,7 +453,7 @@ struct PaywallView: View {
     private var pricingCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
-                Text("$4.99")
+                Text(proPurchaseManager.displayPrice)
                     .font(.system(size: 42, weight: .heavy))
                     .foregroundStyle(LumaTheme.ink)
 
