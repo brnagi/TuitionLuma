@@ -6,42 +6,36 @@ struct StudentProfileCard: View {
     @State private var isShowingEditor = false
     var onUpgradeTapped: () -> Void
 
+    @ViewBuilder
     var body: some View {
-        if proPurchaseManager.state.isPro {
-            proProfileCard
+        if !studentProfileStore.profile.isComplete {
+            incompleteProfilePrompt
                 .sheet(isPresented: $isShowingEditor) {
                     StudentProfileEditorView(profile: $studentProfileStore.profile)
                 }
-        } else {
-            FeatureLock(
-                title: "Personalized student profile",
-                message: "Add GPA, residency, intended major, and family income to see tailored fit, cost, and ROI guidance.",
-                feature: .studentProfile,
-                action: onUpgradeTapped
-            )
         }
     }
 
-    private var proProfileCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
+    private var incompleteProfilePrompt: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(LumaTheme.heroGradient)
 
-                    Image(systemName: "person.crop.circle.badge.checkmark")
-                        .font(.title3.weight(.bold))
+                    Image(systemName: "person.crop.circle.badge.plus")
+                        .font(.headline.weight(.bold))
                         .foregroundStyle(.white)
                 }
-                .frame(width: 44, height: 44)
+                .frame(width: 38, height: 38)
                 .shadow(color: LumaTheme.aqua.opacity(0.20), radius: 10, y: 5)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Student Profile")
+                    Text("Get personalized recommendations")
                         .font(.headline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Text(statusText)
+                    Text("See affordability, major-specific outcomes, and schools that fit your goals.")
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
                         .lineLimit(2)
@@ -49,8 +43,12 @@ struct StudentProfileCard: View {
 
                 Spacer()
 
-                Button(studentProfileStore.profile.isComplete ? "Edit" : "Set Up") {
-                    isShowingEditor = true
+                Button("Add Profile") {
+                    if proPurchaseManager.state.isPro {
+                        isShowingEditor = true
+                    } else {
+                        onUpgradeTapped()
+                    }
                 }
                 .font(.caption.weight(.heavy))
                 .foregroundStyle(LumaTheme.coral)
@@ -63,57 +61,14 @@ struct StudentProfileCard: View {
                 }
                 .buttonStyle(.plain)
             }
-
-            if studentProfileStore.profile.isComplete {
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.caption2.weight(.heavy))
-
-                    Text("Personalized")
-                        .font(.caption.weight(.heavy))
-                }
-                .foregroundStyle(LumaTheme.outcomeTeal)
-                .padding(.vertical, 6)
-                .padding(.horizontal, 9)
-                .background(LumaTheme.aqua.opacity(0.11), in: Capsule())
-
-                profileSummary
-            } else {
-                Text("Create a profile to personalize Explore cards with fit, estimated net cost, and ROI grade.")
-                    .font(.subheadline)
-                    .foregroundStyle(LumaTheme.slate)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
-        .padding(16)
+        .padding(14)
         .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.aqua.opacity(0.18))
         }
         .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
-    }
-
-    private var profileSummary: some View {
-        let profile = studentProfileStore.profile
-
-        return HStack(spacing: 8) {
-            profileChip(
-                "\(profile.gpa.formatted(.number.precision(.fractionLength(1)))) GPA",
-                systemImage: "graduationcap.fill",
-                tint: LumaTheme.coral
-            )
-            profileChip(
-                profile.normalizedStateResidency,
-                systemImage: "map.fill",
-                tint: LumaTheme.outcomeTeal
-            )
-            profileChip(
-                profile.intendedMajor,
-                systemImage: "book.closed.fill",
-                tint: LumaTheme.scorePurple
-            )
-        }
     }
 
     private var profileCardBackground: some ShapeStyle {
@@ -126,37 +81,6 @@ struct StudentProfileCard: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-    }
-
-    private var statusText: String {
-        let profile = studentProfileStore.profile
-
-        if profile.isComplete {
-            return "Recommendations now reflect your profile."
-        }
-
-        return "Tailor fit, net cost, and ROI guidance."
-    }
-
-    private func profileChip(_ title: String, systemImage: String, tint: Color) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: systemImage)
-                .font(.caption2.weight(.heavy))
-                .foregroundStyle(tint)
-
-            Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LumaTheme.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-        .padding(.vertical, 7)
-        .padding(.horizontal, 9)
-        .background(.white.opacity(0.82), in: Capsule())
-        .overlay {
-            Capsule()
-                .stroke(tint.opacity(0.12))
-        }
     }
 }
 
