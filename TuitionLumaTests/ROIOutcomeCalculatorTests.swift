@@ -110,16 +110,80 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertFalse(labels.contains(.graduateSchoolLikely))
     }
 
+    func testProfileRankingsChangeWithIntendedMajor() {
+        let nursingStrongSchool = makeSchool(
+            name: "Nursing State University",
+            medianEarnings: 55_000,
+            averageDebt: 24_000,
+            programs: [
+                AcademicProgram(
+                    name: "Registered Nursing, Nursing Administration, Nursing Research and Clinical Nursing",
+                    credential: "Bachelor's Degree",
+                    cipCode: "51.38",
+                    medianEarnings: 86_000,
+                    debt: 17_000,
+                    completionCount: 420,
+                    typicalDurationYears: 4
+                ),
+                AcademicProgram(
+                    name: "Computer and Information Sciences",
+                    credential: "Bachelor's Degree",
+                    cipCode: "11.01",
+                    medianEarnings: 58_000,
+                    debt: 31_000,
+                    completionCount: 120,
+                    typicalDurationYears: 4
+                )
+            ]
+        )
+        let computerScienceStrongSchool = makeSchool(
+            name: "Technology State University",
+            medianEarnings: 55_000,
+            averageDebt: 24_000,
+            programs: [
+                AcademicProgram(
+                    name: "Registered Nursing, Nursing Administration, Nursing Research and Clinical Nursing",
+                    credential: "Bachelor's Degree",
+                    cipCode: "51.38",
+                    medianEarnings: 58_000,
+                    debt: 31_000,
+                    completionCount: 125,
+                    typicalDurationYears: 4
+                ),
+                AcademicProgram(
+                    name: "Computer and Information Sciences",
+                    credential: "Bachelor's Degree",
+                    cipCode: "11.01",
+                    medianEarnings: 96_000,
+                    debt: 18_000,
+                    completionCount: 460,
+                    typicalDurationYears: 4
+                )
+            ]
+        )
+        let schools = [computerScienceStrongSchool, nursingStrongSchool]
+        let nursingProfile = makeProfile(intendedMajor: "Nursing")
+        let computerScienceProfile = makeProfile(intendedMajor: "Computer Science")
+
+        let nursingRanking = StudentProfileRecommendationEngine.rankedSchools(schools, profile: nursingProfile)
+        let computerScienceRanking = StudentProfileRecommendationEngine.rankedSchools(schools, profile: computerScienceProfile)
+
+        XCTAssertEqual(nursingRanking.first?.name, "Nursing State University")
+        XCTAssertEqual(computerScienceRanking.first?.name, "Technology State University")
+    }
+
     private func makeSchool(
+        name: String = "Test University",
         medianEarnings: Double,
         averageDebt: Double,
         netPrice: Double = 13_500,
         graduationRate: Double = 0.68,
-        lumaScore: Int = 74
+        lumaScore: Int = 74,
+        programs: [AcademicProgram] = []
     ) -> School {
         School(
             scorecardID: 123,
-            name: "Test University",
+            name: name,
             city: "Austin",
             state: "TX",
             type: .publicUniversity,
@@ -131,7 +195,7 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
             averageDebt: averageDebt,
             studentCount: 20_000,
             campusVibe: "Test campus",
-            programs: [],
+            programs: programs,
             costEstimate: CostEstimate(
                 tuitionAndFees: 11_000,
                 outOfStateTuition: 28_000,
@@ -144,6 +208,16 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
                 averageGrantAid: 7_000
             ),
             highlights: ["Research"]
+        )
+    }
+
+    private func makeProfile(intendedMajor: String) -> StudentProfile {
+        StudentProfile(
+            gpa: 3.4,
+            testScore: "",
+            stateResidency: "TX",
+            intendedMajor: intendedMajor,
+            familyIncomeRange: .range75to110k
         )
     }
 }

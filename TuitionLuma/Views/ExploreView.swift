@@ -29,12 +29,18 @@ struct ExploreView: View {
             .task {
                 if viewModel.loadState == .idle {
                     await viewModel.refreshForCurrentQuery()
+                    await refreshMajorRecommendationsIfNeeded()
                     appViewModel.remember(viewModel.schools)
                 }
             }
             .task(id: viewModel.query) {
                 guard viewModel.loadState != .idle else { return }
                 await viewModel.searchDebounced()
+                await refreshMajorRecommendationsIfNeeded()
+                appViewModel.remember(viewModel.schools)
+            }
+            .task(id: majorRecommendationKey) {
+                await refreshMajorRecommendationsIfNeeded()
                 appViewModel.remember(viewModel.schools)
             }
             .onChange(of: viewModel.schools) { _, schools in
@@ -137,7 +143,7 @@ struct ExploreView: View {
                 )
             } else {
                 LazyVStack(spacing: 14) {
-                    ForEach(viewModel.visibleSchools) { school in
+                    ForEach(rankedVisibleSchools) { school in
                         NavigationLink {
                             SchoolDetailView(school: school)
                         } label: {
@@ -157,6 +163,7 @@ struct ExploreView: View {
                         Button {
                             Task {
                                 await viewModel.loadMore()
+                                await refreshMajorRecommendationsIfNeeded()
                                 appViewModel.remember(viewModel.schools)
                             }
                         } label: {
@@ -179,6 +186,34 @@ struct ExploreView: View {
                 }
             }
         }
+    }
+
+    private var rankedVisibleSchools: [School] {
+        guard proPurchaseManager.state.isPro,
+              studentProfileStore.profile.isComplete else {
+            return viewModel.visibleSchools
+        }
+
+        return StudentProfileRecommendationEngine.rankedSchools(
+            viewModel.visibleSchools,
+            profile: studentProfileStore.profile
+        )
+    }
+
+    private var majorRecommendationKey: String {
+        [
+            proPurchaseManager.state.isPro ? "pro" : "free",
+            studentProfileStore.profile.normalizedStateResidency,
+            studentProfileStore.profile.normalizedMajor,
+            String(viewModel.schools.count)
+        ].joined(separator: "|")
+    }
+
+    private func refreshMajorRecommendationsIfNeeded() async {
+        await viewModel.refreshProgramsForMajorRecommendations(
+            profile: studentProfileStore.profile,
+            isPro: proPurchaseManager.state.isPro
+        )
     }
 
     private func filterChip(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {

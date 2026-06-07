@@ -21,6 +21,8 @@ final class ExploreViewModel: ObservableObject {
     private var currentPage = 0
     private var hasMoreResults = false
     private let perPage = 20
+    private var programCache: [Int: [AcademicProgram]] = [:]
+    private var failedProgramSchoolIDs: Set<Int> = []
 
     init(provider: SchoolDataProviding = CollegeScorecardService()) {
         self.provider = provider
@@ -75,6 +77,40 @@ final class ExploreViewModel: ObservableObject {
         } catch {
             loadState = .failed(error.localizedDescription)
         }
+    }
+
+    func refreshProgramsForMajorRecommendations(profile: StudentProfile, isPro: Bool) async {
+        guard isPro, profile.isComplete else { return }
+
+        let keywords = StudentProfileRecommendationEngine.majorKeywords(from: profile.normalizedMajor)
+        guard !keywords.isEmpty else { return }
+
+        var updatedSchools = schools
+
+        for index in updatedSchools.indices {
+            guard updatedSchools[index].programs.isEmpty,
+                  let scorecardID = updatedSchools[index].scorecardID else {
+                continue
+            }
+
+            if let cachedPrograms = programCache[scorecardID] {
+                updatedSchools[index].programs = cachedPrograms
+                continue
+            }
+
+            guard !failedProgramSchoolIDs.contains(scorecardID) else { continue }
+
+            do {
+                let programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
+                programCache[scorecardID] = programs
+                updatedSchools[index].programs = programs
+            } catch {
+                failedProgramSchoolIDs.insert(scorecardID)
+                continue
+            }
+        }
+
+        schools = updatedSchools
     }
 
     func useSampleFallback() {

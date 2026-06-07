@@ -66,6 +66,36 @@ struct ProfileRecommendation: Equatable {
 }
 
 enum StudentProfileRecommendationEngine {
+    static func rankedSchools(_ schools: [School], profile: StudentProfile) -> [School] {
+        guard profile.isComplete else { return schools }
+
+        return schools.sorted { lhs, rhs in
+            let lhsProgram = bestMatchingProgram(for: lhs, profile: profile)
+            let rhsProgram = bestMatchingProgram(for: rhs, profile: profile)
+            let lhsHasProgramMatch = lhsProgram != nil
+            let rhsHasProgramMatch = rhsProgram != nil
+
+            if lhsHasProgramMatch != rhsHasProgramMatch {
+                return lhsHasProgramMatch
+            }
+
+            let lhsNetCost = estimateNetCost(for: lhs, profile: profile)
+            let rhsNetCost = estimateNetCost(for: rhs, profile: profile)
+            let lhsROI = ROIOutcomeCalculator.result(for: lhs, program: lhsProgram, estimatedNetCost: lhsNetCost).score
+            let rhsROI = ROIOutcomeCalculator.result(for: rhs, program: rhsProgram, estimatedNetCost: rhsNetCost).score
+
+            if lhsROI != rhsROI {
+                return lhsROI > rhsROI
+            }
+
+            if lhs.lumaScore != rhs.lumaScore {
+                return lhs.lumaScore > rhs.lumaScore
+            }
+
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+    }
+
     static func recommendation(for school: School, profile: StudentProfile) -> ProfileRecommendation {
         let estimatedNetCost = estimateNetCost(for: school, profile: profile)
         let fitScore = calculateFitScore(for: school, profile: profile, estimatedNetCost: estimatedNetCost)
@@ -80,8 +110,38 @@ enum StudentProfileRecommendationEngine {
             fitLabel: fitLabel(for: fitScore),
             estimatedNetCost: estimatedNetCost,
             roiGrade: roiGrade,
-            summary: summary(for: school, profile: profile)
+            summary: summary(for: school, profile: profile, matchedProgram: matchedProgram)
         )
+    }
+
+    static func matchingProgram(for school: School, profile: StudentProfile) -> AcademicProgram? {
+        bestMatchingProgram(for: school, profile: profile)
+    }
+
+    static func majorKeywords(from major: String) -> [String] {
+        let normalizedMajor = major.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        var keywords = normalizedMajor
+            .split { !$0.isLetter && !$0.isNumber }
+            .map(String.init)
+            .filter { $0.count >= 4 }
+
+        if normalizedMajor.contains("computer") || normalizedMajor.contains("software") || normalizedMajor.contains("data") {
+            keywords.append(contentsOf: ["computer", "software", "information"])
+        }
+
+        if normalizedMajor.contains("business") || normalizedMajor.contains("finance") || normalizedMajor.contains("account") {
+            keywords.append(contentsOf: ["business", "management", "finance"])
+        }
+
+        if normalizedMajor.contains("nurs") || normalizedMajor.contains("health") || normalizedMajor.contains("medical") {
+            keywords.append(contentsOf: ["nursing", "health", "medical"])
+        }
+
+        if normalizedMajor.contains("engineer") {
+            keywords.append("engineering")
+        }
+
+        return Array(Set(keywords))
     }
 
     private static func estimateNetCost(for school: School, profile: StudentProfile) -> Double {
@@ -133,12 +193,9 @@ enum StudentProfileRecommendationEngine {
         let major = profile.normalizedMajor
         guard !major.isEmpty else { return 4 }
 
-        let keywords = majorKeywords(from: major)
-        let programMatch = school.programs.contains { program in
-            keywords.contains { program.name.lowercased().contains($0) }
-        }
+        let programMatch = bestMatchingProgram(for: school, profile: profile) != nil
         let highlightMatch = school.highlights.contains { highlight in
-            keywords.contains { highlight.lowercased().contains($0) }
+            majorKeywords(from: major).contains { highlight.lowercased().contains($0) }
         }
 
         if programMatch { return 16 }
@@ -152,10 +209,23 @@ enum StudentProfileRecommendationEngine {
         guard !major.isEmpty else { return nil }
 
         let keywords = majorKeywords(from: major)
-        return school.programs.first { program in
-            let normalizedName = program.name.lowercased()
-            return keywords.contains { normalizedName.contains($0) }
-        }
+        return school.programs
+            .filter { program in
+                let normalizedName = program.name.lowercased()
+                let normalizedCategory = program.category?.lowercased() ?? ""
+                return keywords.contains { normalizedName.contains($0) || normalizedCategory.contains($0) }
+            }
+            .sorted { lhs, rhs in
+                let lhsROI = ROIOutcomeCalculator.result(for: school, program: lhs).score
+                let rhsROI = ROIOutcomeCalculator.result(for: school, program: rhs).score
+
+                if lhsROI != rhsROI {
+                    return lhsROI > rhsROI
+                }
+
+                return (lhs.completionCount ?? 0) > (rhs.completionCount ?? 0)
+            }
+            .first
     }
 
     private static func academicScore(for school: School, profile: StudentProfile) -> Double {
@@ -197,7 +267,11 @@ enum StudentProfileRecommendationEngine {
         return "Reach for your profile"
     }
 
-    private static func summary(for school: School, profile: StudentProfile) -> String {
+    private static func summary(for school: School, profile: StudentProfile, matchedProgram: AcademicProgram?) -> String {
+        if let matchedProgram {
+            return "Uses \(matchedProgram.name) outcomes, your residency, and income range."
+        }
+
         if profile.normalizedStateResidency == school.state.uppercased() {
             return "Uses your in-state residency, income range, and \(profile.intendedMajor) interest."
         }
@@ -208,31 +282,6 @@ enum StudentProfileRecommendationEngine {
     private static func numericTestScore(from text: String) -> Int? {
         let digits = text.filter(\.isNumber)
         return Int(digits)
-    }
-
-    private static func majorKeywords(from major: String) -> [String] {
-        var keywords = major
-            .split { !$0.isLetter && !$0.isNumber }
-            .map(String.init)
-            .filter { $0.count >= 4 }
-
-        if major.contains("computer") || major.contains("software") || major.contains("data") {
-            keywords.append(contentsOf: ["computer", "software", "information"])
-        }
-
-        if major.contains("business") || major.contains("finance") || major.contains("account") {
-            keywords.append(contentsOf: ["business", "management", "finance"])
-        }
-
-        if major.contains("nurs") || major.contains("health") || major.contains("medical") {
-            keywords.append(contentsOf: ["nursing", "health", "medical"])
-        }
-
-        if major.contains("engineer") {
-            keywords.append("engineering")
-        }
-
-        return Array(Set(keywords))
     }
 }
 
