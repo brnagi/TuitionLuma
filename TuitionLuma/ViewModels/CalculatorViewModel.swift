@@ -241,6 +241,12 @@ final class CalculatorViewModel: ObservableObject {
             availablePrograms = selectedSchool.programs
             selectedProgram = selectedSchool.programs.first
             programErrorMessage = "Set COLLEGE_SCORECARD_API_KEY to load program outcomes."
+        } catch let error as CollegeScorecardError {
+            availablePrograms = selectedSchool.programs
+            selectedProgram = selectedSchool.programs.first
+            programErrorMessage = selectedSchool.programs.isEmpty
+                ? "Program outcomes are not available right now. You can still use school-wide cost and outcome data."
+                : error.localizedDescription
         } catch {
             availablePrograms = selectedSchool.programs
             selectedProgram = selectedSchool.programs.first

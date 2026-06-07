@@ -407,8 +407,10 @@ final class SchoolDetailViewModel: ObservableObject {
             school = try await provider.fetchSchoolDetails(schoolId: scorecardID)
         } catch CollegeScorecardError.missingAPIKey {
             errorMessage = "Set COLLEGE_SCORECARD_API_KEY to refresh live school details."
-        } catch {
+        } catch let error as CollegeScorecardError {
             errorMessage = error.localizedDescription
+        } catch {
+            errorMessage = "TuitionLuma could not refresh live school details. Check your connection and try again."
         }
     }
 

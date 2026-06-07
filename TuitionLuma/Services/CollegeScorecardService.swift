@@ -7,6 +7,9 @@ enum CollegeScorecardError: LocalizedError, Equatable {
     case noResults
     case decodingFailed
     case networkUnavailable
+    case requestTimedOut
+    case apiUnavailable
+    case invalidResponse
 
     var errorDescription: String? {
         switch self {
@@ -15,13 +18,19 @@ enum CollegeScorecardError: LocalizedError, Equatable {
         case .invalidURL:
             "TuitionLuma could not build a College Scorecard request."
         case .requestFailed(let statusCode):
-            "College Scorecard returned HTTP \(statusCode)."
+            "College Scorecard could not complete this request right now. Please try again in a moment. (HTTP \(statusCode))"
         case .noResults:
             "No colleges matched this request."
         case .decodingFailed:
-            "TuitionLuma could not read the College Scorecard response."
+            "College Scorecard returned data TuitionLuma could not read. Please try again later."
         case .networkUnavailable:
             "TuitionLuma could not reach College Scorecard. Check your connection and try again."
+        case .requestTimedOut:
+            "College Scorecard is taking too long to respond. Check your connection and try again."
+        case .apiUnavailable:
+            "College Scorecard is temporarily unavailable. Please try again in a few minutes."
+        case .invalidResponse:
+            "College Scorecard returned an unexpected response. Please try again later."
         }
     }
 }
@@ -67,6 +76,7 @@ struct CollegeScorecardService: SchoolDataProviding {
     private let baseURL = URL(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
     private let session: URLSession
     private let apiKey: String?
+    private let requestTimeout: TimeInterval = 15
 
     private let schoolFields = [
         "id",
@@ -204,19 +214,26 @@ struct CollegeScorecardService: SchoolDataProviding {
         let data: Data
         let response: URLResponse
 
+        var request = URLRequest(url: url)
+        request.timeoutInterval = requestTimeout
+
         do {
-            (data, response) = try await session.data(from: url)
-        } catch is URLError {
-            throw CollegeScorecardError.networkUnavailable
+            (data, response) = try await session.data(for: request)
+        } catch let urlError as URLError {
+            throw mapNetworkError(urlError)
         } catch {
             throw CollegeScorecardError.networkUnavailable
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw CollegeScorecardError.decodingFailed
+            throw CollegeScorecardError.invalidResponse
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 429 || (500..<600).contains(httpResponse.statusCode) {
+                throw CollegeScorecardError.apiUnavailable
+            }
+
             throw CollegeScorecardError.requestFailed(httpResponse.statusCode)
         }
 
@@ -224,6 +241,19 @@ struct CollegeScorecardService: SchoolDataProviding {
             return try JSONDecoder().decode(ScorecardResponse.self, from: data)
         } catch {
             throw CollegeScorecardError.decodingFailed
+        }
+    }
+
+    private func mapNetworkError(_ error: URLError) -> CollegeScorecardError {
+        switch error.code {
+        case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+            return .networkUnavailable
+        case .timedOut:
+            return .requestTimedOut
+        case .badServerResponse:
+            return .invalidResponse
+        default:
+            return .networkUnavailable
         }
     }
 

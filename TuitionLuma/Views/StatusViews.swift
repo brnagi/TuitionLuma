@@ -56,7 +56,7 @@ struct ErrorStateView: View {
     var body: some View {
         VStack(spacing: 16) {
             EmptyStateView(
-                title: "Something went sideways",
+                title: "Live data did not load",
                 message: message,
                 systemImage: "exclamationmark.triangle.fill"
             )

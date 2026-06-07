@@ -53,7 +53,7 @@ final class ExploreViewModel: ObservableObject {
             loadState = .missingAPIKey
         } catch {
             schools = []
-            loadState = .failed(error.localizedDescription)
+            loadState = .failed(userFacingMessage(for: error))
         }
     }
 
@@ -75,7 +75,12 @@ final class ExploreViewModel: ObservableObject {
             hasMoreResults = page.hasMore
             schools.append(contentsOf: page.schools)
         } catch {
-            loadState = .failed(error.localizedDescription)
+            hasMoreResults = false
+            if schools.isEmpty {
+                loadState = .failed(userFacingMessage(for: error))
+            } else {
+                loadState = .loaded
+            }
         }
     }
 
@@ -133,5 +138,13 @@ final class ExploreViewModel: ObservableObject {
 
         currentPage = result.page
         return result
+    }
+
+    private func userFacingMessage(for error: Error) -> String {
+        if let scorecardError = error as? CollegeScorecardError {
+            return scorecardError.localizedDescription
+        }
+
+        return "TuitionLuma could not load live college data. Check your connection and try again."
     }
 }
