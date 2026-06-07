@@ -43,6 +43,7 @@ struct SchoolDetailView: View {
                         .foregroundStyle(appViewModel.isSaved(school) ? LumaTheme.coral : LumaTheme.ink)
                 }
                 .accessibilityLabel(appViewModel.isSaved(school) ? "Remove saved school" : "Save school")
+                .accessibilityHint(appViewModel.isSaved(school) ? "Removes this school from Saved." : "Adds this school to Saved.")
             }
         }
         .sheet(isPresented: $isShowingPaywall) {
@@ -158,6 +159,7 @@ struct SchoolDetailView: View {
                         ProgramListRow(program: program, school: school)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Opens program details.")
                     .simultaneousGesture(TapGesture().onEnded {
                         viewModel.selectedProgram = program
                     })
@@ -273,6 +275,8 @@ struct SchoolDetailView: View {
                     scenarioPill("Off campus")
                     scenarioPill(school.type == .publicUniversity ? "In-state" : "Aid path")
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Planning scenarios")
             } else {
                 FeatureLock(
                     title: "Unlock deeper planning",

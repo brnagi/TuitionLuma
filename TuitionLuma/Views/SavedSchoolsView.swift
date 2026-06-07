@@ -55,6 +55,7 @@ struct SavedSchoolsView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Opens school details.")
     }
 
     @ViewBuilder
@@ -69,6 +70,8 @@ struct SavedSchoolsView: View {
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(LumaTheme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Unlimited saved schools are unlocked.")
         } else {
             let limit = ProAccessPolicy.savedSchoolLimit(for: proPurchaseManager.state) ?? 0
             UpgradePrompt(

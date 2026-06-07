@@ -110,6 +110,7 @@ struct ExploreView: View {
                     }
                 }
             }
+            .accessibilityLabel("School type filters")
         }
     }
 
@@ -225,6 +226,7 @@ struct ExploreView: View {
             Text(title)
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(isSelected ? .white : LumaTheme.ink)
+                .frame(minHeight: 44)
                 .padding(.vertical, 9)
                 .padding(.horizontal, 14)
                 .background(isSelected ? AnyShapeStyle(LumaTheme.coolGradient) : AnyShapeStyle(.white), in: Capsule())
@@ -232,6 +234,8 @@ struct ExploreView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(title)
         .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityHint("Filters the school list.")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     private func saveTapped(_ school: School) {

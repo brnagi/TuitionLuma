@@ -13,6 +13,7 @@ struct StatPill: View {
                 .foregroundStyle(.white)
                 .frame(width: 24, height: 24)
                 .background(tint, in: Circle())
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(value)
@@ -30,5 +31,8 @@ struct StatPill: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
         .background(tint.opacity(0.12), in: Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
     }
 }

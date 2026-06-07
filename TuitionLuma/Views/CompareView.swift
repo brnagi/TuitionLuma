@@ -62,16 +62,17 @@ struct CompareView: View {
                 .font(.subheadline)
                 .foregroundStyle(LumaTheme.slate)
 
-            HStack {
-                Text(proPurchaseManager.state.isPro ? "Pro compare: up to 5 schools" : "Free compare: up to 2 schools")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(proPurchaseManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
+                    HStack {
+                        Text(proPurchaseManager.state.isPro ? "Pro compare: up to 5 schools" : "Free compare: up to 2 schools")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(proPurchaseManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
 
                 if proPurchaseManager.state.isPro {
                     ProBadge(compact: true)
                 }
             }
         }
+        .accessibilityElement(children: .contain)
     }
 
     private var selectors: some View {
@@ -124,6 +125,7 @@ struct CompareView: View {
                     .accessibilityLabel("Compared school \(index + 1)")
                     .accessibilityValue(viewModel.selectedSchools[index].name)
                 }
+                .accessibilityHint("Opens a menu to replace this compared school.")
             }
 
             if viewModel.selectedSchools.count < compareLimit && !appViewModel.knownSchools.isEmpty {
@@ -138,6 +140,8 @@ struct CompareView: View {
                         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Add school")
+                .accessibilityHint("Adds the next available school to your comparison.")
             }
         }
     }
@@ -170,6 +174,7 @@ struct CompareView: View {
                 }
             }
             .padding(.bottom, 10)
+            .accessibilityElement(children: .contain)
 
             ForEach(viewModel.metrics) { metric in
                 ComparisonRow(title: metric.title, values: metric.values)

@@ -16,11 +16,12 @@ struct ComparisonRow: View {
                     Text(value)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(LumaTheme.ink)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
                         .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .accessibilityLabel(title)
+                        .accessibilityValue(value)
                 }
             }
         }

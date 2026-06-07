@@ -29,6 +29,7 @@ struct StudentProfileCard: View {
                 }
                 .frame(width: 38, height: 38)
                 .shadow(color: LumaTheme.aqua.opacity(0.20), radius: 10, y: 5)
+                .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Get personalized recommendations")
@@ -60,6 +61,8 @@ struct StudentProfileCard: View {
                         .stroke(LumaTheme.coral.opacity(0.18))
                 }
                 .buttonStyle(.plain)
+                .frame(minHeight: 44)
+                .accessibilityHint(proPurchaseManager.state.isPro ? "Opens the student profile form." : "Opens TuitionLuma Pro options.")
             }
         }
         .padding(14)
@@ -139,6 +142,7 @@ private struct StudentProfileEditorView: View {
                     .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
                     .background(.white.opacity(0.22), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Build your profile")
@@ -188,6 +192,8 @@ private struct StudentProfileEditorView: View {
 
             Slider(value: $draft.gpa, in: 0...4, step: 0.1)
                 .tint(LumaTheme.coral)
+                .accessibilityLabel("Current GPA")
+                .accessibilityValue(draft.gpa.formatted(.number.precision(.fractionLength(1))))
         }
     }
 
@@ -203,6 +209,8 @@ private struct StudentProfileEditorView: View {
                 .textInputAutocapitalization(.never)
                 .padding(13)
                 .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .accessibilityLabel("SAT or ACT score")
+                .accessibilityHint("Optional.")
         }
     }
 
@@ -221,6 +229,8 @@ private struct StudentProfileEditorView: View {
                 }
                 .padding(13)
                 .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .accessibilityLabel("State residency")
+                .accessibilityHint("Enter a two-letter state abbreviation.")
         }
     }
 
@@ -235,6 +245,7 @@ private struct StudentProfileEditorView: View {
                 .textInputAutocapitalization(.words)
                 .padding(13)
                 .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .accessibilityLabel("Intended major")
         }
     }
 
@@ -254,6 +265,8 @@ private struct StudentProfileEditorView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(13)
             .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .accessibilityLabel("Family income range")
+            .accessibilityValue(draft.familyIncomeRange.rawValue)
         }
     }
 
@@ -261,6 +274,7 @@ private struct StudentProfileEditorView: View {
         HStack(spacing: 5) {
             Image(systemName: systemImage)
                 .font(.caption2.weight(.heavy))
+                .accessibilityHidden(true)
 
             Text(title)
                 .font(.caption.weight(.heavy))
@@ -285,6 +299,7 @@ private struct StudentProfileEditorView: View {
                     .foregroundStyle(tint)
                     .frame(width: 28, height: 28)
                     .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)

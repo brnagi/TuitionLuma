@@ -419,14 +419,17 @@ struct PaywallView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(LumaTheme.mint)
+                        .accessibilityHidden(true)
 
                     Text(benefit)
                         .font(.headline)
                         .foregroundStyle(LumaTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .accessibilityElement(children: .combine)
             }
         }
     }
@@ -437,6 +440,7 @@ struct PaywallView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Image(systemName: feature.systemImage)
                         .foregroundStyle(LumaTheme.coral)
+                        .accessibilityHidden(true)
 
                     Text(feature.rawValue)
                         .font(.caption.weight(.bold))
@@ -446,6 +450,8 @@ struct PaywallView: View {
                 .frame(maxWidth: .infinity, minHeight: 84, alignment: .topLeading)
                 .padding(12)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(feature.rawValue)
             }
         }
     }
@@ -486,9 +492,11 @@ struct PaywallView: View {
                 }
             }
             .disabled(proPurchaseManager.isLoading || proPurchaseManager.state.isPro)
+            .accessibilityHint(proPurchaseManager.state.isPro ? "TuitionLuma Pro is already active." : "Starts the one-time TuitionLuma Pro purchase.")
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .contain)
     }
 
     private var restoreButton: some View {
@@ -501,9 +509,11 @@ struct PaywallView: View {
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
                 .frame(maxWidth: .infinity)
+                .frame(minHeight: 44)
                 .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
         .disabled(proPurchaseManager.isLoading)
+        .accessibilityHint("Checks the App Store for an existing TuitionLuma Pro purchase.")
     }
 }

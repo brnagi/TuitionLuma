@@ -45,6 +45,7 @@ struct SchoolCard: View {
             .frame(maxWidth: .infinity)
             .frame(height: 124)
             .clipped()
+            .accessibilityHidden(true)
     }
 
     private var controlRow: some View {
@@ -119,6 +120,9 @@ struct SchoolCard: View {
         .padding(.vertical, 7)
         .padding(.horizontal, 10)
         .background(scoreTint.opacity(0.10), in: Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("TuitionLuma score")
+        .accessibilityValue("\(school.lumaScore), \(school.valueLabel)")
     }
 
     private var metricRow: some View {
@@ -149,6 +153,7 @@ struct SchoolCard: View {
         }
         .padding(.vertical, 12)
         .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .contain)
     }
 
     private func personalizedRecommendation(_ recommendation: ProfileRecommendation) -> some View {
@@ -159,6 +164,7 @@ struct SchoolCard: View {
                     .foregroundStyle(.white)
                     .frame(width: 26, height: 26)
                     .background(recommendationTint(for: recommendation).gradient, in: Circle())
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(recommendation.fitLabel)
@@ -258,17 +264,18 @@ struct SchoolCard: View {
             Text(value)
                 .font(.headline.weight(.heavy))
                 .foregroundStyle(tint)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .lineLimit(2)
 
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 10)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
     }
 
     private func recommendationMetric(title: String, value: String, tint: Color) -> some View {
@@ -276,18 +283,19 @@ struct SchoolCard: View {
             Text(value)
                 .font(.headline.weight(.heavy))
                 .foregroundStyle(tint)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .lineLimit(2)
 
             Text(title)
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
         .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
     }
 
     private func recommendationTint(for recommendation: ProfileRecommendation) -> Color {
@@ -330,6 +338,7 @@ struct SchoolCard: View {
                     .font(.caption.weight(.heavy))
             }
             .foregroundStyle(tint)
+            .frame(minHeight: 44)
             .padding(.vertical, 8)
             .padding(.horizontal, 10)
             .background(.white, in: Capsule())
@@ -340,6 +349,9 @@ struct SchoolCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(title)
+        .accessibilityHint(title == "Added" || title == "Saved" ? "Double tap to remove." : "Double tap to add.")
+        .accessibilityAddTraits(.isButton)
     }
 }
 

@@ -144,8 +144,10 @@ struct CalculatorView: View {
                         Label("Change Program", systemImage: "magnifyingglass")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(LumaTheme.coral)
+                            .frame(minHeight: 44)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Opens program search and filters.")
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -389,6 +391,8 @@ struct CalculatorView: View {
 
                 Slider(value: $viewModel.aidInput.interestRate, in: 0...0.12, step: 0.001)
                     .tint(LumaTheme.coral)
+                    .accessibilityLabel("Interest rate")
+                    .accessibilityValue(viewModel.aidInput.interestRate.formatted(.percent.precision(.fractionLength(1))))
             }
 
             Stepper(value: $viewModel.aidInput.yearsInSchool, in: 1...6) {
@@ -400,6 +404,8 @@ struct CalculatorView: View {
                 }
                 .foregroundStyle(LumaTheme.ink)
             }
+            .accessibilityLabel("Years in school")
+            .accessibilityValue("\(viewModel.aidInput.yearsInSchool)")
             .onChange(of: viewModel.aidInput.yearsInSchool) { _, newValue in
                 if newValue == 2 {
                     viewModel.degreePathScenario = .twoYear
@@ -575,8 +581,7 @@ struct CalculatorView: View {
                 Text(viewModel.scenarioSummary)
                     .font(.caption.weight(.bold))
                     .foregroundStyle(LumaTheme.slate)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .lineLimit(2)
             }
 
             Text(viewModel.planningGuidance)
@@ -770,13 +775,15 @@ struct CalculatorView: View {
             HStack {
                 Text(title)
                 Spacer()
-                Text(value.wrappedValue.formatted(LumaFormat.currency))
-                    .fontWeight(.bold)
+            Text(value.wrappedValue.formatted(LumaFormat.currency))
+                .fontWeight(.bold)
             }
             .foregroundStyle(LumaTheme.ink)
 
             Slider(value: value, in: range, step: 500)
                 .tint(tint)
+                .accessibilityLabel(title)
+                .accessibilityValue(value.wrappedValue.formatted(LumaFormat.currency))
         }
     }
 
@@ -951,12 +958,15 @@ struct CalculatorView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(isSelected ? .white : LumaTheme.ink)
                 .lineLimit(1)
-                .minimumScaleFactor(0.75)
                 .frame(maxWidth: .infinity)
+                .frame(minHeight: 44)
                 .padding(.vertical, 10)
                 .background(isSelected ? LumaTheme.coral : LumaTheme.mint.opacity(0.14), in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 
@@ -1074,9 +1084,11 @@ private struct ProgramBrowserSheet: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(LumaTheme.slate)
+                .accessibilityHidden(true)
 
             TextField("Search programs", text: $searchText)
                 .textInputAutocapitalization(.words)
+                .accessibilityLabel("Search programs")
         }
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -1092,6 +1104,7 @@ private struct ProgramBrowserSheet: View {
                 selectedCredential = option
             }
         }
+        .accessibilityElement(children: .contain)
     }
 
     private var selectedAverageButton: some View {
@@ -1118,6 +1131,10 @@ private struct ProgramBrowserSheet: View {
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Use institution average")
+        .accessibilityValue(selectedProgram == nil ? "Selected" : "Not selected")
+        .accessibilityHint("Uses school-wide earnings and debt outcomes.")
+        .accessibilityAddTraits(selectedProgram == nil ? [.isButton, .isSelected] : .isButton)
     }
 
     private var filteredCatalog: some View {
@@ -1181,6 +1198,7 @@ private struct ProgramBrowserSheet: View {
         } label: {
             HStack(spacing: 7) {
                 Image(systemName: systemImage)
+                    .accessibilityHidden(true)
                 Text(title)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -1194,6 +1212,9 @@ private struct ProgramBrowserSheet: View {
             .frame(maxWidth: .infinity)
             .background(.white, in: Capsule())
         }
+        .accessibilityLabel(systemImage == "folder.fill" ? "Category filter" : "Credential filter")
+        .accessibilityValue(title)
+        .accessibilityHint("Opens filter options.")
     }
 
     private func programRow(_ program: AcademicProgram) -> some View {
@@ -1206,6 +1227,7 @@ private struct ProgramBrowserSheet: View {
                     .foregroundStyle(selectedProgram?.id == program.id ? LumaTheme.mint : LumaTheme.coral)
                     .frame(width: 30, height: 30)
                     .background(LumaTheme.coral.opacity(0.10), in: Circle())
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(program.name)
@@ -1236,6 +1258,11 @@ private struct ProgramBrowserSheet: View {
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(program.name)
+        .accessibilityValue("\(program.credential), \(categoryTitle(for: program)), earnings \(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "not available")")
+        .accessibilityHint(selectedProgram?.id == program.id ? "Currently selected." : "Double tap to select this program.")
+        .accessibilityAddTraits(selectedProgram?.id == program.id ? [.isButton, .isSelected] : .isButton)
     }
 
     private func categoryTitle(for program: AcademicProgram) -> String {

@@ -21,10 +21,11 @@ struct LumaButton: View {
 
                 Text(title)
                     .font(.headline)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
+            .frame(minHeight: 44)
             .padding(.vertical, 15)
             .foregroundStyle(style == .primary ? .white : LumaTheme.ink)
             .background(backgroundStyle, in: Capsule())
@@ -32,6 +33,7 @@ struct LumaButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        .accessibilityAddTraits(.isButton)
     }
 
     private var backgroundStyle: AnyShapeStyle {

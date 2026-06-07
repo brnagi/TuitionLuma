@@ -48,6 +48,9 @@ struct LumaScoreCard: View {
                 .foregroundStyle(LumaTheme.ink)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Why this score")
+            .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+            .accessibilityHint(isExpanded ? "Hides score details." : "Shows score details.")
 
             if isExpanded {
                 VStack(alignment: .leading, spacing: 9) {
@@ -67,6 +70,7 @@ struct LumaScoreCard: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(scoreTint.opacity(0.16), lineWidth: 1)
         }
+        .accessibilityElement(children: .contain)
     }
 
     private var scoreTint: Color {
