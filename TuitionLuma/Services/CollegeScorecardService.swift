@@ -6,6 +6,7 @@ enum CollegeScorecardError: LocalizedError, Equatable {
     case requestFailed(Int)
     case noResults
     case decodingFailed
+    case networkUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -19,6 +20,8 @@ enum CollegeScorecardError: LocalizedError, Equatable {
             "No colleges matched this request."
         case .decodingFailed:
             "TuitionLuma could not read the College Scorecard response."
+        case .networkUnavailable:
+            "TuitionLuma could not reach College Scorecard. Check your connection and try again."
         }
     }
 }
@@ -198,7 +201,17 @@ struct CollegeScorecardService: SchoolDataProviding {
             throw CollegeScorecardError.invalidURL
         }
 
-        let (data, response) = try await session.data(from: url)
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(from: url)
+        } catch is URLError {
+            throw CollegeScorecardError.networkUnavailable
+        } catch {
+            throw CollegeScorecardError.networkUnavailable
+        }
+
         guard let httpResponse = response as? HTTPURLResponse else {
             throw CollegeScorecardError.decodingFailed
         }

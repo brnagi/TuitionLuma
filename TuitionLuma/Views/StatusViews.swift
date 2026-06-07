@@ -8,6 +8,7 @@ struct LoadingStateView: View {
             ProgressView()
                 .tint(LumaTheme.coral)
                 .scaleEffect(1.15)
+                .accessibilityLabel(title)
 
             Text(title)
                 .font(.headline)
@@ -29,6 +30,7 @@ struct EmptyStateView: View {
                 .foregroundStyle(LumaTheme.heroGradient)
                 .frame(width: 76, height: 76)
                 .background(LumaTheme.aqua.opacity(0.12), in: Circle())
+                .accessibilityHidden(true)
 
             Text(title)
                 .font(.title3.weight(.bold))
@@ -43,6 +45,7 @@ struct EmptyStateView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 280)
         .padding()
+        .accessibilityElement(children: .combine)
     }
 }
 

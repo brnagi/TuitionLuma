@@ -181,12 +181,15 @@ struct SchoolDetailView: View {
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.bold))
+                    .accessibilityHidden(true)
             }
             .foregroundStyle(LumaTheme.coral)
             .padding(14)
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("View all programs")
+        .accessibilityValue("\(viewModel.programs.count) programs available")
     }
 
     @ViewBuilder
@@ -203,6 +206,7 @@ struct SchoolDetailView: View {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "info.circle.fill")
                     .foregroundStyle(LumaTheme.outcomeTeal)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dataQualityTitle)

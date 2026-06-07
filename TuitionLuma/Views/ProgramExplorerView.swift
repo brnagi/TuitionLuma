@@ -76,9 +76,11 @@ struct ProgramExplorerView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(LumaTheme.slate)
+                .accessibilityHidden(true)
 
             TextField("Search programs", text: $searchText)
                 .textInputAutocapitalization(.words)
+                .accessibilityLabel("Search programs")
         }
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -126,9 +128,13 @@ struct ProgramExplorerView: View {
             Image(systemName: "chevron.up.chevron.down")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
+                .accessibilityHidden(true)
         }
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
     }
 }
 

@@ -116,9 +116,13 @@ struct CompareView: View {
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(LumaTheme.slate)
+                            .accessibilityHidden(true)
                     }
                     .padding(14)
                     .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Compared school \(index + 1)")
+                    .accessibilityValue(viewModel.selectedSchools[index].name)
                 }
             }
 

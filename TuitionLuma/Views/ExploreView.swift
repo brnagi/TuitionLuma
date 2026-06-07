@@ -78,8 +78,10 @@ struct ExploreView: View {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(LumaTheme.slate)
+                    .accessibilityHidden(true)
 
                 TextField("Search schools or state", text: $viewModel.query)
+                    .accessibilityLabel("Search schools or state")
 
                 if !viewModel.query.isEmpty {
                     Button {
@@ -172,6 +174,7 @@ struct ExploreView: View {
                                     .tint(LumaTheme.coral)
                                     .frame(maxWidth: .infinity)
                                     .padding()
+                                    .accessibilityLabel("Loading more colleges")
                             } else {
                                 Label("Load More Colleges", systemImage: "arrow.down.circle.fill")
                                     .font(.headline)
@@ -182,6 +185,7 @@ struct ExploreView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(viewModel.isLoadingMore ? "Loading more colleges" : "Load more colleges")
                     }
                 }
             }
@@ -226,6 +230,8 @@ struct ExploreView: View {
                 .background(isSelected ? AnyShapeStyle(LumaTheme.coolGradient) : AnyShapeStyle(.white), in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
     }
 
     private func saveTapped(_ school: School) {
