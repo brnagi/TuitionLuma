@@ -176,7 +176,7 @@ struct SchoolCard: View {
                 recommendationMetric(
                     title: "Estimated net cost",
                     value: recommendation.estimatedNetCost.formatted(LumaFormat.currency),
-                    tint: LumaTheme.valueGreen
+                    tint: affordabilityTint(for: recommendation.affordability)
                 )
 
                 recommendationMetric(
@@ -184,6 +184,17 @@ struct SchoolCard: View {
                     value: recommendation.roiGrade,
                     tint: recommendationTint(for: recommendation)
                 )
+            }
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(recommendation.affordability.rawValue)
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(affordabilityTint(for: recommendation.affordability))
+
+                Text(recommendation.affordability.explanation)
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .lineLimit(2)
             }
         }
         .padding(14)
@@ -288,6 +299,17 @@ struct SchoolCard: View {
         case "C+":
             LumaTheme.scoreGold
         default:
+            LumaTheme.warningOrange
+        }
+    }
+
+    private func affordabilityTint(for affordability: AffordabilityClassification) -> Color {
+        switch affordability {
+        case .affordable:
+            LumaTheme.valueGreen
+        case .stretch:
+            LumaTheme.scoreGold
+        case .highRisk:
             LumaTheme.warningOrange
         }
     }

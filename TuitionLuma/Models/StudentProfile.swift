@@ -61,8 +61,26 @@ struct StudentProfile: Codable, Equatable {
 struct ProfileRecommendation: Equatable {
     var fitLabel: String
     var estimatedNetCost: Double
+    var affordability: AffordabilityClassification
     var roiGrade: String
     var summary: String
+}
+
+enum AffordabilityClassification: String, Equatable {
+    case affordable = "Affordable"
+    case stretch = "Stretch"
+    case highRisk = "High Risk"
+
+    var explanation: String {
+        switch self {
+        case .affordable:
+            "Estimated cost looks manageable for this income range."
+        case .stretch:
+            "May need careful aid, savings, or borrowing planning."
+        case .highRisk:
+            "Likely needs more aid or lower borrowing to stay manageable."
+        }
+    }
 }
 
 enum StudentProfileRecommendationEngine {
@@ -105,6 +123,7 @@ enum StudentProfileRecommendationEngine {
         return ProfileRecommendation(
             fitLabel: fitLabel(for: fitScore),
             estimatedNetCost: estimatedNetCost,
+            affordability: affordabilityClassification(for: profile, estimatedNetCost: estimatedNetCost),
             roiGrade: roiGrade,
             summary: summary(for: school, profile: profile, matchedProgram: matchedProgram)
         )
@@ -290,12 +309,27 @@ enum StudentProfileRecommendationEngine {
     }
 
     private static func affordabilityScore(for profile: StudentProfile, estimatedNetCost: Double) -> Double {
-        let burden = estimatedNetCost / max(profile.familyIncomeRange.midpoint, 1)
+        let burden = affordabilityBurden(for: profile, estimatedNetCost: estimatedNetCost)
 
         if burden < 0.12 { return 19 }
         if burden < 0.20 { return 15 }
         if burden < 0.30 { return 10 }
         return 5
+    }
+
+    private static func affordabilityClassification(
+        for profile: StudentProfile,
+        estimatedNetCost: Double
+    ) -> AffordabilityClassification {
+        let burden = affordabilityBurden(for: profile, estimatedNetCost: estimatedNetCost)
+
+        if burden < 0.20 { return .affordable }
+        if burden < 0.30 { return .stretch }
+        return .highRisk
+    }
+
+    private static func affordabilityBurden(for profile: StudentProfile, estimatedNetCost: Double) -> Double {
+        estimatedNetCost / max(profile.familyIncomeRange.midpoint, 1)
     }
 
     private static func fitLabel(for score: Double) -> String {
