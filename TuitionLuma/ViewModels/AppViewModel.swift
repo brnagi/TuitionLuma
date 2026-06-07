@@ -15,9 +15,24 @@ enum CompareSchoolResult {
 
 @MainActor
 final class AppViewModel: ObservableObject {
+    private enum StorageKey {
+        static let savedSchoolIDs = "tuitionLuma.savedSchoolIDs"
+        static let comparedSchoolIDs = "tuitionLuma.comparedSchoolIDs"
+    }
+
     @Published private(set) var knownSchools: [School] = []
     @Published private(set) var savedSchools: [School] = []
     @Published private(set) var comparedSchools: [School] = []
+
+    private var savedSchoolIDStrings: [String]
+    private var comparedSchoolIDStrings: [String]
+    private let userDefaults: UserDefaults
+
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+        self.savedSchoolIDStrings = userDefaults.stringArray(forKey: StorageKey.savedSchoolIDs) ?? []
+        self.comparedSchoolIDStrings = userDefaults.stringArray(forKey: StorageKey.comparedSchoolIDs) ?? []
+    }
 
     var comparedSchoolIDs: [School.ID] {
         comparedSchools.map(\.id)
@@ -27,47 +42,59 @@ final class AppViewModel: ObservableObject {
         for school in schools where !knownSchools.contains(where: { $0.id == school.id }) {
             knownSchools.append(school)
         }
+
+        restorePersistedSchools()
     }
 
     func toggleSaved(_ school: School, savedLimit: Int? = nil) -> SaveSchoolResult {
         if let index = savedSchools.firstIndex(where: { $0.id == school.id }) {
             savedSchools.remove(at: index)
+            savedSchoolIDStrings.removeAll { $0 == school.idString }
+            persistSavedSchools()
             return .removed
         }
 
-        if let savedLimit, savedSchools.count >= savedLimit {
+        if let savedLimit, savedSchoolIDStrings.count >= savedLimit {
             return .limitReached
         }
 
         savedSchools.append(school)
+        if !savedSchoolIDStrings.contains(school.idString) {
+            savedSchoolIDStrings.append(school.idString)
+        }
         remember([school])
+        persistSavedSchools()
         return .saved
     }
 
     func isSaved(_ school: School) -> Bool {
-        savedSchools.contains { $0.id == school.id }
+        savedSchoolIDStrings.contains(school.idString)
     }
 
     func addToCompare(_ school: School, compareLimit: Int) -> CompareSchoolResult {
-        if comparedSchools.contains(where: { $0.id == school.id }) {
+        if comparedSchoolIDStrings.contains(school.idString) {
             return .alreadyCompared
         }
 
-        guard comparedSchools.count < compareLimit else {
+        guard comparedSchoolIDStrings.count < compareLimit else {
             return .limitReached
         }
 
         comparedSchools.append(school)
+        comparedSchoolIDStrings.append(school.idString)
         remember([school])
+        persistComparedSchools()
         return .added
     }
 
     func removeFromCompare(_ school: School) -> CompareSchoolResult {
-        guard comparedSchools.contains(where: { $0.id == school.id }) else {
+        guard comparedSchoolIDStrings.contains(school.idString) else {
             return .alreadyCompared
         }
 
         comparedSchools.removeAll { $0.id == school.id }
+        comparedSchoolIDStrings.removeAll { $0 == school.idString }
+        persistComparedSchools()
         return .removed
     }
 
@@ -82,15 +109,44 @@ final class AppViewModel: ObservableObject {
             seenIDs.insert(school.id).inserted
         }
 
+        comparedSchoolIDStrings = comparedSchools.map(\.idString)
         remember([school])
+        persistComparedSchools()
     }
 
     func trimComparedSchools(to limit: Int) {
-        guard comparedSchools.count > limit else { return }
+        guard comparedSchoolIDStrings.count > limit else { return }
         comparedSchools = Array(comparedSchools.prefix(limit))
+        comparedSchoolIDStrings = Array(comparedSchoolIDStrings.prefix(limit))
+        persistComparedSchools()
     }
 
     func isCompared(_ school: School) -> Bool {
-        comparedSchools.contains { $0.id == school.id }
+        comparedSchoolIDStrings.contains(school.idString)
+    }
+
+    private func restorePersistedSchools() {
+        savedSchools = schools(matching: savedSchoolIDStrings)
+        comparedSchools = schools(matching: comparedSchoolIDStrings)
+    }
+
+    private func schools(matching idStrings: [String]) -> [School] {
+        idStrings.compactMap { idString in
+            knownSchools.first { $0.idString == idString }
+        }
+    }
+
+    private func persistSavedSchools() {
+        userDefaults.set(savedSchoolIDStrings, forKey: StorageKey.savedSchoolIDs)
+    }
+
+    private func persistComparedSchools() {
+        userDefaults.set(comparedSchoolIDStrings, forKey: StorageKey.comparedSchoolIDs)
+    }
+}
+
+private extension School {
+    var idString: String {
+        String(describing: id)
     }
 }
