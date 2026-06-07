@@ -20,14 +20,14 @@ enum ROIOutcomeCalculator {
         let debt = program?.debt.flatMap { $0 > 0 ? $0 : nil }
             ?? (school.averageDebt > 0 ? school.averageDebt : 20_000)
         let netCost = max(estimatedNetCost ?? school.costEstimate.averageNetPrice, 1)
-        let earningsRatio = earnings / netCost
-        let debtRatio = earnings / max(debt, 1)
-        let graduationSignal = max(0.30, school.graduationRate)
+        let earningsToCost = earnings / netCost
+        let debtToEarnings = debt / max(earnings, 1)
 
-        let rawScore = earningsRatio * 14
-            + debtRatio * 9
-            + Double(school.lumaScore) * 0.38
-            + graduationSignal * 16
+        let rawScore = 20
+            + scaledScore(value: earningsToCost, low: 1.0, high: 5.0, points: 34)
+            + scaledInverseScore(value: debtToEarnings, low: 0.18, high: 0.85, points: 26)
+            + scaledScore(value: school.graduationRate, low: 0.35, high: 0.85, points: 20)
+            + (Double(school.lumaScore) / 100) * 19
 
         let score = min(99, max(35, Int(rawScore.rounded())))
 
@@ -39,6 +39,18 @@ enum ROIOutcomeCalculator {
             usedProgramEarnings: (program?.medianEarnings ?? 0) > 0,
             usedProgramDebt: (program?.debt ?? 0) > 0
         )
+    }
+
+    private static func scaledScore(value: Double, low: Double, high: Double, points: Double) -> Double {
+        guard high > low else { return 0 }
+        let progress = (value - low) / (high - low)
+        return min(1, max(0, progress)) * points
+    }
+
+    private static func scaledInverseScore(value: Double, low: Double, high: Double, points: Double) -> Double {
+        guard high > low else { return 0 }
+        let progress = (high - value) / (high - low)
+        return min(1, max(0, progress)) * points
     }
 
     private static func grade(for score: Int) -> String {

@@ -51,6 +51,54 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertTrue(result.usedProgramDebt)
     }
 
+    func testROIScoreVariesAcrossDifferentSchoolOutcomes() {
+        let strongerSchool = makeSchool(
+            medianEarnings: 76_000,
+            averageDebt: 18_000,
+            netPrice: 12_000,
+            graduationRate: 0.82,
+            lumaScore: 88
+        )
+        let weakerSchool = makeSchool(
+            medianEarnings: 42_000,
+            averageDebt: 33_000,
+            netPrice: 24_000,
+            graduationRate: 0.48,
+            lumaScore: 58
+        )
+
+        let strongerResult = ROIOutcomeCalculator.result(for: strongerSchool)
+        let weakerResult = ROIOutcomeCalculator.result(for: weakerSchool)
+
+        XCTAssertGreaterThan(strongerResult.score, weakerResult.score)
+        XCTAssertNotEqual(strongerResult.score, weakerResult.score)
+    }
+
+    func testHighDebtProgramScoresLowerThanLowerDebtProgram() {
+        let school = makeSchool(medianEarnings: 62_000, averageDebt: 22_000)
+        let lowerDebtProgram = AcademicProgram(
+            name: "Information Technology",
+            credential: "Bachelor's Degree",
+            cipCode: "11.10",
+            medianEarnings: 72_000,
+            debt: 16_000,
+            typicalDurationYears: 4
+        )
+        let higherDebtProgram = AcademicProgram(
+            name: "Information Technology",
+            credential: "Bachelor's Degree",
+            cipCode: "11.10",
+            medianEarnings: 72_000,
+            debt: 46_000,
+            typicalDurationYears: 4
+        )
+
+        let lowerDebtResult = ROIOutcomeCalculator.result(for: school, program: lowerDebtProgram, estimatedNetCost: 16_000)
+        let higherDebtResult = ROIOutcomeCalculator.result(for: school, program: higherDebtProgram, estimatedNetCost: 16_000)
+
+        XCTAssertGreaterThan(lowerDebtResult.score, higherDebtResult.score)
+    }
+
     func testPoliticalScienceDoesNotAssumeGraduateSchool() {
         let labels = AcademicProgramPathClassifier.labels(
             name: "Political Science and Government",
@@ -64,7 +112,10 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
 
     private func makeSchool(
         medianEarnings: Double,
-        averageDebt: Double
+        averageDebt: Double,
+        netPrice: Double = 13_500,
+        graduationRate: Double = 0.68,
+        lumaScore: Int = 74
     ) -> School {
         School(
             scorecardID: 123,
@@ -73,8 +124,8 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
             state: "TX",
             type: .publicUniversity,
             acceptanceRate: 0.72,
-            graduationRate: 0.68,
-            lumaScore: 74,
+            graduationRate: graduationRate,
+            lumaScore: lumaScore,
             valueLabel: "Good Value",
             medianEarnings: medianEarnings,
             averageDebt: averageDebt,
@@ -85,7 +136,7 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
                 tuitionAndFees: 11_000,
                 outOfStateTuition: 28_000,
                 costOfAttendance: 24_000,
-                reportedAverageNetPrice: 13_500,
+                reportedAverageNetPrice: netPrice,
                 housingAndMeals: 9_000,
                 booksAndSupplies: 1_200,
                 transportation: 1_000,
