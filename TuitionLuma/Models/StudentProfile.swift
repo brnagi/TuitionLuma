@@ -297,16 +297,25 @@ private extension Double {
 
 @MainActor
 final class StudentProfileStore: ObservableObject {
-    private let storageKey = "tuitionluma.studentProfile"
+    private enum StorageKey {
+        static let profile = "tuitionLuma.studentProfile"
+        static let legacyProfile = "tuitionluma.studentProfile"
+    }
+
+    private let userDefaults: UserDefaults
 
     @Published var profile: StudentProfile {
         didSet { persistProfile() }
     }
 
-    init(profile: StudentProfile = .empty) {
-        if let data = UserDefaults.standard.data(forKey: storageKey),
-           let savedProfile = try? JSONDecoder().decode(StudentProfile.self, from: data) {
+    init(profile: StudentProfile = .empty, userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+
+        if let savedProfile = Self.loadProfile(from: userDefaults, key: StorageKey.profile) {
             self.profile = savedProfile
+        } else if let legacyProfile = Self.loadProfile(from: userDefaults, key: StorageKey.legacyProfile) {
+            self.profile = legacyProfile
+            persistProfile()
         } else {
             self.profile = profile
         }
@@ -314,12 +323,18 @@ final class StudentProfileStore: ObservableObject {
 
     func clear() {
         profile = .empty
-        UserDefaults.standard.removeObject(forKey: storageKey)
+        userDefaults.removeObject(forKey: StorageKey.profile)
+        userDefaults.removeObject(forKey: StorageKey.legacyProfile)
     }
 
     private func persistProfile() {
         if let data = try? JSONEncoder().encode(profile) {
-            UserDefaults.standard.set(data, forKey: storageKey)
+            userDefaults.set(data, forKey: StorageKey.profile)
         }
+    }
+
+    private static func loadProfile(from userDefaults: UserDefaults, key: String) -> StudentProfile? {
+        guard let data = userDefaults.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(StudentProfile.self, from: data)
     }
 }
