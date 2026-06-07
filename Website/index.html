@@ -3,43 +3,113 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TuitionLuma | College Decision Assistant</title>
-    <meta name="description" content="TuitionLuma is a College Decision Assistant that helps students and families compare costs, financial aid, debt, outcomes, and program ROI with clearer numbers.">
+    <title>College Decision Assistant for Cost, Aid, Student Loans & ROI | TuitionLuma</title>
+    <meta name="description" content="TuitionLuma helps families compare colleges by net price, college cost, financial aid, student loan payments, major outcomes, college ROI, and affordability.">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="https://tuitionluma.pages.dev/">
     <meta property="og:site_name" content="TuitionLuma">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="TuitionLuma | College Decision Assistant">
-    <meta property="og:description" content="Use a College Decision Assistant to compare real costs, student debt, financial aid, and likely outcomes before choosing a school.">
+    <meta property="og:title" content="TuitionLuma | College Decision Assistant for Cost, Aid & ROI">
+    <meta property="og:description" content="Compare colleges by net price, financial aid, student loan payments, major outcomes, college ROI, and affordability before choosing a school.">
     <meta property="og:url" content="https://tuitionluma.pages.dev/">
     <meta property="og:image" content="https://tuitionluma.pages.dev/assets/tuitionluma-cap-icon.png">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:image:alt" content="TuitionLuma graduation cap app icon">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="TuitionLuma | College Decision Assistant">
-    <meta name="twitter:description" content="A friendlier College Decision Assistant for comparing costs, financial aid, student debt, and likely outcomes.">
+    <meta name="twitter:title" content="TuitionLuma | College Decision Assistant for Cost, Aid & ROI">
+    <meta name="twitter:description" content="Compare colleges by net price, financial aid, student loan payments, major outcomes, college ROI, and affordability.">
     <meta name="twitter:image" content="https://tuitionluma.pages.dev/assets/tuitionluma-cap-icon.png">
+    <meta name="twitter:image:alt" content="TuitionLuma graduation cap app icon">
     <link rel="icon" href="/assets/tuitionluma-cap-icon.png">
     <link rel="apple-touch-icon" href="/assets/tuitionluma-cap-icon.png">
     <link rel="stylesheet" href="/styles.css">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "TuitionLuma",
-        "applicationCategory": "EducationApplication",
-        "operatingSystem": "iOS",
-        "url": "https://tuitionluma.pages.dev/",
-        "description": "TuitionLuma is a College Decision Assistant that helps students and families compare costs, financial aid, student debt, outcomes, and program ROI.",
-        "offers": {
-          "@type": "Offer",
-          "price": "4.99",
-          "priceCurrency": "USD",
-          "description": "TuitionLuma Pro one-time purchase"
-        },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Incisive Labs LLC",
-          "url": "https://incisive-labs.pages.dev/"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://incisive-labs.pages.dev/#organization",
+            "name": "Incisive Labs LLC",
+            "url": "https://incisive-labs.pages.dev/",
+            "logo": "https://tuitionluma.pages.dev/assets/tuitionluma-cap-icon.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://tuitionluma.pages.dev/#website",
+            "name": "TuitionLuma",
+            "url": "https://tuitionluma.pages.dev/",
+            "description": "TuitionLuma is a College Decision Assistant for comparing college cost, financial aid, student loans, college ROI, major outcomes, and affordability.",
+            "publisher": {
+              "@id": "https://incisive-labs.pages.dev/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://tuitionluma.pages.dev/#app",
+            "name": "TuitionLuma",
+            "applicationCategory": "EducationApplication",
+            "operatingSystem": "iOS",
+            "url": "https://tuitionluma.pages.dev/",
+            "description": "TuitionLuma is a College Decision Assistant that helps students and families compare colleges by net price, financial aid, student loan payments, major outcomes, college ROI, and affordability.",
+            "offers": {
+              "@type": "Offer",
+              "price": "4.99",
+              "priceCurrency": "USD",
+              "description": "TuitionLuma Pro one-time purchase"
+            },
+            "publisher": {
+              "@id": "https://incisive-labs.pages.dev/#organization"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://tuitionluma.pages.dev/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How do I compare college costs?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Compare colleges by looking beyond tuition. TuitionLuma helps families review net price, financial aid, housing, student debt, graduation rates, earnings, and affordability side by side."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What is net price?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Net price is an estimate of what a student pays after grants and scholarships are subtracted from the full cost of attendance. It is often more useful than tuition alone."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does Luma Score work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Luma Score is TuitionLuma's value signal that summarizes available cost and outcome data such as net price, earnings, graduation rate, and debt."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How can I compare college ROI?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "TuitionLuma compares college ROI by combining cost, student debt, earnings outcomes, and graduation data where available, so families can understand likely value before choosing a school."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do major outcomes affect recommendations?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "When program data is available, TuitionLuma uses major outcomes such as program earnings and debt to make recommendations more relevant to a student's intended field of study."
+                }
+              }
+            ]
+          }
+        ]
       }
     </script>
   </head>
