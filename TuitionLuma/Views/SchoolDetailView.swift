@@ -15,6 +15,7 @@ struct SchoolDetailView: View {
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 18) {
                     hero
+                    LumaScoreCard(school: school)
                     quickStats
                     dataQualitySection
                     CostBreakdownCard(cost: school.costEstimate)
@@ -120,7 +121,7 @@ struct SchoolDetailView: View {
     private var programSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Programs to compare")
+                Text("Top Programs")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(LumaTheme.ink)
 
@@ -134,172 +135,57 @@ struct SchoolDetailView: View {
 
             if viewModel.programs.isEmpty {
                 EmptyStateView(
-                    title: "Program data unavailable",
-                    message: "College Scorecard does not publish field-of-study outcomes for every school or program.",
+                    title: "Program outcomes unavailable",
+                    message: "No program-specific salary data is available for this school.",
                     systemImage: "list.bullet.clipboard"
                 )
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else if viewModel.topPrograms.isEmpty {
+                EmptyStateView(
+                    title: "Program salary data unavailable",
+                    message: "No program-specific salary data is available for these programs.",
+                    systemImage: "chart.line.uptrend.xyaxis"
+                )
+                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+                viewAllProgramsLink
             } else {
-                programFocusCard
-
-                ForEach(viewModel.programs.prefix(proPurchaseManager.state.isPro ? 12 : 3)) { program in
-                    let isSelected = viewModel.selectedProgram == program
-                    Button {
-                        viewModel.selectedProgram = program
+                ForEach(viewModel.topPrograms) { program in
+                    NavigationLink {
+                        ProgramDetailView(school: school, program: program)
                     } label: {
-                        HStack(alignment: .top, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(program.name)
-                                    .font(.headline)
-                                    .foregroundStyle(LumaTheme.ink)
-                                    .lineLimit(3)
-                                    .fixedSize(horizontal: false, vertical: true)
-
-                                Text(programSubtitle(program))
-                                    .font(.caption)
-                                    .foregroundStyle(LumaTheme.slate)
-                                    .lineLimit(3)
-                                    .fixedSize(horizontal: false, vertical: true)
-
-                                programPathChips(program.pathLabels.prefix(2).map { $0 }, isSelected: isSelected)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                            VStack(alignment: .trailing, spacing: 4) {
-                                Text(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "N/A")
-                                    .font(.headline.weight(.heavy))
-                                    .foregroundStyle(LumaTheme.ink)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.76)
-
-                                Text("median pay")
-                                    .font(.caption2.weight(.medium))
-                                    .foregroundStyle(LumaTheme.slate)
-
-                                if isSelected {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.caption.weight(.bold))
-                                        .foregroundStyle(LumaTheme.mint)
-                                }
-                            }
-                            .frame(width: 86, alignment: .trailing)
-                        }
+                        ProgramListRow(program: program, school: school)
                     }
                     .buttonStyle(.plain)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        Color.white,
-                        in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                            .stroke(isSelected ? LumaTheme.mint.opacity(0.40) : Color.black.opacity(0.04), lineWidth: 1)
-                    )
-                    .overlay(alignment: .leading) {
-                        if isSelected {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(LumaTheme.mint)
-                                .frame(width: 4)
-                                .padding(.vertical, 12)
-                        }
-                    }
-                    .clipped()
+                    .simultaneousGesture(TapGesture().onEnded {
+                        viewModel.selectedProgram = program
+                    })
                 }
 
-                if !proPurchaseManager.state.isPro && viewModel.programs.count > 3 {
-                    FeatureLock(
-                        title: "Unlock program ROI",
-                        message: "Compare more program outcomes, payback period, and advanced ROI with Pro.",
-                        feature: .roiScore,
-                        action: { isShowingPaywall = true }
-                    )
+                if viewModel.programs.count > viewModel.topPrograms.count {
+                    viewAllProgramsLink
                 }
+
             }
         }
     }
 
-    private var programFocusCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
+    private var viewAllProgramsLink: some View {
+        NavigationLink {
+            ProgramExplorerView(school: school, programs: viewModel.rankedPrograms)
+        } label: {
             HStack {
-                Label("Academic focus", systemImage: "book.closed.fill")
+                Label("View All Programs", systemImage: "list.bullet")
                     .font(.headline)
-                    .foregroundStyle(LumaTheme.ink)
-
                 Spacer()
-
-                Text(viewModel.selectedProgram == nil ? "School average" : "Program outcomes")
-                    .font(.caption.weight(.heavy))
-                    .foregroundStyle(viewModel.selectedProgram == nil ? LumaTheme.slate : LumaTheme.outcomeTeal)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 10)
-                    .background(
-                        (viewModel.selectedProgram == nil ? LumaTheme.canvas : LumaTheme.aqua.opacity(0.12)),
-                        in: Capsule()
-                    )
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.bold))
             }
-
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(selectedProgramTitle)
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(selectedProgramSubtitle)
-                        .font(.caption)
-                        .foregroundStyle(LumaTheme.slate)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer()
-
-                Menu {
-                    Button("Use institution average") {
-                        viewModel.selectedProgram = nil
-                    }
-
-                    ForEach(viewModel.programs) { program in
-                        Button(program.name) {
-                            viewModel.selectedProgram = program
-                        }
-                    }
-                } label: {
-                    Label("Change", systemImage: "chevron.up.chevron.down")
-                        .font(.caption.weight(.heavy))
-                        .foregroundStyle(LumaTheme.coral)
-                        .labelStyle(.titleAndIcon)
-                        .padding(.vertical, 9)
-                        .padding(.horizontal, 10)
-                        .background(.white, in: Capsule())
-                        .overlay(Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1))
-                }
-            }
+            .foregroundStyle(LumaTheme.coral)
             .padding(14)
-            .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-
-            Text(roiOutcome.usedProgramEarnings || roiOutcome.usedProgramDebt ? "ROI uses program earnings or debt where reported." : "ROI falls back to institution-level outcomes because this program has missing data.")
-                .font(.caption)
-                .foregroundStyle(LumaTheme.slate)
-                .fixedSize(horizontal: false, vertical: true)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
-        .padding(14)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-    }
-
-    private var selectedProgramTitle: String {
-        viewModel.selectedProgram?.name ?? "Use institution average"
-    }
-
-    private var selectedProgramSubtitle: String {
-        guard let selectedProgram = viewModel.selectedProgram else {
-            return "Best when you are still deciding on a major."
-        }
-
-        let earnings = selectedProgram.medianEarnings > 0 ? selectedProgram.medianEarnings.formatted(LumaFormat.currency) : "not reported"
-        return "\(selectedProgram.credential) • Median pay \(earnings)"
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -435,35 +321,6 @@ struct SchoolDetailView: View {
         }
     }
 
-    private func programSubtitle(_ program: AcademicProgram) -> String {
-        [
-            program.credential,
-            program.cipCode.map { "CIP \($0)" },
-            program.category,
-            program.debt.map { "Debt \($0.formatted(LumaFormat.currency))" },
-            program.completionCount.map { "\($0) completions" }
-        ]
-        .compactMap { $0 }
-        .joined(separator: " • ")
-    }
-
-    @ViewBuilder
-    private func programPathChips(_ labels: [AcademicPathLabel], isSelected: Bool) -> some View {
-        if !labels.isEmpty {
-            HStack(spacing: 6) {
-                ForEach(labels, id: \.self) { label in
-                    Text(label.rawValue)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(LumaTheme.ink)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 8)
-                        .background((isSelected ? LumaTheme.mint : LumaTheme.aqua).opacity(0.12), in: Capsule())
-                }
-            }
-        }
-    }
 }
 
 @MainActor
@@ -477,11 +334,43 @@ final class SchoolDetailViewModel: ObservableObject {
 
     private let provider: SchoolDataProviding
 
+    var rankedPrograms: [AcademicProgram] {
+        programs.sorted { lhs, rhs in
+            let lhsHasEarnings = lhs.medianEarnings > 0
+            let rhsHasEarnings = rhs.medianEarnings > 0
+
+            if lhsHasEarnings != rhsHasEarnings {
+                return lhsHasEarnings
+            }
+
+            let lhsROI = ROIOutcomeCalculator.result(for: school, program: lhs).score
+            let rhsROI = ROIOutcomeCalculator.result(for: school, program: rhs).score
+
+            if lhsROI != rhsROI {
+                return lhsROI > rhsROI
+            }
+
+            if lhs.medianEarnings != rhs.medianEarnings {
+                return lhs.medianEarnings > rhs.medianEarnings
+            }
+
+            return (lhs.completionCount ?? 0) > (rhs.completionCount ?? 0)
+        }
+    }
+
+    var topPrograms: [AcademicProgram] {
+        Array(
+            rankedPrograms
+                .filter { $0.medianEarnings > 0 }
+                .prefix(5)
+        )
+    }
+
     init(school: School, provider: SchoolDataProviding = CollegeScorecardService()) {
         self.school = school
         self.programs = school.programs
-        self.selectedProgram = school.programs.first
         self.provider = provider
+        self.selectedProgram = topPrograms.first
     }
 
     func load() async {
@@ -513,10 +402,10 @@ final class SchoolDetailViewModel: ObservableObject {
 
         do {
             programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
-            selectedProgram = programs.first
+            selectedProgram = topPrograms.first
         } catch {
             programs = school.programs
-            selectedProgram = school.programs.first
+            selectedProgram = topPrograms.first
         }
     }
 }
