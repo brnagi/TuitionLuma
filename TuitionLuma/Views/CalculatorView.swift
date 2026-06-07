@@ -9,6 +9,7 @@ struct CalculatorView: View {
     @State private var reportErrorMessage: String?
     @State private var shareableReport: ShareableReport?
     @State private var isShowingProgramDetails = false
+    @State private var isShowingProgramBrowser = false
 
     var body: some View {
         NavigationStack {
@@ -40,6 +41,17 @@ struct CalculatorView: View {
             }
             .sheet(item: $shareableReport) { report in
                 ShareSheet(items: [report.url])
+            }
+            .sheet(isPresented: $isShowingProgramBrowser) {
+                ProgramBrowserSheet(
+                    programs: viewModel.availablePrograms,
+                    selectedProgram: viewModel.selectedProgram,
+                    onSelect: { program in
+                        viewModel.selectedProgram = program
+                        isShowingProgramDetails = false
+                        isShowingProgramBrowser = false
+                    }
+                )
             }
         }
     }
@@ -115,34 +127,29 @@ struct CalculatorView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             } else {
-                Menu {
-                    Button("Use institution average") {
-                        viewModel.selectedProgram = nil
-                    }
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Selected Program")
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
 
-                    ForEach(viewModel.availablePrograms) { program in
-                        Button(program.name) {
-                            viewModel.selectedProgram = program
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 10) {
-                        Text(selectedProgramTitle)
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(LumaTheme.ink)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
+                    Text(selectedProgramTitle)
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(LumaTheme.ink)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
 
-                        Spacer(minLength: 8)
-
-                        Image(systemName: "chevron.up.chevron.down")
+                    Button {
+                        isShowingProgramBrowser = true
+                    } label: {
+                        Label("Change Program", systemImage: "magnifyingglass")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(LumaTheme.slate)
+                            .foregroundStyle(LumaTheme.coral)
                     }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .buttonStyle(.plain)
                 }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .accessibilityLabel("Academic program")
                 .accessibilityValue(selectedProgramTitle)
                 .onChange(of: viewModel.selectedProgram) { _, _ in
@@ -956,4 +963,286 @@ struct CalculatorView: View {
 private struct ShareableReport: Identifiable {
     let id = UUID()
     var url: URL
+}
+
+private struct ProgramBrowserSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
+    @State private var selectedCategory = "All Categories"
+    @State private var selectedCredential = "All Credentials"
+
+    var programs: [AcademicProgram]
+    var selectedProgram: AcademicProgram?
+    var onSelect: (AcademicProgram?) -> Void
+
+    private var categories: [String] {
+        ["All Categories"] + Set(programs.map(categoryTitle(for:))).sorted()
+    }
+
+    private var credentials: [String] {
+        ["All Credentials"] + Set(programs.map(\.credential)).sorted()
+    }
+
+    private var popularPrograms: [AcademicProgram] {
+        let popular = programs
+            .filter { ($0.completionCount ?? 0) > 0 }
+            .sorted {
+                if ($0.completionCount ?? 0) == ($1.completionCount ?? 0) {
+                    return $0.medianEarnings > $1.medianEarnings
+                }
+                return ($0.completionCount ?? 0) > ($1.completionCount ?? 0)
+            }
+
+        return Array((popular.isEmpty ? topPrograms : popular).prefix(5))
+    }
+
+    private var topPrograms: [AcademicProgram] {
+        Array(programs
+            .filter { $0.medianEarnings > 0 }
+            .sorted {
+                if $0.medianEarnings == $1.medianEarnings {
+                    return ($0.debt ?? .greatestFiniteMagnitude) < ($1.debt ?? .greatestFiniteMagnitude)
+                }
+                return $0.medianEarnings > $1.medianEarnings
+            }
+            .prefix(5))
+    }
+
+    private var filteredPrograms: [AcademicProgram] {
+        programs.filter { program in
+            let matchesSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || program.name.localizedCaseInsensitiveContains(searchText)
+                || program.credential.localizedCaseInsensitiveContains(searchText)
+                || categoryTitle(for: program).localizedCaseInsensitiveContains(searchText)
+            let matchesCategory = selectedCategory == "All Categories" || categoryTitle(for: program) == selectedCategory
+            let matchesCredential = selectedCredential == "All Credentials" || program.credential == selectedCredential
+
+            return matchesSearch && matchesCategory && matchesCredential
+        }
+    }
+
+    private var groupedPrograms: [(String, [AcademicProgram])] {
+        Dictionary(grouping: filteredPrograms, by: categoryTitle(for:))
+            .map { key, value in
+                (
+                    key,
+                    value.sorted {
+                        if $0.medianEarnings == $1.medianEarnings {
+                            return ($0.completionCount ?? 0) > ($1.completionCount ?? 0)
+                        }
+                        return $0.medianEarnings > $1.medianEarnings
+                    }
+                )
+            }
+            .sorted { $0.0 < $1.0 }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    searchField
+                    filterRow
+                    selectedAverageButton
+
+                    if !searchText.isEmpty || selectedCategory != "All Categories" || selectedCredential != "All Credentials" {
+                        filteredCatalog
+                    } else {
+                        curatedSection(title: "Popular Programs", programs: popularPrograms)
+                        curatedSection(title: "Top Programs", programs: topPrograms)
+                        filteredCatalog
+                    }
+                }
+                .padding()
+            }
+            .background(LumaTheme.canvas)
+            .navigationTitle("Change Program")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(LumaTheme.coral)
+                }
+            }
+        }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(LumaTheme.slate)
+
+            TextField("Search programs", text: $searchText)
+                .textInputAutocapitalization(.words)
+        }
+        .padding(14)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var filterRow: some View {
+        HStack(spacing: 10) {
+            filterMenu(title: selectedCategory, systemImage: "folder.fill", options: categories) { option in
+                selectedCategory = option
+            }
+
+            filterMenu(title: selectedCredential, systemImage: "graduationcap.fill", options: credentials) { option in
+                selectedCredential = option
+            }
+        }
+    }
+
+    private var selectedAverageButton: some View {
+        Button {
+            onSelect(nil)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: selectedProgram == nil ? "checkmark.circle.fill" : "building.columns.fill")
+                    .foregroundStyle(selectedProgram == nil ? LumaTheme.mint : LumaTheme.slate)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Use institution average")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text("Use school-wide outcomes when you are still deciding.")
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                }
+
+                Spacer()
+            }
+            .padding(14)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var filteredCatalog: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("All Programs")
+                .font(.headline)
+                .foregroundStyle(LumaTheme.ink)
+
+            if groupedPrograms.isEmpty {
+                Text("No programs match your search.")
+                    .font(.subheadline)
+                    .foregroundStyle(LumaTheme.slate)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else {
+                ForEach(groupedPrograms, id: \.0) { category, programs in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(category)
+                            .font(.caption.weight(.heavy))
+                            .foregroundStyle(LumaTheme.slate)
+                            .textCase(.uppercase)
+
+                        ForEach(programs) { program in
+                            programRow(program)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func curatedSection(title: String, programs: [AcademicProgram]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(LumaTheme.ink)
+
+            if programs.isEmpty {
+                Text("Program outcomes are not available yet.")
+                    .font(.subheadline)
+                    .foregroundStyle(LumaTheme.slate)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else {
+                ForEach(programs) { program in
+                    programRow(program)
+                }
+            }
+        }
+    }
+
+    private func filterMenu(title: String, systemImage: String, options: [String], action: @escaping (String) -> Void) -> some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button(option) {
+                    action(option)
+                }
+            }
+        } label: {
+            HStack(spacing: 7) {
+                Image(systemName: systemImage)
+                Text(title)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Image(systemName: "chevron.down")
+                    .font(.caption2.weight(.bold))
+            }
+            .font(.caption.weight(.bold))
+            .foregroundStyle(LumaTheme.ink)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity)
+            .background(.white, in: Capsule())
+        }
+    }
+
+    private func programRow(_ program: AcademicProgram) -> some View {
+        Button {
+            onSelect(program)
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: selectedProgram?.id == program.id ? "checkmark.circle.fill" : "book.closed.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(selectedProgram?.id == program.id ? LumaTheme.mint : LumaTheme.coral)
+                    .frame(width: 30, height: 30)
+                    .background(LumaTheme.coral.opacity(0.10), in: Circle())
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(program.name)
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+
+                    Text("\(program.credential) • \(categoryTitle(for: program))")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(LumaTheme.slate)
+                        .lineLimit(2)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "N/A")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(program.medianEarnings > 0 ? LumaTheme.outcomeTeal : LumaTheme.slate)
+
+                    Text("earnings")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(LumaTheme.slate)
+                }
+            }
+            .padding(14)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func categoryTitle(for program: AcademicProgram) -> String {
+        guard let category = program.category?.trimmingCharacters(in: .whitespacesAndNewlines), !category.isEmpty else {
+            return "Other Programs"
+        }
+
+        return category
+    }
 }
