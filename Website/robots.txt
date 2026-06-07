@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tuitionluma.com/sitemap.xml
+Sitemap: https://tuitionluma.pages.dev/sitemap.xml

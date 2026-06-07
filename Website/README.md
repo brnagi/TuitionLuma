@@ -27,4 +27,4 @@ Recommended Pages settings:
 - Build output directory: `Website`
 - Production branch: `main`
 
-The site currently uses `https://tuitionluma.com/` in canonical URLs, Open Graph tags, `robots.txt`, and `sitemap.xml`. Replace this with the final Cloudflare Pages or custom domain before launch if needed.
+The site currently uses `https://tuitionluma.pages.dev/` in canonical URLs, Open Graph tags, `robots.txt`, and `sitemap.xml`. Replace this with a custom domain later if needed.
