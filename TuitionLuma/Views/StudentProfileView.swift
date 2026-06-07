@@ -44,7 +44,7 @@ struct StudentProfileCard: View {
 
                 Spacer()
 
-                Button("Add Profile") {
+                Button("Get Pro") {
                     if proPurchaseManager.state.isPro {
                         isShowingEditor = true
                     } else {
