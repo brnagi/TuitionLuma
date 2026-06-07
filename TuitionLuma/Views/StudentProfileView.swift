@@ -32,11 +32,11 @@ struct StudentProfileCard: View {
                 .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Get personalized recommendations")
+                    Text(promptTitle)
                         .font(.headline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Text("See affordability, major-specific outcomes, and schools that fit your goals.")
+                    Text(promptSubtitle)
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
                         .lineLimit(2)
@@ -44,7 +44,7 @@ struct StudentProfileCard: View {
 
                 Spacer()
 
-                Button("Get Pro") {
+                Button(promptCTA) {
                     if proPurchaseManager.state.isPro {
                         isShowingEditor = true
                     } else {
@@ -84,6 +84,22 @@ struct StudentProfileCard: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+
+    private var promptTitle: String {
+        proPurchaseManager.state.isPro ? "Complete your profile" : "Get personalized recommendations"
+    }
+
+    private var promptSubtitle: String {
+        if proPurchaseManager.state.isPro {
+            return "Add GPA, major, residency, and income to receive personalized recommendations."
+        }
+
+        return "See affordability, major-specific outcomes, and schools that fit your goals."
+    }
+
+    private var promptCTA: String {
+        proPurchaseManager.state.isPro ? "Complete Profile" : "Get Pro"
     }
 }
 
