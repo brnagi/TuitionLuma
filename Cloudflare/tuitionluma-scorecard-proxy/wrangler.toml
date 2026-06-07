@@ -1,0 +1,11 @@
+name = "tuitionluma-scorecard-proxy"
+main = "src/index.js"
+compatibility_date = "2026-06-07"
+workers_dev = true
+
+[observability]
+enabled = true
+
+[[routes]]
+pattern = "api.tuitionluma.com/*"
+zone_name = "tuitionluma.com"

@@ -73,9 +73,8 @@ enum APIConfig {
 }
 
 struct CollegeScorecardService: SchoolDataProviding {
-    private let baseURL = URL(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
+    private let baseURL = URL(string: "https://api.tuitionluma.com")!
     private let session: URLSession
-    private let apiKey: String?
     private let requestTimeout: TimeInterval = 15
 
     private let schoolFields = [
@@ -102,9 +101,8 @@ struct CollegeScorecardService: SchoolDataProviding {
         "latest.student.size"
     ]
 
-    init(session: URLSession = .shared, apiKey: String? = APIConfig.collegeScorecardAPIKey) {
+    init(session: URLSession = .shared, apiKey: String? = nil) {
         self.session = session
-        self.apiKey = apiKey
     }
 
     func searchSchools(query: String, page: Int = 0, perPage: Int = 20) async throws -> PaginatedSchools {
@@ -128,16 +126,15 @@ struct CollegeScorecardService: SchoolDataProviding {
     }
 
     func fetchProgramsForSchool(schoolId: Int) async throws -> [AcademicProgram] {
-        var parameters = [
+        let parameters = [
             "id": String(schoolId),
             "fields": "id,latest.programs.cip_4_digit",
             "all_programs_nested": "true",
             "per_page": "1",
             "page": "0"
         ]
-        parameters["api_key"] = try requireAPIKey()
 
-        let response = try await request(parameters: parameters)
+        let response = try await request(path: "/programs", parameters: parameters)
         guard let first = response.results.first else { return [] }
 
         let programValues = first.array("latest.programs.cip_4_digit")
@@ -176,10 +173,8 @@ struct CollegeScorecardService: SchoolDataProviding {
     }
 
     private func fetchSchools(parameters: [String: String]) async throws -> PaginatedSchools {
-        var requestParameters = parameters
-        requestParameters["api_key"] = try requireAPIKey()
-
-        let response = try await request(parameters: requestParameters)
+        let path = parameters["id"] == nil ? "/schools" : "/school"
+        let response = try await request(path: path, parameters: parameters)
         let schools = response.results.map(mapSchool)
 
         return PaginatedSchools(
@@ -190,16 +185,9 @@ struct CollegeScorecardService: SchoolDataProviding {
         )
     }
 
-    private func requireAPIKey() throws -> String {
-        guard let apiKey, !apiKey.isEmpty else {
-            throw CollegeScorecardError.missingAPIKey
-        }
-
-        return apiKey
-    }
-
-    private func request(parameters: [String: String]) async throws -> ScorecardResponse {
-        guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
+    private func request(path: String, parameters: [String: String]) async throws -> ScorecardResponse {
+        let endpoint = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(endpoint), resolvingAgainstBaseURL: false) else {
             throw CollegeScorecardError.invalidURL
         }
 
