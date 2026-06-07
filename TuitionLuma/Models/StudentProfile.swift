@@ -100,11 +100,7 @@ enum StudentProfileRecommendationEngine {
         let estimatedNetCost = estimateNetCost(for: school, profile: profile)
         let fitScore = calculateFitScore(for: school, profile: profile, estimatedNetCost: estimatedNetCost)
         let matchedProgram = bestMatchingProgram(for: school, profile: profile)
-        let roiGrade = ROIOutcomeCalculator.result(
-            for: school,
-            program: matchedProgram,
-            estimatedNetCost: estimatedNetCost
-        ).grade
+        let roiGrade = personalizedROIOutcome(for: school, profile: profile).grade
 
         return ProfileRecommendation(
             fitLabel: fitLabel(for: fitScore),
@@ -116,6 +112,14 @@ enum StudentProfileRecommendationEngine {
 
     static func matchingProgram(for school: School, profile: StudentProfile) -> AcademicProgram? {
         bestMatchingProgram(for: school, profile: profile)
+    }
+
+    static func personalizedROIOutcome(for school: School, profile: StudentProfile) -> ROIOutcomeResult {
+        ROIOutcomeCalculator.result(
+            for: school,
+            program: bestMatchingProgram(for: school, profile: profile),
+            estimatedNetCost: estimateNetCost(for: school, profile: profile)
+        )
     }
 
     static func majorKeywords(from major: String) -> [String] {

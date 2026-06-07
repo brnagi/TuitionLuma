@@ -172,6 +172,30 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertEqual(computerScienceRanking.first?.name, "Technology State University")
     }
 
+    func testRecommendationGradeMatchesPersonalizedROIOutcome() {
+        let school = makeSchool(
+            medianEarnings: 55_000,
+            averageDebt: 24_000,
+            programs: [
+                AcademicProgram(
+                    name: "Computer and Information Sciences",
+                    credential: "Bachelor's Degree",
+                    cipCode: "11.01",
+                    medianEarnings: 78_000,
+                    debt: 22_000,
+                    completionCount: 230,
+                    typicalDurationYears: 4
+                )
+            ]
+        )
+        let profile = makeProfile(intendedMajor: "Computer Science")
+
+        let recommendation = StudentProfileRecommendationEngine.recommendation(for: school, profile: profile)
+        let roiOutcome = StudentProfileRecommendationEngine.personalizedROIOutcome(for: school, profile: profile)
+
+        XCTAssertEqual(recommendation.roiGrade, roiOutcome.grade)
+    }
+
     private func makeSchool(
         name: String = "Test University",
         medianEarnings: Double,

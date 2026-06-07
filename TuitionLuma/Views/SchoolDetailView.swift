@@ -3,6 +3,7 @@ import SwiftUI
 struct SchoolDetailView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: MockProPurchaseManager
+    @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel: SchoolDetailViewModel
     @State private var isShowingPaywall = false
 
@@ -298,7 +299,14 @@ struct SchoolDetailView: View {
     }
 
     private var roiOutcome: ROIOutcomeResult {
-        ROIOutcomeCalculator.result(for: school, program: viewModel.selectedProgram)
+        if proPurchaseManager.state.isPro, studentProfileStore.profile.isComplete {
+            return StudentProfileRecommendationEngine.personalizedROIOutcome(
+                for: school,
+                profile: studentProfileStore.profile
+            )
+        }
+
+        return ROIOutcomeCalculator.result(for: school, program: viewModel.selectedProgram)
     }
 
     private func scenarioPill(_ title: String) -> some View {
