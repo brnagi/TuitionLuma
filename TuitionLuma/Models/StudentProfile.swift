@@ -81,11 +81,11 @@ enum StudentProfileRecommendationEngine {
 
             let lhsNetCost = estimateNetCost(for: lhs, profile: profile)
             let rhsNetCost = estimateNetCost(for: rhs, profile: profile)
-            let lhsROI = ROIOutcomeCalculator.result(for: lhs, program: lhsProgram, estimatedNetCost: lhsNetCost).score
-            let rhsROI = ROIOutcomeCalculator.result(for: rhs, program: rhsProgram, estimatedNetCost: rhsNetCost).score
+            let lhsScore = recommendationRankingScore(for: lhs, profile: profile, program: lhsProgram, estimatedNetCost: lhsNetCost)
+            let rhsScore = recommendationRankingScore(for: rhs, profile: profile, program: rhsProgram, estimatedNetCost: rhsNetCost)
 
-            if lhsROI != rhsROI {
-                return lhsROI > rhsROI
+            if lhsScore != rhsScore {
+                return lhsScore > rhsScore
             }
 
             if lhs.lumaScore != rhs.lumaScore {
@@ -232,6 +232,40 @@ enum StudentProfileRecommendationEngine {
             .first
     }
 
+    private static func recommendationRankingScore(
+        for school: School,
+        profile: StudentProfile,
+        program: AcademicProgram?,
+        estimatedNetCost: Double
+    ) -> Double {
+        let roi = ROIOutcomeCalculator.result(for: school, program: program, estimatedNetCost: estimatedNetCost)
+        let outcomeScore = outcomeStrengthScore(for: school, program: program)
+        let affordability = affordabilityScore(for: profile, estimatedNetCost: estimatedNetCost) / 19 * 100
+
+        if program != nil {
+            return Double(roi.score) * 0.62
+                + outcomeScore * 0.16
+                + Double(school.lumaScore) * 0.14
+                + affordability * 0.08
+        }
+
+        return Double(roi.score) * 0.46
+            + Double(school.lumaScore) * 0.30
+            + outcomeScore * 0.12
+            + affordability * 0.12
+    }
+
+    private static func outcomeStrengthScore(for school: School, program: AcademicProgram?) -> Double {
+        let earnings = program.flatMap { $0.medianEarnings > 0 ? $0.medianEarnings : nil }
+            ?? school.medianEarnings
+        let debt = program?.debt.flatMap { $0 > 0 ? $0 : nil }
+            ?? school.averageDebt
+
+        let earningsScore = normalizedScore(value: earnings, low: 35_000, high: 120_000)
+        let debtScore = normalizedInverseScore(value: debt, low: 8_000, high: 45_000)
+        return earningsScore * 0.65 + debtScore * 0.35
+    }
+
     private static func academicScore(for school: School, profile: StudentProfile) -> Double {
         guard let admissionRate = school.admissionRate, admissionRate > 0 else {
             return profile.gpa >= 3.4 ? 13 : 10
@@ -286,6 +320,16 @@ enum StudentProfileRecommendationEngine {
     private static func numericTestScore(from text: String) -> Int? {
         let digits = text.filter(\.isNumber)
         return Int(digits)
+    }
+
+    private static func normalizedScore(value: Double, low: Double, high: Double) -> Double {
+        guard high > low else { return 0 }
+        return min(1, max(0, (value - low) / (high - low))) * 100
+    }
+
+    private static func normalizedInverseScore(value: Double, low: Double, high: Double) -> Double {
+        guard high > low else { return 0 }
+        return min(1, max(0, (high - value) / (high - low))) * 100
     }
 }
 
