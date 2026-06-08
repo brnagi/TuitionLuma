@@ -35,9 +35,9 @@ struct SchoolCard: View {
         .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(.black.opacity(0.06))
+                .stroke(LumaTheme.cardStroke)
         }
-        .shadow(color: .black.opacity(0.06), radius: 16, y: 8)
+        .shadow(color: LumaTheme.cardShadow, radius: 18, y: 10)
     }
 
     private var campusImage: some View {

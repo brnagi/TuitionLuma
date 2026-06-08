@@ -81,6 +81,8 @@ struct ExploreView: View {
                     .accessibilityHidden(true)
 
                 TextField("Search schools or state", text: $viewModel.query)
+                    .foregroundStyle(LumaTheme.ink)
+                    .tint(LumaTheme.coral)
                     .accessibilityLabel("Search schools or state")
 
                 if !viewModel.query.isEmpty {
@@ -96,6 +98,11 @@ struct ExploreView: View {
             }
             .padding(14)
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.cardStroke)
+            }
+            .shadow(color: LumaTheme.cardShadow.opacity(0.25), radius: 10, y: 4)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {

@@ -12,8 +12,10 @@ enum LumaTheme {
     static let warningOrange = Color(red: 0.95, green: 0.38, blue: 0.16)
     static let ink = Color(red: 0.09, green: 0.10, blue: 0.18)
     static let slate = Color(red: 0.32, green: 0.36, blue: 0.46)
-    static let canvas = Color(red: 0.98, green: 0.98, blue: 1.0)
+    static let canvas = Color(red: 0.955, green: 0.96, blue: 0.985)
     static let card = Color.white
+    static let cardStroke = Color.black.opacity(0.10)
+    static let cardShadow = Color.black.opacity(0.10)
 
     static let cardRadius: CGFloat = 8
 

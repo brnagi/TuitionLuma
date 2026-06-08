@@ -1088,10 +1088,16 @@ private struct ProgramBrowserSheet: View {
 
             TextField("Search programs", text: $searchText)
                 .textInputAutocapitalization(.words)
+                .foregroundStyle(LumaTheme.ink)
+                .tint(LumaTheme.coral)
                 .accessibilityLabel("Search programs")
         }
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke)
+        }
     }
 
     private var filterRow: some View {
