@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct OnboardingView: View {
+    @Binding var profile: StudentProfile
+    @State private var nickname = ""
+    @FocusState private var isNicknameFocused: Bool
     var onContinue: () -> Void
 
     var body: some View {
@@ -44,13 +47,63 @@ struct OnboardingView: View {
 
                 VStack(spacing: 14) {
                     decisionExample
+                    nicknamePrompt
 
-                    LumaButton(title: "Start Exploring", systemImage: "arrow.right", action: onContinue)
+                    HStack(spacing: 10) {
+                        Button("Skip") {
+                            finishOnboarding()
+                        }
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(.white, in: Capsule())
+
+                        LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
+                    }
                 }
                 .padding(22)
                 .background(LumaTheme.canvas)
             }
         }
+    }
+
+    private var nicknamePrompt: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("What should we call you?")
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+
+            Text("Optional. Add a friendly name for personalized recommendations.")
+                .font(.caption)
+                .foregroundStyle(LumaTheme.slate)
+
+            TextField(
+                text: $nickname,
+                prompt: Text("Alex, Sam, or Taylor")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("Nickname")
+            }
+            .focused($isNicknameFocused)
+            .submitLabel(.done)
+            .textInputAutocapitalization(.words)
+            .onSubmit {
+                finishOnboarding()
+            }
+            .lumaTextField(isFocused: isNicknameFocused)
+            .accessibilityLabel("Optional nickname")
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .onAppear {
+            nickname = profile.displayNickname
+        }
+    }
+
+    private func finishOnboarding() {
+        profile.nickname = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        onContinue()
     }
 
     private var decisionExample: some View {

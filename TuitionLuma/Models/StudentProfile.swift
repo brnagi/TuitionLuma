@@ -31,13 +31,50 @@ enum FamilyIncomeRange: String, CaseIterable, Identifiable, Codable {
 }
 
 struct StudentProfile: Codable, Equatable {
+    var nickname: String
     var gpa: Double
     var testScore: String
     var stateResidency: String
     var intendedMajor: String
     var familyIncomeRange: FamilyIncomeRange
 
+    init(
+        nickname: String = "",
+        gpa: Double,
+        testScore: String,
+        stateResidency: String,
+        intendedMajor: String,
+        familyIncomeRange: FamilyIncomeRange
+    ) {
+        self.nickname = nickname
+        self.gpa = gpa
+        self.testScore = testScore
+        self.stateResidency = stateResidency
+        self.intendedMajor = intendedMajor
+        self.familyIncomeRange = familyIncomeRange
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case nickname
+        case gpa
+        case testScore
+        case stateResidency
+        case intendedMajor
+        case familyIncomeRange
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        nickname = try container.decodeIfPresent(String.self, forKey: .nickname) ?? ""
+        gpa = try container.decode(Double.self, forKey: .gpa)
+        testScore = try container.decode(String.self, forKey: .testScore)
+        stateResidency = try container.decode(String.self, forKey: .stateResidency)
+        intendedMajor = try container.decode(String.self, forKey: .intendedMajor)
+        familyIncomeRange = try container.decode(FamilyIncomeRange.self, forKey: .familyIncomeRange)
+    }
+
     static let empty = StudentProfile(
+        nickname: "",
         gpa: 3.3,
         testScore: "",
         stateResidency: "",
@@ -47,6 +84,10 @@ struct StudentProfile: Codable, Equatable {
 
     var normalizedStateResidency: String {
         stateResidency.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+    }
+
+    var displayNickname: String {
+        nickname.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var normalizedMajor: String {

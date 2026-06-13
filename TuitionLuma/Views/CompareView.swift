@@ -6,6 +6,7 @@ struct CompareView: View {
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = CompareViewModel()
     @State private var isShowingPaywall = false
+    @State private var isShowingCompareLimitMessage = false
 
     private var compareLimit: Int {
         min(ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state), 3)
@@ -25,6 +26,7 @@ struct CompareView: View {
                         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                     } else {
                         selectors
+                        compareLimitMessage
                         compareLimitPrompt
                         comparisonSummary
                         primaryComparison
@@ -145,7 +147,43 @@ struct CompareView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Add school")
                 .accessibilityHint("Adds the next available school to your comparison.")
+            } else if compareLimit == 3 && viewModel.selectedSchools.count >= 3 {
+                Button {
+                    showCompareLimitMessage()
+                } label: {
+                    Label("Add School", systemImage: "plus.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(LumaTheme.slate)
+                        .frame(maxWidth: .infinity)
+                        .padding(14)
+                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                                .stroke(LumaTheme.slate.opacity(0.16))
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add school")
+                .accessibilityHint("Shows the active comparison limit.")
             }
+        }
+    }
+
+    @ViewBuilder
+    private var compareLimitMessage: some View {
+        if isShowingCompareLimitMessage {
+            Label("Compare limit reached. You can compare up to 3 schools at a time.", systemImage: "info.circle.fill")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(LumaTheme.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(LumaTheme.sun.opacity(0.16), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.sun.opacity(0.24))
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .accessibilityAddTraits(.isStaticText)
         }
     }
 
@@ -511,6 +549,11 @@ struct CompareView: View {
     }
 
     private func addNextSchoolToCompare() {
+        guard viewModel.selectedSchools.count < compareLimit else {
+            showCompareLimitMessage()
+            return
+        }
+
         guard let nextSchool = appViewModel.knownSchools.first(where: { !appViewModel.isCompared($0) }) else {
             return
         }
@@ -523,5 +566,18 @@ struct CompareView: View {
 
         // TODO: Replace this first-available-school behavior with a searchable add-to-compare picker.
         syncCompareSelection()
+    }
+
+    private func showCompareLimitMessage() {
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.9)) {
+            isShowingCompareLimitMessage = true
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            withAnimation(.easeOut(duration: 0.2)) {
+                isShowingCompareLimitMessage = false
+            }
+        }
     }
 }

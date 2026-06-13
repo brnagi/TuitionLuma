@@ -87,7 +87,12 @@ struct StudentProfileCard: View {
     }
 
     private var promptTitle: String {
-        proPurchaseManager.state.isPro ? "Complete your profile" : "Get personalized recommendations"
+        let nickname = studentProfileStore.profile.displayNickname
+        if proPurchaseManager.state.isPro, !nickname.isEmpty {
+            return "Hi \(nickname) 👋"
+        }
+
+        return proPurchaseManager.state.isPro ? "Complete your profile" : "Get personalized recommendations"
     }
 
     private var promptSubtitle: String {
@@ -110,6 +115,7 @@ private struct StudentProfileEditorView: View {
     @FocusState private var focusedField: ProfileField?
 
     private enum ProfileField: Hashable {
+        case nickname
         case testScore
         case stateResidency
         case intendedMajor
@@ -126,6 +132,8 @@ private struct StudentProfileEditorView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         header
+                        nicknameSection
+                            .id(ProfileField.nickname)
                         gpaSection
                         optionalTestSection
                             .id(ProfileField.testScore)
@@ -196,7 +204,7 @@ private struct StudentProfileEditorView: View {
                         .font(.title2.weight(.heavy))
                         .foregroundStyle(.white)
 
-                    Text("Make each school card feel like it was written for you.")
+                    Text(greetingSubtitle)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.white.opacity(0.88))
                 }
@@ -217,6 +225,40 @@ private struct StudentProfileEditorView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .shadow(color: LumaTheme.coral.opacity(0.13), radius: 16, y: 8)
+    }
+
+    private var greetingSubtitle: String {
+        let nickname = draft.displayNickname
+        guard !nickname.isEmpty else {
+            return "Make each school card feel like it was written for you."
+        }
+
+        return "Hi \(nickname) 👋 Let's make each school card feel like it was written for you."
+    }
+
+    private var nicknameSection: some View {
+        formSection(
+            title: "Nickname",
+            subtitle: "Optional. Used for friendlier recommendations and profile prompts.",
+            systemImage: "person.crop.circle.fill",
+            tint: LumaTheme.aqua
+        ) {
+            TextField(
+                text: $draft.nickname,
+                prompt: Text("Alex, Sam, or Taylor")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("Nickname")
+            }
+            .focused($focusedField, equals: .nickname)
+            .textInputAutocapitalization(.words)
+            .submitLabel(.next)
+            .onSubmit {
+                focusedField = .testScore
+            }
+            .lumaTextField(isFocused: focusedField == .nickname)
+            .accessibilityLabel("Optional nickname")
+        }
     }
 
     private var gpaSection: some View {
