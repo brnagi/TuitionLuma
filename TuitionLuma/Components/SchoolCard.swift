@@ -41,11 +41,13 @@ struct SchoolCard: View {
     }
 
     private var campusImage: some View {
-        stateFlagHero
+        valueSignalHero
             .frame(maxWidth: .infinity)
             .frame(height: 124)
             .clipped()
-            .accessibilityHidden(true)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Value signal")
+            .accessibilityValue("\(valueSignalTitle), Luma Score \(school.lumaScore)")
     }
 
     private var controlRow: some View {
@@ -211,28 +213,82 @@ struct SchoolCard: View {
         }
     }
 
-    private var stateFlagHero: some View {
-        StateFlagBackdrop(style: stateFlagStyle)
-            .scaleEffect(1.02)
-            .saturation(1.10)
-            .contrast(1.04)
-            .overlay(flagDepthOverlay)
-    }
-
-    private var flagDepthOverlay: some View {
+    private var valueSignalHero: some View {
         ZStack {
             LinearGradient(
-                colors: [.white.opacity(0.12), .clear, .black.opacity(0.12)],
+                colors: [
+                    scoreTint.opacity(0.96),
+                    scoreTint.opacity(0.68),
+                    LumaTheme.ink.opacity(0.92)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
             RadialGradient(
-                colors: [.clear, .black.opacity(0.14)],
-                center: .center,
-                startRadius: 90,
-                endRadius: 260
+                colors: [.white.opacity(0.20), .clear],
+                center: .topLeading,
+                startRadius: 20,
+                endRadius: 220
             )
+
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text(valueSignalTitle)
+                        .font(.title2.weight(.heavy))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+
+                    Text(valueSignalSubtitle)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.84))
+                        .lineLimit(2)
+                }
+
+                Spacer()
+
+                VStack(spacing: 0) {
+                    Text("\(school.lumaScore)")
+                        .font(.system(size: 38, weight: .heavy))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text("Luma")
+                        .font(.caption2.weight(.heavy))
+                        .foregroundStyle(.white.opacity(0.82))
+                }
+                .frame(width: 74, height: 74)
+                .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(.white.opacity(0.20))
+                }
+            }
+            .padding(18)
+        }
+    }
+
+    private var valueSignalTitle: String {
+        if school.valueLabel == "Expensive" {
+            return "High Risk"
+        }
+
+        return school.valueLabel
+    }
+
+    private var valueSignalSubtitle: String {
+        switch valueSignalTitle {
+        case "Excellent Value":
+            "Strong cost and outcome signal"
+        case "Good Value":
+            "Worth a closer look"
+        case "Fair Value":
+            "Compare aid and debt carefully"
+        case "High Risk":
+            "Watch cost, debt, and payoff"
+        default:
+            "Compare value before deciding"
         }
     }
 

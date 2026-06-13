@@ -43,11 +43,7 @@ struct OnboardingView: View {
                 .background(LumaTheme.heroGradient)
 
                 VStack(spacing: 14) {
-                    HStack(spacing: 12) {
-                        benefit("giftcard.fill", "Aid")
-                        benefit("creditcard.fill", "Debt")
-                        benefit("chart.bar.fill", "Outcomes")
-                    }
+                    decisionExample
 
                     LumaButton(title: "Start Exploring", systemImage: "arrow.right", action: onContinue)
                 }
@@ -57,20 +53,53 @@ struct OnboardingView: View {
         }
     }
 
-    private func benefit(_ icon: String, _ title: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(LumaTheme.coral)
+    private var decisionExample: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Best value for you")
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
 
-            Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LumaTheme.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                    Text("Compare real affordability, debt, earnings, and outcomes before you choose.")
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                VStack(spacing: 2) {
+                    Text("92")
+                        .font(.title.weight(.heavy))
+                        .foregroundStyle(LumaTheme.valueGreen)
+
+                    Text("Luma")
+                        .font(.caption2.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
+                }
+                .frame(width: 66, height: 66)
+                .background(LumaTheme.valueGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            }
+
+            HStack(spacing: 8) {
+                examplePill("Lower debt", tint: LumaTheme.sun)
+                examplePill("Higher earnings", tint: LumaTheme.outcomeTeal)
+                examplePill("Affordable", tint: LumaTheme.valueGreen)
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func examplePill(_ title: String, tint: Color) -> some View {
+        Text(title)
+            .font(.caption2.weight(.heavy))
+            .foregroundStyle(tint)
+            .lineLimit(1)
+            .minimumScaleFactor(0.78)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 7)
+            .background(tint.opacity(0.10), in: Capsule())
     }
 }

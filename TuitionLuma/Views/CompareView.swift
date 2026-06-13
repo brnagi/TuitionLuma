@@ -3,6 +3,7 @@ import SwiftUI
 struct CompareView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
+    @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = CompareViewModel()
     @State private var isShowingPaywall = false
 
@@ -223,29 +224,56 @@ struct CompareView: View {
     }
 
     private var comparisonSummary: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Best signals")
-                .font(.title3.weight(.heavy))
-                .foregroundStyle(LumaTheme.ink)
-
+        VStack(alignment: .leading, spacing: 14) {
             if let topSchool = highestLumaScoreSchool {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "sparkles")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 30, height: 30)
-                        .background(LumaTheme.heroGradient, in: Circle())
-                        .accessibilityHidden(true)
+                HStack(alignment: .top, spacing: 14) {
+                    VStack(spacing: 2) {
+                        Text("\(topSchool.lumaScore)")
+                            .font(.system(size: 34, weight: .heavy))
+                            .foregroundStyle(lumaScoreColor(for: topSchool.valueLabel))
+                            .lineLimit(1)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("\(comparisonHeaderName(for: topSchool)) leads on overall value.")
-                            .font(.headline.weight(.heavy))
+                        Text("Luma")
+                            .font(.caption2.weight(.heavy))
+                            .foregroundStyle(LumaTheme.slate)
+                    }
+                    .frame(width: 74, height: 74)
+                    .background(lumaScoreColor(for: topSchool.valueLabel).opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(studentProfileStore.profile.isComplete ? "Recommended for your profile" : "Recommended School")
+                            .font(.caption.weight(.heavy))
+                            .foregroundStyle(LumaTheme.coral)
+                            .textCase(.uppercase)
+
+                        Text(topSchool.name)
+                            .font(.title3.weight(.heavy))
                             .foregroundStyle(LumaTheme.ink)
+                            .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Use this quick read first, then scan the detailed metrics below.")
-                            .font(.subheadline)
+                        Text("\(comparisonHeaderName(for: topSchool)) is the strongest overall value in this comparison.")
+                            .font(.caption)
                             .foregroundStyle(LumaTheme.slate)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Why")
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
+
+                    ForEach(recommendationReasons(for: topSchool), id: \.self) { reason in
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(LumaTheme.valueGreen)
+                                .accessibilityHidden(true)
+
+                            Text(reason)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(LumaTheme.ink)
+                        }
                     }
                 }
             }
@@ -304,6 +332,28 @@ struct CompareView: View {
         .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
         .padding(10)
         .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func recommendationReasons(for school: School) -> [String] {
+        var reasons: [String] = ["Better value"]
+
+        if lowestDebtSchool?.id == school.id {
+            reasons.append("Lower debt")
+        }
+
+        if lowestNetPriceSchool?.id == school.id {
+            reasons.append("Lower net price")
+        }
+
+        if strongestOutcomesSchool?.id == school.id {
+            reasons.append("Stronger earnings outcomes")
+        }
+
+        if school.graduationRate >= 0.65 {
+            reasons.append("Solid completion outcomes")
+        }
+
+        return Array(reasons.prefix(4))
     }
 
     private func comparisonMetricRow(_ metric: ComparisonMetric) -> some View {
