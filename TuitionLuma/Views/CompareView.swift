@@ -5,11 +5,10 @@ struct CompareView: View {
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = CompareViewModel()
-    @State private var isShowingPaywall = false
     @State private var isShowingCompareLimitMessage = false
 
     private var compareLimit: Int {
-        min(ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state), 3)
+        ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state)
     }
 
     var body: some View {
@@ -27,7 +26,6 @@ struct CompareView: View {
                     } else {
                         selectors
                         compareLimitMessage
-                        compareLimitPrompt
                         comparisonSummary
                         primaryComparison
                         moreDetailsSection
@@ -40,15 +38,11 @@ struct CompareView: View {
                 syncCompareSelection()
             }
             .onChange(of: proPurchaseManager.state) { _, newState in
-                appViewModel.trimComparedSchools(to: ProAccessPolicy.compareSchoolLimit(for: newState))
+                appViewModel.trimComparedSchools(to: compareLimit)
                 syncCompareSelection()
             }
             .onChange(of: appViewModel.comparedSchoolIDs) { _, _ in
                 syncCompareSelection()
-            }
-            .sheet(isPresented: $isShowingPaywall) {
-                PaywallView()
-                    .environmentObject(proPurchaseManager)
             }
         }
     }
@@ -67,14 +61,10 @@ struct CompareView: View {
                 .font(.subheadline)
                 .foregroundStyle(LumaTheme.slate)
 
-                    HStack {
-                        Text(proPurchaseManager.state.isPro ? "Compare up to 3 active schools" : "Free compare: up to 2 schools")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(proPurchaseManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
-
-                if proPurchaseManager.state.isPro {
-                    ProBadge(compact: true)
-                }
+            HStack {
+                Text("Compare up to 3 schools at a time")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LumaTheme.slate)
             }
         }
         .accessibilityElement(children: .contain)
@@ -147,7 +137,7 @@ struct CompareView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Add school")
                 .accessibilityHint("Adds the next available school to your comparison.")
-            } else if compareLimit == 3 && viewModel.selectedSchools.count >= 3 {
+            } else if viewModel.selectedSchools.count >= compareLimit {
                 Button {
                     showCompareLimitMessage()
                 } label: {
@@ -184,19 +174,6 @@ struct CompareView: View {
                 }
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .accessibilityAddTraits(.isStaticText)
-        }
-    }
-
-    @ViewBuilder
-    private var compareLimitPrompt: some View {
-        if proPurchaseManager.state.isPro {
-            EmptyView()
-        } else {
-            UpgradePrompt(
-                title: "Need a bigger shortlist?",
-                message: "Pro lets families compare up to 3 active schools side by side.",
-                action: { isShowingPaywall = true }
-            )
         }
     }
 
@@ -561,7 +538,7 @@ struct CompareView: View {
         let result = appViewModel.addToCompare(nextSchool, compareLimit: compareLimit)
 
         if result == .limitReached {
-            isShowingPaywall = true
+            showCompareLimitMessage()
         }
 
         // TODO: Replace this first-available-school behavior with a searchable add-to-compare picker.

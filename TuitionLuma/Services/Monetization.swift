@@ -20,7 +20,7 @@ struct ProAccessState: Equatable, Codable {
 
 enum ProFeature: String, CaseIterable, Identifiable {
     case unlimitedSavedSchools = "Unlimited saved schools"
-    case fiveSchoolCompare = "Compare up to 5 schools"
+    case fiveSchoolCompare = "Compare up to 3 schools"
     case advancedDebtCalculator = "Advanced debt repayment calculator"
     case scholarshipPlanning = "Scholarship and grant planning"
     case roiScore = "ROI score by school"
@@ -56,7 +56,7 @@ enum ProAccessPolicy {
     }
 
     static func compareSchoolLimit(for state: ProAccessState) -> Int {
-        state.isPro ? 5 : 2
+        3
     }
 
     static func canUse(_ feature: ProFeature, state: ProAccessState) -> Bool {
@@ -75,6 +75,7 @@ final class ProPurchaseManager: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var proProduct: Product?
     @Published var errorMessage: String?
+    @Published var restoreMessage: String?
 
     private var transactionUpdatesTask: Task<Void, Never>?
 
@@ -122,6 +123,7 @@ final class ProPurchaseManager: ObservableObject {
     func purchasePro() async {
         isLoading = true
         errorMessage = nil
+        restoreMessage = nil
         defer { isLoading = false }
 
         do {
@@ -164,12 +166,8 @@ final class ProPurchaseManager: ObservableObject {
     func restorePurchases() async {
         isLoading = true
         errorMessage = nil
+        restoreMessage = nil
         defer { isLoading = false }
-
-        guard !state.isPro else {
-            errorMessage = nil
-            return
-        }
 
         do {
             try await AppStore.sync()
@@ -179,10 +177,16 @@ final class ProPurchaseManager: ObservableObject {
                 errorMessage = "No TuitionLuma Pro purchase was found for this Apple ID."
             } else {
                 errorMessage = nil
+                restoreMessage = "TuitionLuma Pro is active."
             }
         } catch {
             await refreshEntitlements()
-            errorMessage = state.isPro ? nil : "Unable to restore purchases. Please try again."
+            if state.isPro {
+                errorMessage = nil
+                restoreMessage = "TuitionLuma Pro is already active."
+            } else {
+                errorMessage = "Unable to restore purchases. Please try again."
+            }
         }
     }
 
@@ -237,6 +241,8 @@ final class ProPurchaseManager: ObservableObject {
 
     private func applyVerifiedProEntitlement(purchasedAt: Date) {
         state = ProAccessState(tier: .pro, purchasedAt: purchasedAt)
+        errorMessage = nil
+        restoreMessage = "TuitionLuma Pro is active."
         persistState()
     }
 
@@ -494,6 +500,12 @@ struct PaywallView: View {
                     .foregroundStyle(LumaTheme.coral)
             }
 
+            if let restoreMessage = proPurchaseManager.restoreMessage {
+                Text(restoreMessage)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(LumaTheme.mint)
+            }
+
             LumaButton(
                 title: proPurchaseManager.state.isPro ? "Pro Unlocked" : "Unlock Pro for $4.99",
                 systemImage: proPurchaseManager.state.isPro ? "checkmark" : "sparkles"
@@ -517,7 +529,7 @@ struct PaywallView: View {
                 await proPurchaseManager.restorePurchases()
             }
         } label: {
-            Text(proPurchaseManager.isLoading ? "Checking..." : "Restore Purchase")
+            Text(proPurchaseManager.isLoading ? "Checking..." : (proPurchaseManager.state.isPro ? "Refresh Pro Access" : "Restore Purchase"))
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
                 .frame(maxWidth: .infinity)

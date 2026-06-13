@@ -275,7 +275,7 @@ final class CalculatorViewModel: ObservableObject {
         savedRepaymentPlans.insert(plan, at: 0)
         savedRepaymentPlans = Array(savedRepaymentPlans.prefix(12))
         persistSavedRepaymentPlans()
-        repaymentSaveMessage = "Saved on this device."
+        repaymentSaveMessage = "Repayment plan saved. View it below in Saved Plans."
     }
 
     func deleteSavedRepaymentPlans(at offsets: IndexSet) {

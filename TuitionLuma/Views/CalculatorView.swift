@@ -10,6 +10,7 @@ struct CalculatorView: View {
     @State private var shareableReport: ShareableReport?
     @State private var isShowingProgramDetails = false
     @State private var isShowingProgramBrowser = false
+    @State private var selectedRepaymentPlan: SavedRepaymentPlan?
 
     var body: some View {
         NavigationStack {
@@ -52,6 +53,9 @@ struct CalculatorView: View {
                         isShowingProgramBrowser = false
                     }
                 )
+            }
+            .sheet(item: $selectedRepaymentPlan) { plan in
+                SavedRepaymentPlanDetailView(plan: plan)
             }
         }
     }
@@ -341,10 +345,6 @@ struct CalculatorView: View {
                     .foregroundStyle(LumaTheme.ink)
 
                 Spacer()
-
-                if proPurchaseManager.state.isPro {
-                    ProBadge(compact: true)
-                }
             }
 
             moneySlider(
@@ -445,9 +445,7 @@ struct CalculatorView: View {
 
                 Spacer()
 
-                if proPurchaseManager.state.isPro {
-                    ProBadge(compact: true)
-                } else {
+                if !proPurchaseManager.state.isPro {
                     Button("Unlock") {
                         isShowingPaywall = true
                     }
@@ -553,10 +551,6 @@ struct CalculatorView: View {
                 Label("Repayment calculator", systemImage: "creditcard.fill")
                     .font(.headline)
                     .foregroundStyle(LumaTheme.ink)
-
-                Spacer()
-
-                ProBadge(compact: true)
             }
 
             scenarioGroup(title: "Loan term") {
@@ -632,12 +626,28 @@ struct CalculatorView: View {
     private var savedRepaymentPlansSection: some View {
         if !viewModel.savedRepaymentPlans.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Saved on this device")
-                    .font(.caption.weight(.heavy))
-                    .foregroundStyle(LumaTheme.slate)
+                HStack {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Saved Plans")
+                            .font(.caption.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+
+                        Text("Stored privately on this device in TuitionLuma.")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(LumaTheme.slate)
+                    }
+
+                    Spacer()
+                }
 
                 ForEach(viewModel.savedRepaymentPlans.prefix(3)) { plan in
-                    savedRepaymentPlanRow(plan)
+                    Button {
+                        selectedRepaymentPlan = plan
+                    } label: {
+                        savedRepaymentPlanRow(plan)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Opens saved repayment plan details.")
                 }
             }
         }
@@ -649,9 +659,6 @@ struct CalculatorView: View {
                 Label("Scenario modeling", systemImage: "slider.horizontal.3")
                     .font(.headline)
                     .foregroundStyle(LumaTheme.ink)
-
-                Spacer()
-                ProBadge(compact: true)
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -727,9 +734,6 @@ struct CalculatorView: View {
                 Label("Family report", systemImage: "square.and.arrow.up.fill")
                     .font(.headline)
                     .foregroundStyle(LumaTheme.ink)
-
-                Spacer()
-                ProBadge(compact: true)
             }
 
             Text("Create a polished PDF with cost breakdowns, aid planning, repayment estimates, and scenario details to review with family.")
@@ -925,6 +929,11 @@ struct CalculatorView: View {
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(LumaTheme.slate)
             }
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(LumaTheme.slate.opacity(0.65))
+                .padding(.top, 2)
         }
         .padding(12)
         .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -997,6 +1006,83 @@ struct CalculatorView: View {
 private struct ShareableReport: Identifiable {
     let id = UUID()
     var url: URL
+}
+
+private struct SavedRepaymentPlanDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let plan: SavedRepaymentPlan
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(plan.schoolName)
+                            .font(.title2.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+
+                        Text(plan.scenarioSummary)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(LumaTheme.slate)
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+                    HStack(spacing: 10) {
+                        detailMetric("Monthly", plan.monthlyPayment.formatted(LumaFormat.currency), tint: LumaTheme.aqua)
+                        detailMetric("Total", plan.totalRepayment.formatted(LumaFormat.currency), tint: LumaTheme.mint)
+                    }
+
+                    HStack(spacing: 10) {
+                        detailMetric("Borrowed", plan.principal.formatted(LumaFormat.currency), tint: LumaTheme.coral)
+                        detailMetric("Term", "\(plan.repaymentYears) years", tint: LumaTheme.sun)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Saved in TuitionLuma")
+                            .font(.headline.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+
+                        Text("This repayment plan is stored privately on this device and can be reviewed from the calculator's Saved Plans section.")
+                            .font(.subheadline)
+                            .foregroundStyle(LumaTheme.slate)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(18)
+                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                }
+                .padding()
+            }
+            .background(LumaTheme.canvas)
+            .navigationTitle("Repayment Plan")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private func detailMetric(_ title: String, _ value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(value)
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(LumaTheme.slate)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(tint.opacity(0.11), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
 }
 
 private struct ProgramBrowserSheet: View {

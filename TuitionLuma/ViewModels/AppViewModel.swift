@@ -72,11 +72,13 @@ final class AppViewModel: ObservableObject {
     }
 
     func addToCompare(_ school: School, compareLimit: Int) -> CompareSchoolResult {
+        let enforcedLimit = min(compareLimit, 3)
+
         if comparedSchoolIDStrings.contains(school.idString) {
             return .alreadyCompared
         }
 
-        guard comparedSchoolIDStrings.count < compareLimit else {
+        guard comparedSchoolIDStrings.count < enforcedLimit else {
             return .limitReached
         }
 
@@ -115,9 +117,10 @@ final class AppViewModel: ObservableObject {
     }
 
     func trimComparedSchools(to limit: Int) {
-        guard comparedSchoolIDStrings.count > limit else { return }
-        comparedSchools = Array(comparedSchools.prefix(limit))
-        comparedSchoolIDStrings = Array(comparedSchoolIDStrings.prefix(limit))
+        let enforcedLimit = min(limit, 3)
+        guard comparedSchoolIDStrings.count > enforcedLimit else { return }
+        comparedSchools = Array(comparedSchools.prefix(enforcedLimit))
+        comparedSchoolIDStrings = Array(comparedSchoolIDStrings.prefix(enforcedLimit))
         persistComparedSchools()
     }
 
