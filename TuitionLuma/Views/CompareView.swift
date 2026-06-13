@@ -8,7 +8,7 @@ struct CompareView: View {
     @State private var isShowingPaywall = false
 
     private var compareLimit: Int {
-        ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state)
+        min(ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state), 3)
     }
 
     var body: some View {
@@ -27,8 +27,8 @@ struct CompareView: View {
                         selectors
                         compareLimitPrompt
                         comparisonSummary
-                        lumaScoreComparison
-                        comparisonTable
+                        primaryComparison
+                        moreDetailsSection
                     }
                 }
                 .padding()
@@ -66,7 +66,7 @@ struct CompareView: View {
                 .foregroundStyle(LumaTheme.slate)
 
                     HStack {
-                        Text(proPurchaseManager.state.isPro ? "Pro compare: up to 5 schools" : "Free compare: up to 2 schools")
+                        Text(proPurchaseManager.state.isPro ? "Compare up to 3 active schools" : "Free compare: up to 2 schools")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(proPurchaseManager.state.isPro ? LumaTheme.coral : LumaTheme.slate)
 
@@ -156,10 +156,33 @@ struct CompareView: View {
         } else {
             UpgradePrompt(
                 title: "Need a bigger shortlist?",
-                message: "Pro lets families compare up to 5 schools side by side.",
+                message: "Pro lets families compare up to 3 active schools side by side.",
                 action: { isShowingPaywall = true }
             )
         }
+    }
+
+    private var moreDetailsSection: some View {
+        DisclosureGroup {
+            comparisonTable
+                .padding(.top, 12)
+        } label: {
+            HStack {
+                Text("More Details")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+
+                Spacer()
+
+                Text("Acceptance, graduation, sticker cost")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .lineLimit(1)
+            }
+            .contentShape(Rectangle())
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private var comparisonTable: some View {
@@ -189,32 +212,54 @@ struct CompareView: View {
                 }
             }
         }
-        .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private var lumaScoreComparison: some View {
+    private var primaryComparison: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Luma Score")
+            Text("Primary Comparison")
                 .font(.headline)
                 .foregroundStyle(LumaTheme.ink)
 
-            HStack(spacing: 10) {
+            VStack(spacing: 10) {
                 ForEach(viewModel.selectedSchools) { school in
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("\(school.lumaScore)")
-                            .font(.system(size: 30, weight: .heavy))
-                            .foregroundStyle(lumaScoreColor(for: school.valueLabel))
-                            .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .center, spacing: 14) {
+                            VStack(spacing: 0) {
+                                Text("\(school.lumaScore)")
+                                    .font(.system(size: 42, weight: .heavy))
+                                    .foregroundStyle(lumaScoreColor(for: school.valueLabel))
+                                    .lineLimit(1)
 
-                        Text(school.valueLabel)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(LumaTheme.ink)
-                            .lineLimit(2)
+                                Text("Luma")
+                                    .font(.caption2.weight(.heavy))
+                                    .foregroundStyle(LumaTheme.slate)
+                            }
+                            .frame(width: 82, height: 82)
+                            .background(lumaScoreColor(for: school.valueLabel).opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(comparisonHeaderName(for: school))
+                                    .font(.headline.weight(.heavy))
+                                    .foregroundStyle(LumaTheme.ink)
+                                    .lineLimit(1)
+
+                                Text(school.valueLabel)
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(lumaScoreColor(for: school.valueLabel))
+                                    .lineLimit(1)
+                            }
+
+                            Spacer()
+                        }
+
+                        HStack(spacing: 8) {
+                            primaryMetric("Net", currencyShort(Int(school.costEstimate.averageNetPrice)), tint: LumaTheme.valueGreen)
+                            primaryMetric("Earn", currencyShort(Int(school.medianEarnings)), tint: LumaTheme.outcomeTeal)
+                            primaryMetric("Debt", currencyShort(Int(school.averageDebt)), tint: LumaTheme.sun)
+                        }
                     }
-                    .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
                     .padding(14)
-                    .background(lumaScoreColor(for: school.valueLabel).opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 }
             }
         }
@@ -291,7 +336,13 @@ struct CompareView: View {
     }
 
     private var detailedMetrics: [ComparisonMetric] {
-        viewModel.metrics.filter { !$0.title.localizedCaseInsensitiveContains("Luma") }
+        viewModel.metrics.filter { metric in
+            let title = metric.title.lowercased()
+            return !title.contains("luma")
+                && !title.contains("net")
+                && !title.contains("earn")
+                && !title.contains("debt")
+        }
     }
 
     private var highestLumaScoreSchool: School? {
@@ -332,6 +383,28 @@ struct CompareView: View {
         .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
         .padding(10)
         .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func primaryMetric(_ title: String, _ value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(value)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+
+            Text(title)
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(LumaTheme.slate)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .padding(.horizontal, 10)
+        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func currencyShort(_ value: Int) -> String {
+        guard value > 0 else { return "N/A" }
+        return "$\(max(1, value / 1_000))K"
     }
 
     private func recommendationReasons(for school: School) -> [String] {
