@@ -16,7 +16,7 @@ The main app experience is real-data-first. Explore, school details, and program
 - Calculator logic for annual cost, total degree cost, net cost after aid, monthly loan payment, and 10-year repayment
 - Freemium model with TuitionLuma Pro one-time purchase state
 - Paywall, Pro badge, feature lock, and upgrade prompt components
-- TODO placeholders for future StoreKit 2, campus image, logo, and report export integrations
+- TODO placeholders for future campus image, logo, and report export integrations
 
 ## Free vs Pro
 
@@ -137,12 +137,11 @@ Mapped program fields include:
 - Debt
 - Completion count
 
-## Future StoreKit 2 integration
+## StoreKit 2 integration
 
-`Services/Monetization.swift` contains the mock one-time purchase boundary. To replace it with StoreKit 2 later:
+`Services/Monetization.swift` uses StoreKit 2 for the TuitionLuma Pro lifetime purchase:
 
-1. Create a non-consumable in-app purchase in App Store Connect, for example `tuitionluma.pro.lifetime`.
-2. Replace `MockProPurchaseManager` purchase and restore methods with StoreKit 2 `Product.products(for:)`, `purchase()`, and `Transaction.currentEntitlements`.
-3. Verify transactions before setting `ProAccessState(tier: .pro)`.
-4. Observe `Transaction.updates` at app launch so Pro access changes immediately after purchase, restore, or refund events.
-5. Keep `ProAccessPolicy` as the single place for Free vs Pro limits, so the UI rules stay separate from StoreKit code.
+1. Create a non-consumable in-app purchase in App Store Connect with product ID `tuitionluma.pro.lifetime`.
+2. Keep the App Store Connect product active before TestFlight purchase testing.
+3. Verified StoreKit transactions are the source of truth for Pro access.
+4. `ProAccessPolicy` remains the single place for Free vs Pro limits, so UI rules stay separate from StoreKit code.
