@@ -166,15 +166,23 @@ final class ProPurchaseManager: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
+        guard !state.isPro else {
+            errorMessage = nil
+            return
+        }
+
         do {
             try await AppStore.sync()
             await refreshEntitlements()
 
             if !state.isPro {
                 errorMessage = "No TuitionLuma Pro purchase was found for this Apple ID."
+            } else {
+                errorMessage = nil
             }
         } catch {
-            errorMessage = "Unable to restore purchases. Please try again."
+            await refreshEntitlements()
+            errorMessage = state.isPro ? nil : "Unable to restore purchases. Please try again."
         }
     }
 
@@ -202,6 +210,10 @@ final class ProPurchaseManager: ObservableObject {
 
         state = verifiedState
         persistState()
+
+        if state.isPro {
+            errorMessage = nil
+        }
     }
 
     private func handleTransactionUpdate(_ result: VerificationResult<StoreKit.Transaction>) async {

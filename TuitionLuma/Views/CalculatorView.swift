@@ -458,12 +458,11 @@ struct CalculatorView: View {
             }
 
             if proPurchaseManager.state.isPro {
-                Picker("Planning mode", selection: $viewModel.planningMode) {
+                HStack(spacing: 10) {
                     ForEach(PlanningMode.allCases) { mode in
-                        Text(mode.rawValue).tag(mode)
+                        planningModeButton(mode)
                     }
                 }
-                .pickerStyle(.segmented)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(viewModel.affordabilityFocus)
@@ -485,6 +484,36 @@ struct CalculatorView: View {
         }
         .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func planningModeButton(_ mode: PlanningMode) -> some View {
+        let isSelected = viewModel.planningMode == mode
+
+        return Button {
+            viewModel.planningMode = mode
+        } label: {
+            HStack(spacing: 7) {
+                Image(systemName: mode == .student ? "graduationcap.fill" : "person.2.fill")
+                    .font(.caption.weight(.bold))
+                    .accessibilityHidden(true)
+
+                Text(mode.rawValue)
+                    .font(.subheadline.weight(.heavy))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isSelected ? .white : LumaTheme.ink)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 46)
+            .background(isSelected ? LumaTheme.coral : LumaTheme.canvas, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(isSelected ? LumaTheme.coral.opacity(0.25) : LumaTheme.cardStroke)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(mode.rawValue) planning mode")
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     @ViewBuilder

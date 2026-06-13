@@ -26,6 +26,7 @@ struct CompareView: View {
                         selectors
                         compareLimitPrompt
                         lumaScoreComparison
+                        comparisonSummary
                         comparisonTable
                     }
                 }
@@ -219,8 +220,87 @@ struct CompareView: View {
         .accessibilityElement(children: .contain)
     }
 
+    private var comparisonSummary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Quick read")
+                .font(.headline)
+                .foregroundStyle(LumaTheme.ink)
+
+            if let topSchool = highestLumaScoreSchool {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 30, height: 30)
+                        .background(LumaTheme.heroGradient, in: Circle())
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(topSchool.name) has the strongest Luma Score.")
+                            .font(.subheadline.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text("Use the signals below to weigh value, affordability, debt, and outcomes.")
+                            .font(.caption)
+                            .foregroundStyle(LumaTheme.slate)
+                    }
+                }
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                summaryPill("Better value", school: highestLumaScoreSchool, tint: LumaTheme.scorePurple)
+                summaryPill("Lower net price", school: lowestNetPriceSchool, tint: LumaTheme.valueGreen)
+                summaryPill("Lower debt", school: lowestDebtSchool, tint: LumaTheme.sun)
+                summaryPill("Stronger outcomes", school: strongestOutcomesSchool, tint: LumaTheme.outcomeTeal)
+            }
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .contain)
+    }
+
     private var detailedMetrics: [ComparisonMetric] {
         viewModel.metrics.filter { !$0.title.localizedCaseInsensitiveContains("Luma") }
+    }
+
+    private var highestLumaScoreSchool: School? {
+        viewModel.selectedSchools.max { $0.lumaScore < $1.lumaScore }
+    }
+
+    private var lowestNetPriceSchool: School? {
+        viewModel.selectedSchools
+            .filter { $0.costEstimate.averageNetPrice > 0 }
+            .min { $0.costEstimate.averageNetPrice < $1.costEstimate.averageNetPrice }
+    }
+
+    private var lowestDebtSchool: School? {
+        viewModel.selectedSchools
+            .filter { $0.averageDebt > 0 }
+            .min { $0.averageDebt < $1.averageDebt }
+    }
+
+    private var strongestOutcomesSchool: School? {
+        viewModel.selectedSchools
+            .filter { $0.medianEarnings > 0 }
+            .max { $0.medianEarnings < $1.medianEarnings }
+    }
+
+    private func summaryPill(_ title: String, school: School?, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+
+            Text(school?.name ?? "Not enough data")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(LumaTheme.ink)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
+        .padding(10)
+        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private func lumaScoreColor(for valueLabel: String) -> Color {
