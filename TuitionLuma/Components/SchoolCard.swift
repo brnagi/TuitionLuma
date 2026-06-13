@@ -31,13 +31,13 @@ struct SchoolCard: View {
             }
             .padding(18)
         }
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.cardStroke)
         }
-        .shadow(color: LumaTheme.cardShadow, radius: 18, y: 10)
+        .shadow(color: LumaTheme.cardShadow, radius: 22, y: 12)
     }
 
     private var campusImage: some View {
@@ -152,7 +152,7 @@ struct SchoolCard: View {
             )
         }
         .padding(.vertical, 12)
-        .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(.black.opacity(0.035), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .accessibilityElement(children: .contain)
     }
 
@@ -292,7 +292,7 @@ struct SchoolCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card.opacity(0.86), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)
@@ -341,7 +341,7 @@ struct SchoolCard: View {
             .frame(minHeight: 44)
             .padding(.vertical, 8)
             .padding(.horizontal, 10)
-            .background(.white, in: Capsule())
+            .background(LumaTheme.card, in: Capsule())
             .overlay {
                 Capsule()
                     .stroke(tint.opacity(0.14))

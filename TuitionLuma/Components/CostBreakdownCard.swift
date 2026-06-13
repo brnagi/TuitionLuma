@@ -88,8 +88,9 @@ struct CostBreakdownCard: View {
         .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(.black.opacity(0.06))
+                .stroke(LumaTheme.cardStroke)
         }
+        .shadow(color: LumaTheme.cardShadow, radius: 18, y: 10)
     }
 
     private func costRow(_ row: CostRow) -> some View {
