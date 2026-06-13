@@ -45,7 +45,7 @@ final class ExploreViewModel: ObservableObject {
 
         do {
             let page = try await fetchPage(query: trimmedQuery, page: 0)
-            schools = page.schools
+            schools = rankedSchools(page.schools, query: trimmedQuery)
             hasMoreResults = page.hasMore
             loadState = schools.isEmpty ? .empty : .loaded
         } catch CollegeScorecardError.missingAPIKey {
@@ -73,7 +73,7 @@ final class ExploreViewModel: ObservableObject {
             let page = try await fetchPage(query: query.trimmingCharacters(in: .whitespacesAndNewlines), page: nextPage)
             currentPage = page.page
             hasMoreResults = page.hasMore
-            schools.append(contentsOf: page.schools)
+            schools.append(contentsOf: rankedSchools(page.schools, query: query))
         } catch {
             hasMoreResults = false
             if schools.isEmpty {
@@ -138,6 +138,45 @@ final class ExploreViewModel: ObservableObject {
 
         currentPage = result.page
         return result
+    }
+
+    private func rankedSchools(_ schools: [School], query: String) -> [School] {
+        let normalizedQuery = normalizedSearchText(query)
+        guard !normalizedQuery.isEmpty, normalizedQuery.count > 2 else {
+            return schools
+        }
+
+        return schools.enumerated().sorted { lhs, rhs in
+            let leftRank = searchRank(for: lhs.element.name, query: normalizedQuery)
+            let rightRank = searchRank(for: rhs.element.name, query: normalizedQuery)
+
+            if leftRank == rightRank {
+                return lhs.offset < rhs.offset
+            }
+
+            return leftRank < rightRank
+        }.map(\.element)
+    }
+
+    private func searchRank(for name: String, query: String) -> Int {
+        let normalizedName = normalizedSearchText(name)
+
+        if normalizedName == query {
+            return 0
+        }
+
+        if normalizedName.hasPrefix(query) {
+            return 1
+        }
+
+        return 2
+    }
+
+    private func normalizedSearchText(_ text: String) -> String {
+        text
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
     }
 
     private func userFacingMessage(for error: Error) -> String {
