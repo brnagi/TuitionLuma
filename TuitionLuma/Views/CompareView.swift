@@ -25,8 +25,8 @@ struct CompareView: View {
                     } else {
                         selectors
                         compareLimitPrompt
-                        lumaScoreComparison
                         comparisonSummary
+                        lumaScoreComparison
                         comparisonTable
                     }
                 }
@@ -165,21 +165,23 @@ struct CompareView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 ForEach(viewModel.selectedSchools) { school in
-                    Text(school.name)
+                    Text(comparisonHeaderName(for: school))
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.72)
-                        .frame(maxWidth: .infinity, minHeight: 46)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity, minHeight: 40)
                         .padding(8)
                         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .accessibilityLabel(school.name)
                 }
             }
             .padding(.bottom, 10)
             .accessibilityElement(children: .contain)
 
             ForEach(detailedMetrics) { metric in
-                ComparisonRow(title: metric.title, values: metric.values)
+                comparisonMetricRow(metric)
 
                 if metric.id != detailedMetrics.last?.id {
                     Divider()
@@ -222,8 +224,8 @@ struct CompareView: View {
 
     private var comparisonSummary: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Quick read")
-                .font(.headline)
+            Text("Best signals")
+                .font(.title3.weight(.heavy))
                 .foregroundStyle(LumaTheme.ink)
 
             if let topSchool = highestLumaScoreSchool {
@@ -236,13 +238,13 @@ struct CompareView: View {
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("\(topSchool.name) has the strongest Luma Score.")
-                            .font(.subheadline.weight(.heavy))
+                        Text("\(comparisonHeaderName(for: topSchool)) leads on overall value.")
+                            .font(.headline.weight(.heavy))
                             .foregroundStyle(LumaTheme.ink)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Use the signals below to weigh value, affordability, debt, and outcomes.")
-                            .font(.caption)
+                        Text("Use this quick read first, then scan the detailed metrics below.")
+                            .font(.subheadline)
                             .foregroundStyle(LumaTheme.slate)
                     }
                 }
@@ -293,14 +295,69 @@ struct CompareView: View {
                 .foregroundStyle(tint)
                 .lineLimit(1)
 
-            Text(school?.name ?? "Not enough data")
+            Text(school.map(comparisonHeaderName(for:)) ?? "Not enough data")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(LumaTheme.ink)
-                .lineLimit(2)
+                .lineLimit(1)
+                .truncationMode(.tail)
         }
         .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
         .padding(10)
         .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func comparisonMetricRow(_ metric: ComparisonMetric) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            Text(metric.title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(LumaTheme.slate)
+                .frame(width: 88, alignment: .leading)
+                .lineLimit(2)
+                .truncationMode(.tail)
+
+            ForEach(Array(metric.values.enumerated()), id: \.offset) { _, value in
+                Text(value)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LumaTheme.ink)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .minimumScaleFactor(0.72)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+        }
+        .padding(.vertical, 12)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func comparisonHeaderName(for school: School) -> String {
+        let name = school.name
+        let normalizedName = name.lowercased()
+
+        if normalizedName.contains("southern new hampshire university") {
+            return "SNHU"
+        }
+
+        if normalizedName.contains("western governors university") {
+            return "WGU"
+        }
+
+        if normalizedName.contains("grand canyon university") {
+            return "GCU"
+        }
+
+        if normalizedName.contains("university of phoenix") {
+            return "U. Phoenix"
+        }
+
+        if normalizedName.hasPrefix("university of ") {
+            let remainder = String(name.dropFirst("University of ".count))
+            return "U. \(remainder.replacingOccurrences(of: "-Main Campus", with: ""))"
+        }
+
+        return name
+            .replacingOccurrences(of: " University", with: "")
+            .replacingOccurrences(of: " College", with: "")
+            .replacingOccurrences(of: "-Main Campus", with: "")
     }
 
     private func lumaScoreColor(for valueLabel: String) -> Color {

@@ -9,7 +9,7 @@ struct OnboardingView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 20) {
                     HStack {
                         Image(systemName: "sun.max.fill")
                             .font(.title2)
@@ -20,22 +20,22 @@ struct OnboardingView: View {
 
                     Spacer()
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("See the real college price before you commit.")
-                            .font(.system(size: 42, weight: .heavy))
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Make the college decision with the full picture.")
+                            .font(.system(size: 40, weight: .heavy))
                             .foregroundStyle(.white)
                             .lineLimit(4)
                             .minimumScaleFactor(0.72)
 
-                        Text("Compare cost, aid, debt, and likely outcomes in one friendly place.")
+                        Text("TuitionLuma brings real college cost, financial aid, debt, outcomes, and value into one friendly plan.")
                             .font(.title3.weight(.medium))
                             .foregroundStyle(.white.opacity(0.9))
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
                     HStack(spacing: 10) {
-                        StatPill(title: "Schools", value: "Live", systemImage: "building.columns.fill", tint: .white.opacity(0.24))
-                        StatPill(title: "Loan view", value: "10 yrs", systemImage: "calendar", tint: .white.opacity(0.24))
+                        StatPill(title: "Cost data", value: "Real", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
+                        StatPill(title: "Value", value: "Luma", systemImage: "sparkles", tint: .white.opacity(0.24))
                     }
                 }
                 .padding(26)
@@ -44,9 +44,9 @@ struct OnboardingView: View {
 
                 VStack(spacing: 14) {
                     HStack(spacing: 12) {
-                        benefit("dollarsign.circle.fill", "Net price")
+                        benefit("giftcard.fill", "Aid")
+                        benefit("creditcard.fill", "Debt")
                         benefit("chart.bar.fill", "Outcomes")
-                        benefit("heart.fill", "Saved")
                     }
 
                     LumaButton(title: "Start Exploring", systemImage: "arrow.right", action: onContinue)
