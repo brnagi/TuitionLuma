@@ -107,6 +107,13 @@ private struct StudentProfileEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var profile: StudentProfile
     @State private var draft: StudentProfile
+    @FocusState private var focusedField: ProfileField?
+
+    private enum ProfileField: Hashable {
+        case testScore
+        case stateResidency
+        case intendedMajor
+    }
 
     init(profile: Binding<StudentProfile>) {
         self._profile = profile
@@ -115,18 +122,33 @@ private struct StudentProfileEditorView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    header
-                    gpaSection
-                    optionalTestSection
-                    residencySection
-                    majorSection
-                    incomeSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        header
+                        gpaSection
+                        optionalTestSection
+                            .id(ProfileField.testScore)
+                        residencySection
+                            .id(ProfileField.stateResidency)
+                        majorSection
+                            .id(ProfileField.intendedMajor)
+                        incomeSection
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 34)
+                    .padding(.bottom, 120)
                 }
-                .padding(.horizontal)
-                .padding(.top, 34)
-                .padding(.bottom)
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    focusedField = nil
+                }
+                .onChange(of: focusedField) { _, field in
+                    guard let field else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        proxy.scrollTo(field, anchor: .center)
+                    }
+                }
             }
             .background(LumaTheme.canvas)
             .navigationTitle("Student Profile")
@@ -143,6 +165,15 @@ private struct StudentProfileEditorView: View {
                         draft.stateResidency = draft.normalizedStateResidency
                         profile = draft
                         dismiss()
+                    }
+                    .fontWeight(.bold)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+
+                    Button("Done") {
+                        focusedField = nil
                     }
                     .fontWeight(.bold)
                 }
@@ -220,11 +251,21 @@ private struct StudentProfileEditorView: View {
             systemImage: "pencil.and.list.clipboard",
             tint: LumaTheme.scorePurple
         ) {
-            TextField("Optional, for example 1320 or 29", text: $draft.testScore)
+            TextField(
+                text: $draft.testScore,
+                prompt: Text("Optional, for example 1320 or 29")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("SAT or ACT score")
+            }
+                .focused($focusedField, equals: .testScore)
                 .keyboardType(.numbersAndPunctuation)
                 .textInputAutocapitalization(.never)
-                .padding(13)
-                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .submitLabel(.next)
+                .onSubmit {
+                    focusedField = .stateResidency
+                }
+                .lumaTextField(isFocused: focusedField == .testScore)
                 .accessibilityLabel("SAT or ACT score")
                 .accessibilityHint("Optional.")
         }
@@ -237,14 +278,24 @@ private struct StudentProfileEditorView: View {
             systemImage: "map.fill",
             tint: LumaTheme.outcomeTeal
         ) {
-            TextField("Two-letter state, for example TX", text: $draft.stateResidency)
+            TextField(
+                text: $draft.stateResidency,
+                prompt: Text("Two-letter state, for example TX")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("State residency")
+            }
+                .focused($focusedField, equals: .stateResidency)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
+                .submitLabel(.next)
                 .onChange(of: draft.stateResidency) { _, newValue in
                     draft.stateResidency = String(newValue.uppercased().prefix(2))
                 }
-                .padding(13)
-                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .onSubmit {
+                    focusedField = .intendedMajor
+                }
+                .lumaTextField(isFocused: focusedField == .stateResidency)
                 .accessibilityLabel("State residency")
                 .accessibilityHint("Enter a two-letter state abbreviation.")
         }
@@ -257,10 +308,20 @@ private struct StudentProfileEditorView: View {
             systemImage: "book.closed.fill",
             tint: LumaTheme.scoreGold
         ) {
-            TextField("For example Computer Science", text: $draft.intendedMajor)
+            TextField(
+                text: $draft.intendedMajor,
+                prompt: Text("For example Computer Science")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("Intended major")
+            }
+                .focused($focusedField, equals: .intendedMajor)
                 .textInputAutocapitalization(.words)
-                .padding(13)
-                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .submitLabel(.done)
+                .onSubmit {
+                    focusedField = nil
+                }
+                .lumaTextField(isFocused: focusedField == .intendedMajor)
                 .accessibilityLabel("Intended major")
         }
     }

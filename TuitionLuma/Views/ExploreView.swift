@@ -6,6 +6,7 @@ struct ExploreView: View {
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isShowingPaywall = false
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,10 @@ struct ExploreView: View {
                     }
                     .padding()
                     .padding(.bottom, 72)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    isSearchFocused = false
                 }
             }
             .task {
@@ -80,9 +85,18 @@ struct ExploreView: View {
                     .foregroundStyle(LumaTheme.slate)
                     .accessibilityHidden(true)
 
-                TextField("Search schools or state", text: $viewModel.query)
-                    .foregroundStyle(LumaTheme.ink)
-                    .tint(LumaTheme.coral)
+                TextField(
+                    text: $viewModel.query,
+                    prompt: Text("Search schools or state")
+                        .foregroundStyle(LumaTheme.slate)
+                ) {
+                    Text("Search schools or state")
+                }
+                    .focused($isSearchFocused)
+                    .submitLabel(.search)
+                    .onSubmit {
+                        isSearchFocused = false
+                    }
                     .accessibilityLabel("Search schools or state")
 
                 if !viewModel.query.isEmpty {
@@ -100,9 +114,19 @@ struct ExploreView: View {
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    .stroke(LumaTheme.cardStroke)
+                    .stroke(isSearchFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)
             }
             .shadow(color: LumaTheme.cardShadow.opacity(0.25), radius: 10, y: 4)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+
+                    Button("Done") {
+                        isSearchFocused = false
+                    }
+                    .fontWeight(.bold)
+                }
+            }
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {

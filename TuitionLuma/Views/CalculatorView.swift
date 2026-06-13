@@ -980,6 +980,7 @@ private struct ProgramBrowserSheet: View {
     @State private var searchText = ""
     @State private var selectedCategory = "All Categories"
     @State private var selectedCredential = "All Credentials"
+    @FocusState private var isSearchFocused: Bool
 
     var programs: [AcademicProgram]
     var selectedProgram: AcademicProgram?
@@ -1066,6 +1067,10 @@ private struct ProgramBrowserSheet: View {
                 .padding()
             }
             .background(LumaTheme.canvas)
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                isSearchFocused = false
+            }
             .navigationTitle("Change Program")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1075,6 +1080,15 @@ private struct ProgramBrowserSheet: View {
                     }
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(LumaTheme.coral)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+
+                    Button("Done") {
+                        isSearchFocused = false
+                    }
+                    .fontWeight(.bold)
                 }
             }
         }
@@ -1086,17 +1100,28 @@ private struct ProgramBrowserSheet: View {
                 .foregroundStyle(LumaTheme.slate)
                 .accessibilityHidden(true)
 
-            TextField("Search programs", text: $searchText)
+            TextField(
+                text: $searchText,
+                prompt: Text("Search programs")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("Search programs")
+            }
+                .focused($isSearchFocused)
                 .textInputAutocapitalization(.words)
                 .foregroundStyle(LumaTheme.ink)
                 .tint(LumaTheme.coral)
+                .submitLabel(.search)
+                .onSubmit {
+                    isSearchFocused = false
+                }
                 .accessibilityLabel("Search programs")
         }
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke)
+                .stroke(isSearchFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)
         }
     }
 

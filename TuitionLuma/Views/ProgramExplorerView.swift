@@ -6,6 +6,7 @@ struct ProgramExplorerView: View {
     @State private var searchText = ""
     @State private var selectedCategory = "All"
     @State private var selectedCredential = "All"
+    @FocusState private var isSearchFocused: Bool
 
     private var categories: [String] {
         ["All"] + Array(Set(programs.compactMap(\.category))).sorted()
@@ -68,8 +69,22 @@ struct ProgramExplorerView: View {
             .padding()
         }
         .background(LumaTheme.canvas)
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            isSearchFocused = false
+        }
         .navigationTitle("All Programs")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button("Done") {
+                    isSearchFocused = false
+                }
+                .fontWeight(.bold)
+            }
+        }
     }
 
     private var searchField: some View {
@@ -78,12 +93,29 @@ struct ProgramExplorerView: View {
                 .foregroundStyle(LumaTheme.slate)
                 .accessibilityHidden(true)
 
-            TextField("Search programs", text: $searchText)
+            TextField(
+                text: $searchText,
+                prompt: Text("Search programs")
+                    .foregroundStyle(LumaTheme.slate)
+            ) {
+                Text("Search programs")
+            }
+                .focused($isSearchFocused)
                 .textInputAutocapitalization(.words)
+                .foregroundStyle(LumaTheme.ink)
+                .tint(LumaTheme.coral)
+                .submitLabel(.search)
+                .onSubmit {
+                    isSearchFocused = false
+                }
                 .accessibilityLabel("Search programs")
         }
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(isSearchFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)
+        }
     }
 
     private var filters: some View {

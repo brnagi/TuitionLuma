@@ -51,3 +51,26 @@ enum LumaTheme {
         return Color(red: red, green: green, blue: blue)
     }
 }
+
+struct LumaTextFieldModifier: ViewModifier {
+    var isFocused: Bool = false
+
+    func body(content: Content) -> some View {
+        content
+            .foregroundStyle(LumaTheme.ink)
+            .tint(LumaTheme.coral)
+            .padding(13)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(isFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)
+            }
+            .shadow(color: isFocused ? LumaTheme.coral.opacity(0.12) : .clear, radius: 8, y: 3)
+    }
+}
+
+extension View {
+    func lumaTextField(isFocused: Bool = false) -> some View {
+        modifier(LumaTextFieldModifier(isFocused: isFocused))
+    }
+}
