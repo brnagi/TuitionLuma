@@ -10,12 +10,12 @@ enum LumaTheme {
     static let scorePurple = Color(red: 0.43, green: 0.27, blue: 0.86)
     static let scoreGold = Color(red: 0.92, green: 0.62, blue: 0.12)
     static let warningOrange = Color(red: 0.95, green: 0.38, blue: 0.16)
-    static let ink = Color(red: 0.07, green: 0.09, blue: 0.15)
-    static let slate = Color(red: 0.35, green: 0.40, blue: 0.52)
-    static let canvas = Color(red: 0.035, green: 0.055, blue: 0.105)
-    static let card = Color(red: 0.985, green: 0.99, blue: 1.0)
-    static let cardStroke = Color.white.opacity(0.22)
-    static let cardShadow = Color.black.opacity(0.32)
+    static let ink = Color(red: 0.09, green: 0.10, blue: 0.18)
+    static let slate = Color(red: 0.32, green: 0.36, blue: 0.46)
+    static let canvas = Color(red: 0.955, green: 0.96, blue: 0.985)
+    static let card = Color.white
+    static let cardStroke = Color.black.opacity(0.10)
+    static let cardShadow = Color.black.opacity(0.10)
 
     static let cardRadius: CGFloat = 8
 
@@ -60,7 +60,7 @@ struct LumaTextFieldModifier: ViewModifier {
             .foregroundStyle(LumaTheme.ink)
             .tint(LumaTheme.coral)
             .padding(13)
-            .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                     .stroke(isFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)

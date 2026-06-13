@@ -27,7 +27,7 @@ struct LumaButton: View {
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
             .padding(.vertical, 15)
-            .foregroundStyle(style == .primary ? .white : LumaTheme.card)
+            .foregroundStyle(style == .primary ? .white : LumaTheme.ink)
             .background(backgroundStyle, in: Capsule())
             .shadow(color: LumaTheme.coral.opacity(style == .primary ? 0.25 : 0), radius: 14, y: 8)
         }
@@ -41,7 +41,7 @@ struct LumaButton: View {
         case .primary:
             AnyShapeStyle(LumaTheme.heroGradient)
         case .secondary:
-            AnyShapeStyle(LumaTheme.aqua.opacity(0.24))
+            AnyShapeStyle(LumaTheme.aqua.opacity(0.14))
         }
     }
 }

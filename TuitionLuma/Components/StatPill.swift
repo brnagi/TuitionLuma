@@ -30,7 +30,7 @@ struct StatPill: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
-        .background(tint.opacity(0.18), in: Capsule())
+        .background(tint.opacity(0.12), in: Capsule())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)
