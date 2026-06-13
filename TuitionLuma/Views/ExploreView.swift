@@ -93,6 +93,8 @@ struct ExploreView: View {
                     Text("Search schools or state")
                 }
                     .focused($isSearchFocused)
+                    .foregroundStyle(LumaTheme.ink)
+                    .tint(LumaTheme.coral)
                     .submitLabel(.search)
                     .onSubmit {
                         isSearchFocused = false

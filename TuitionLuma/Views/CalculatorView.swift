@@ -18,8 +18,8 @@ struct CalculatorView: View {
                     schoolPicker
                     if viewModel.selectedSchool == nil {
                         EmptyStateView(
-                            title: "Choose a live school first",
-                            message: "Search real College Scorecard colleges in Explore, then return here to model costs.",
+                            title: "Choose a school to start",
+                            message: appViewModel.knownSchools.isEmpty ? "Search colleges in Explore, then return here to model tuition, aid, and loan payments." : "Select a school above to see cost data, choose a program, and model your plan.",
                             systemImage: "building.columns"
                         )
                         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -67,12 +67,7 @@ struct CalculatorView: View {
                 .foregroundStyle(LumaTheme.ink)
 
             if appViewModel.knownSchools.isEmpty {
-                Text("No live schools loaded yet")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(LumaTheme.slate)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(14)
-                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                EmptyView()
             } else {
                 Picker("Choose a school", selection: $viewModel.selectedSchool) {
                     Text("Select a school").tag(Optional<School>.none)

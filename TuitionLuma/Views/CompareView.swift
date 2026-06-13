@@ -25,6 +25,7 @@ struct CompareView: View {
                     } else {
                         selectors
                         compareLimitPrompt
+                        lumaScoreComparison
                         comparisonTable
                     }
                 }
@@ -176,16 +177,68 @@ struct CompareView: View {
             .padding(.bottom, 10)
             .accessibilityElement(children: .contain)
 
-            ForEach(viewModel.metrics) { metric in
+            ForEach(detailedMetrics) { metric in
                 ComparisonRow(title: metric.title, values: metric.values)
 
-                if metric.id != viewModel.metrics.last?.id {
+                if metric.id != detailedMetrics.last?.id {
                     Divider()
                 }
             }
         }
         .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var lumaScoreComparison: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Luma Score")
+                .font(.headline)
+                .foregroundStyle(LumaTheme.ink)
+
+            HStack(spacing: 10) {
+                ForEach(viewModel.selectedSchools) { school in
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("\(school.lumaScore)")
+                            .font(.system(size: 30, weight: .heavy))
+                            .foregroundStyle(lumaScoreColor(for: school.valueLabel))
+                            .lineLimit(1)
+
+                        Text(school.valueLabel)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(LumaTheme.ink)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
+                    .padding(14)
+                    .background(lumaScoreColor(for: school.valueLabel).opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                }
+            }
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .contain)
+    }
+
+    private var detailedMetrics: [ComparisonMetric] {
+        viewModel.metrics.filter { !$0.title.localizedCaseInsensitiveContains("Luma") }
+    }
+
+    private func lumaScoreColor(for valueLabel: String) -> Color {
+        let normalizedLabel = valueLabel.lowercased()
+
+        if normalizedLabel.contains("excellent") {
+            return LumaTheme.valueGreen
+        }
+
+        if normalizedLabel.contains("good") {
+            return LumaTheme.outcomeTeal
+        }
+
+        if normalizedLabel.contains("fair") {
+            return LumaTheme.sun
+        }
+
+        return LumaTheme.warningOrange
     }
 
     private func indexColor(_ index: Int) -> Color {
