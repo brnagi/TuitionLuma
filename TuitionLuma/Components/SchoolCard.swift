@@ -83,14 +83,6 @@ struct SchoolCard: View {
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
                 action: onCompareTapped
             )
-            .background {
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: ExploreCoachMarkTargetKey.self,
-                        value: [.compare: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
-                    )
-                }
-            }
 
             labeledActionButton(
                 title: isSaved ? "Saved" : "Save",
@@ -99,13 +91,13 @@ struct SchoolCard: View {
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
                 action: onSaveTapped
             )
-            .background {
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: ExploreCoachMarkTargetKey.self,
-                        value: [.save: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
-                    )
-                }
+        }
+        .overlay {
+            GeometryReader { proxy in
+                Color.clear.preference(
+                    key: ExploreCoachMarkTargetKey.self,
+                    value: actionButtonTargetFrames(in: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName)))
+                )
             }
         }
     }
@@ -424,6 +416,19 @@ struct SchoolCard: View {
         .accessibilityValue(title)
         .accessibilityHint(title == "Added" || title == "Saved" ? "Double tap to remove." : "Double tap to add.")
         .accessibilityAddTraits(.isButton)
+    }
+
+    private func actionButtonTargetFrames(in frame: CGRect) -> [ExploreCoachMarkTarget: CGRect] {
+        let spacing: CGFloat = 8
+        let compareWidth = max(80, (frame.width - spacing) * 0.56)
+        let saveWidth = max(64, frame.width - compareWidth - spacing)
+        let compareFrame = CGRect(x: frame.minX, y: frame.minY, width: compareWidth, height: frame.height)
+        let saveFrame = CGRect(x: frame.maxX - saveWidth, y: frame.minY, width: saveWidth, height: frame.height)
+
+        return [
+            .compare: compareFrame,
+            .save: saveFrame
+        ]
     }
 }
 
