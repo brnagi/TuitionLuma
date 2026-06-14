@@ -6,6 +6,7 @@ struct CompareView: View {
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = CompareViewModel()
     @State private var isShowingCompareLimitMessage = false
+    @State private var isShowingPaywall = false
 
     private var compareLimit: Int {
         ProAccessPolicy.compareSchoolLimit(for: proPurchaseManager.state)
@@ -16,7 +17,14 @@ struct CompareView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
-                    if viewModel.selectedSchools.isEmpty {
+                    if !proPurchaseManager.state.isPro {
+                        FeatureLock(
+                            title: "Unlock school comparison",
+                            message: "Compare up to 3 schools side-by-side across value, net price, debt, and outcomes.",
+                            feature: .fiveSchoolCompare,
+                            action: { isShowingPaywall = true }
+                        )
+                    } else if viewModel.selectedSchools.isEmpty {
                         EmptyStateView(
                             title: "No schools selected",
                             message: "Use Explore to search live College Scorecard schools, then tap compare on the cards.",
@@ -43,6 +51,10 @@ struct CompareView: View {
             }
             .onChange(of: appViewModel.comparedSchoolIDs) { _, _ in
                 syncCompareSelection()
+            }
+            .sheet(isPresented: $isShowingPaywall) {
+                PaywallView()
+                    .environmentObject(proPurchaseManager)
             }
         }
     }

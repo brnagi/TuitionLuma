@@ -27,7 +27,11 @@ struct CalculatorView: View {
                         programPicker
                         headlineNumbers
                         tuitionInfoCard
-                        aidInputs
+                        if proPurchaseManager.state.isPro {
+                            aidInputs
+                        } else {
+                            aidAndBorrowingLock
+                        }
                         planningModeCard
                         advancedCalculatorSection
                     }
@@ -438,6 +442,24 @@ struct CalculatorView: View {
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
+    private var aidAndBorrowingLock: some View {
+        VStack(spacing: 12) {
+            FeatureLock(
+                title: "Unlock aid and borrowing",
+                message: "Model grants, family help, work-study, and yearly loans with TuitionLuma Pro.",
+                feature: .advancedDebtCalculator,
+                action: { isShowingPaywall = true }
+            )
+
+            FeatureLock(
+                title: "Unlock scholarship planning",
+                message: "Add scholarships and grants to see how aid changes your real college cost.",
+                feature: .scholarshipPlanning,
+                action: { isShowingPaywall = true }
+            )
+        }
+    }
+
     private var yearsInSchoolControl: some View {
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 3) {
@@ -498,41 +520,40 @@ struct CalculatorView: View {
             reportExportCard
         } else {
             FeatureLock(
-                title: "Advanced repayment forecast",
+                title: "Unlock repayment calculator",
                 message: "Upgrade to choose repayment terms, save plans on device, and compare debt scenarios.",
                 feature: .advancedDebtCalculator,
                 action: { isShowingPaywall = true }
             )
 
             FeatureLock(
-                title: "Scholarship and grant planning",
-                message: "Model awards and family contributions across different college paths.",
-                feature: .scholarshipPlanning,
+                title: "Unlock scenario modeling",
+                message: "Compare on-campus, off-campus, residency, and degree-path scenarios.",
+                feature: .scenarioModeling,
+                action: { isShowingPaywall = true }
+            )
+
+            FeatureLock(
+                title: "Unlock family reports",
+                message: "Share a polished PDF report with cost, aid, debt, and planning details.",
+                feature: .pdfExport,
                 action: { isShowingPaywall = true }
             )
         }
     }
 
+    @ViewBuilder
     private var planningModeCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Planning mode", systemImage: "person.2.fill")
-                    .font(.headline)
-                    .foregroundStyle(LumaTheme.ink)
+        if proPurchaseManager.state.isPro {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Planning mode", systemImage: "person.2.fill")
+                        .font(.headline)
+                        .foregroundStyle(LumaTheme.ink)
 
-                Spacer()
-
-                if !proPurchaseManager.state.isPro {
-                    Button("Unlock") {
-                        isShowingPaywall = true
-                    }
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(LumaTheme.coral)
-                    .buttonStyle(.plain)
+                    Spacer()
                 }
-            }
 
-            if proPurchaseManager.state.isPro {
                 HStack(spacing: 10) {
                     ForEach(PlanningMode.allCases) { mode in
                         planningModeButton(mode)
@@ -551,14 +572,17 @@ struct CalculatorView: View {
                 }
 
                 planningModeMetrics
-            } else {
-                Text("Free mode shows one shared planning view.")
-                    .font(.subheadline)
-                    .foregroundStyle(LumaTheme.slate)
             }
+            .padding(16)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        } else {
+            FeatureLock(
+                title: "Unlock planning mode",
+                message: "Switch between student and parent views as you refine affordability.",
+                feature: .planningMode,
+                action: { isShowingPaywall = true }
+            )
         }
-        .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private func planningModeButton(_ mode: PlanningMode) -> some View {

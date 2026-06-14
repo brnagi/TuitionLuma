@@ -83,8 +83,13 @@ struct SchoolCard: View {
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
                 action: onCompareTapped
             )
-            .anchorPreference(key: ExploreCoachMarkTargetKey.self, value: .bounds) { anchor in
-                [.compare: anchor]
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: ExploreCoachMarkTargetKey.self,
+                        value: [.compare: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
+                    )
+                }
             }
 
             labeledActionButton(
@@ -94,8 +99,13 @@ struct SchoolCard: View {
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
                 action: onSaveTapped
             )
-            .anchorPreference(key: ExploreCoachMarkTargetKey.self, value: .bounds) { anchor in
-                [.save: anchor]
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: ExploreCoachMarkTargetKey.self,
+                        value: [.save: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
+                    )
+                }
             }
         }
     }

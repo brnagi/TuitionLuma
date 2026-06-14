@@ -23,8 +23,13 @@ struct ExploreView: View {
                         StudentProfileCard {
                             isShowingPaywall = true
                         }
-                        .anchorPreference(key: ExploreCoachMarkTargetKey.self, value: .bounds) { anchor in
-                            [.profile: anchor]
+                        .background {
+                            GeometryReader { proxy in
+                                Color.clear.preference(
+                                    key: ExploreCoachMarkTargetKey.self,
+                                    value: [.profile: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
+                                )
+                            }
                         }
                         content
                     }
@@ -36,11 +41,12 @@ struct ExploreView: View {
                     isSearchFocused = false
                 }
             }
+            .coordinateSpace(name: ExploreCoachMarkTargetKey.coordinateSpaceName)
             .overlayPreferenceValue(ExploreCoachMarkTargetKey.self) { targets in
                 if let coachMarkStep, !hasCompletedExploreCoachMarks {
                     ExploreCoachMarkOverlay(
                         step: coachMarkStep,
-                        targetAnchor: targets[coachMarkStep.target],
+                        targetRect: targets[coachMarkStep.target],
                         onSkip: completeCoachMarks,
                         onNext: advanceCoachMark
                     )
@@ -301,6 +307,11 @@ struct ExploreView: View {
     }
 
     private func compareTapped(_ school: School) {
+        guard proPurchaseManager.state.isPro else {
+            isShowingPaywall = true
+            return
+        }
+
         if appViewModel.isCompared(school) {
             _ = appViewModel.removeFromCompare(school)
             return
@@ -358,11 +369,12 @@ enum ExploreCoachMarkTarget: Hashable {
 }
 
 struct ExploreCoachMarkTargetKey: PreferenceKey {
-    static var defaultValue: [ExploreCoachMarkTarget: Anchor<CGRect>] = [:]
+    static let coordinateSpaceName = "exploreCoachMarks"
+    static var defaultValue: [ExploreCoachMarkTarget: CGRect] = [:]
 
     static func reduce(
-        value: inout [ExploreCoachMarkTarget: Anchor<CGRect>],
-        nextValue: () -> [ExploreCoachMarkTarget: Anchor<CGRect>]
+        value: inout [ExploreCoachMarkTarget: CGRect],
+        nextValue: () -> [ExploreCoachMarkTarget: CGRect]
     ) {
         value.merge(nextValue(), uniquingKeysWith: { current, _ in current })
     }
@@ -417,7 +429,7 @@ enum ExploreCoachMarkStep: Int, CaseIterable {
 
 private struct ExploreCoachMarkOverlay: View {
     var step: ExploreCoachMarkStep
-    var targetAnchor: Anchor<CGRect>?
+    var targetRect: CGRect?
     var onSkip: () -> Void
     var onNext: () -> Void
 
@@ -520,11 +532,11 @@ private struct ExploreCoachMarkOverlay: View {
     }
 
     private func resolvedTargetRect(in proxy: GeometryProxy) -> CGRect {
-        guard let targetAnchor else {
+        guard let targetRect, !targetRect.isEmpty else {
             return CGRect(x: 24, y: proxy.size.height * 0.36, width: proxy.size.width - 48, height: 70)
         }
 
-        return proxy[targetAnchor]
+        return targetRect
     }
 
     private func bubbleY(targetRect: CGRect, in size: CGSize, isBelow: Bool) -> CGFloat {
