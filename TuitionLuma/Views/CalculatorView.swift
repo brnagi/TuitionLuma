@@ -12,18 +12,17 @@ struct CalculatorView: View {
     @State private var isShowingProgramBrowser = false
     @State private var selectedRepaymentPlan: SavedRepaymentPlan?
 
+    private var calculatorSchools: [School] {
+        appViewModel.savedSchools
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     schoolPicker
                     if viewModel.selectedSchool == nil {
-                        EmptyStateView(
-                            title: "Choose a school to start",
-                            message: appViewModel.knownSchools.isEmpty ? "Search colleges in Explore, then return here to model tuition, aid, and loan payments." : "Select a school above to see cost data, choose a program, and model your plan.",
-                            systemImage: "building.columns"
-                        )
-                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        calculatorEmptyState
                     } else {
                         programPicker
                         headlineNumbers
@@ -57,6 +56,12 @@ struct CalculatorView: View {
             .sheet(item: $selectedRepaymentPlan) { plan in
                 SavedRepaymentPlanDetailView(plan: plan)
             }
+            .onChange(of: calculatorSchools.map(\.id)) { _, savedIDs in
+                guard let selectedSchool = viewModel.selectedSchool else { return }
+                if !savedIDs.contains(selectedSchool.id) {
+                    viewModel.applySchoolDefaults(for: nil)
+                }
+            }
         }
     }
 
@@ -70,12 +75,10 @@ struct CalculatorView: View {
                 .font(.headline)
                 .foregroundStyle(LumaTheme.ink)
 
-            if appViewModel.knownSchools.isEmpty {
-                EmptyView()
-            } else {
+            if !calculatorSchools.isEmpty {
                 Picker("Choose a school", selection: $viewModel.selectedSchool) {
-                    Text("Select a school").tag(Optional<School>.none)
-                    ForEach(appViewModel.knownSchools) { school in
+                    Text("Select a saved school").tag(Optional<School>.none)
+                    ForEach(calculatorSchools) { school in
                         Text(school.name).tag(Optional(school))
                     }
                 }
@@ -83,6 +86,11 @@ struct CalculatorView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.cardStroke)
+                }
+                .tint(LumaTheme.coral)
                 .onChange(of: viewModel.selectedSchool) { _, newSchool in
                     isShowingProgramDetails = false
                     viewModel.applySchoolDefaults(for: newSchool)
@@ -100,6 +108,31 @@ struct CalculatorView: View {
                 )
             }
         }
+    }
+
+    private var calculatorEmptyState: some View {
+        VStack(spacing: 18) {
+            EmptyStateView(
+                title: "Save a school first",
+                message: "The calculator uses your saved schools so your planning stays focused. Save schools from Explore, then return here to model tuition, aid, and loan payments.",
+                systemImage: "bookmark"
+            )
+
+            NavigationLink {
+                ExploreView()
+            } label: {
+                Label("Explore Schools", systemImage: "magnifyingglass")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.coral)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 48)
+                    .background(LumaTheme.coral.opacity(0.10), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Use the Explore tab to search and save schools.")
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private var programPicker: some View {
@@ -390,15 +423,7 @@ struct CalculatorView: View {
                     .accessibilityValue(viewModel.aidInput.interestRate.formatted(.percent.precision(.fractionLength(1))))
             }
 
-            Stepper(value: $viewModel.aidInput.yearsInSchool, in: 1...6) {
-                HStack {
-                    Text("Years in school")
-                    Spacer()
-                    Text("\(viewModel.aidInput.yearsInSchool)")
-                        .fontWeight(.bold)
-                }
-                .foregroundStyle(LumaTheme.ink)
-            }
+            yearsInSchoolControl
             .accessibilityLabel("Years in school")
             .accessibilityValue("\(viewModel.aidInput.yearsInSchool)")
             .onChange(of: viewModel.aidInput.yearsInSchool) { _, newValue in
@@ -411,6 +436,58 @@ struct CalculatorView: View {
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var yearsInSchoolControl: some View {
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Years in school")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LumaTheme.ink)
+
+                Text("Adjust your degree timeline")
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+            }
+
+            Spacer()
+
+            HStack(spacing: 10) {
+                yearStepperButton(systemImage: "minus") {
+                    viewModel.aidInput.yearsInSchool = max(1, viewModel.aidInput.yearsInSchool - 1)
+                }
+                .disabled(viewModel.aidInput.yearsInSchool <= 1)
+
+                Text("\(viewModel.aidInput.yearsInSchool)")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .frame(minWidth: 28)
+
+                yearStepperButton(systemImage: "plus") {
+                    viewModel.aidInput.yearsInSchool = min(6, viewModel.aidInput.yearsInSchool + 1)
+                }
+                .disabled(viewModel.aidInput.yearsInSchool >= 6)
+            }
+            .padding(6)
+            .background(LumaTheme.canvas, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(LumaTheme.cardStroke)
+            }
+        }
+        .padding(12)
+        .background(LumaTheme.canvas.opacity(0.65), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private func yearStepperButton(systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(.white)
+                .frame(width: 36, height: 36)
+                .background(LumaTheme.ink, in: Circle())
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -611,9 +688,18 @@ struct CalculatorView: View {
             }
 
             if let repaymentSaveMessage = viewModel.repaymentSaveMessage {
-                Text(repaymentSaveMessage)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(LumaTheme.mint)
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(LumaTheme.mint)
+                        .accessibilityHidden(true)
+
+                    Text(repaymentSaveMessage)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(LumaTheme.ink)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(LumaTheme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             }
 
             savedRepaymentPlansSection
@@ -647,6 +733,7 @@ struct CalculatorView: View {
                         savedRepaymentPlanRow(plan)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("View repayment plan for \(plan.schoolName)")
                     .accessibilityHint("Opens saved repayment plan details.")
                 }
             }
@@ -928,6 +1015,10 @@ struct CalculatorView: View {
                 Text("monthly")
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(LumaTheme.slate)
+
+                Text("View")
+                    .font(.caption2.weight(.heavy))
+                    .foregroundStyle(LumaTheme.coral)
             }
 
             Image(systemName: "chevron.right")
