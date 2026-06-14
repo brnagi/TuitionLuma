@@ -8,7 +8,12 @@ struct StudentProfileCard: View {
 
     @ViewBuilder
     var body: some View {
-        if !studentProfileStore.profile.isComplete {
+        if studentProfileStore.profile.isComplete {
+            completeProfileSummary
+                .sheet(isPresented: $isShowingEditor) {
+                    StudentProfileEditorView(profile: $studentProfileStore.profile)
+                }
+        } else {
             incompleteProfilePrompt
                 .sheet(isPresented: $isShowingEditor) {
                     StudentProfileEditorView(profile: $studentProfileStore.profile)
@@ -72,6 +77,96 @@ struct StudentProfileCard: View {
                 .stroke(LumaTheme.aqua.opacity(0.18))
         }
         .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
+    }
+
+    private var completeProfileSummary: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(LumaTheme.heroGradient)
+
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 38, height: 38)
+                .shadow(color: LumaTheme.aqua.opacity(0.20), radius: 10, y: 5)
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profileGreeting)
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text("Recommendations are personalized using your profile.")
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .lineLimit(2)
+                }
+
+                Spacer()
+
+                Button("Edit Profile") {
+                    isShowingEditor = true
+                }
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(LumaTheme.coral)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(.white, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(LumaTheme.coral.opacity(0.18))
+                }
+                .buttonStyle(.plain)
+                .frame(minHeight: 44)
+                .accessibilityHint("Opens the student profile form.")
+            }
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 8)], alignment: .leading, spacing: 8) {
+                profilePill(studentProfileStore.profile.intendedMajor, systemImage: "book.closed.fill")
+                profilePill("\(studentProfileStore.profile.normalizedStateResidency) Resident", systemImage: "map.fill")
+                profilePill("Income: \(studentProfileStore.profile.familyIncomeRange.rawValue)", systemImage: "house.fill")
+            }
+        }
+        .padding(14)
+        .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.aqua.opacity(0.18))
+        }
+        .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.normalizedStateResidency) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Recommendations are personalized using your profile.")
+    }
+
+    private var profileGreeting: String {
+        let nickname = studentProfileStore.profile.displayNickname
+        guard !nickname.isEmpty else {
+            return "Your profile"
+        }
+
+        return "Hi \(nickname) 👋"
+    }
+
+    private func profilePill(_ title: String, systemImage: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.heavy))
+                .foregroundStyle(LumaTheme.coral)
+                .accessibilityHidden(true)
+
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.72), in: Capsule())
     }
 
     private var profileCardBackground: some ShapeStyle {
