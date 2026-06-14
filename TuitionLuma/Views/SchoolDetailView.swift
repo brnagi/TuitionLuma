@@ -16,8 +16,7 @@ struct SchoolDetailView: View {
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 18) {
                     hero
-                    LumaScoreCard(school: school)
-                    quickStats
+                    decisionSnapshot
                     dataQualitySection
                     CostBreakdownCard(cost: school.costEstimate)
                     proPlanningSection
@@ -111,10 +110,73 @@ struct SchoolDetailView: View {
         )
     }
 
+    private var decisionSnapshot: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            LumaScoreCard(school: school)
+            annualCostSummary
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Key outcomes")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.slate)
+                    .textCase(.uppercase)
+
+                quickStats
+            }
+        }
+        .padding(10)
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke)
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.72), radius: 18, y: 10)
+    }
+
+    private var annualCostSummary: some View {
+        HStack(alignment: .center, spacing: 14) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Estimated Annual Cost")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(.white.opacity(0.86))
+                    .textCase(.uppercase)
+
+                Text(moneyText(school.costEstimate.estimatedAnnualCost))
+                    .font(.system(size: 34, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.70)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("Avg aid")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.78))
+
+                Text(moneyText(school.costEstimate.averageGrantAid))
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.74)
+            }
+        }
+        .padding(16)
+        .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(.white.opacity(0.18))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Estimated annual cost")
+        .accessibilityValue("\(moneyText(school.costEstimate.estimatedAnnualCost)). Average aid \(moneyText(school.costEstimate.averageGrantAid)).")
+    }
+
     private var quickStats: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            StatPill(title: "Net price", value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice), systemImage: "dollarsign", tint: LumaTheme.mint)
-            StatPill(title: "Earnings", value: LumaFormat.compactCurrency(school.medianEarnings), systemImage: "chart.line.uptrend.xyaxis", tint: LumaTheme.aqua)
+            StatPill(title: "Net price", value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice), systemImage: "dollarsign", tint: LumaTheme.valueGreen)
+            StatPill(title: "Earnings", value: LumaFormat.compactCurrency(school.medianEarnings), systemImage: "chart.line.uptrend.xyaxis", tint: LumaTheme.outcomeTeal)
             StatPill(title: "Grad rate", value: school.graduationRate.formatted(LumaFormat.percent), systemImage: "graduationcap.fill", tint: LumaTheme.coral)
             StatPill(title: "Avg debt", value: LumaFormat.compactCurrency(school.averageDebt), systemImage: "creditcard.fill", tint: LumaTheme.sun)
         }
@@ -208,12 +270,14 @@ struct SchoolDetailView: View {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "info.circle.fill")
                     .foregroundStyle(LumaTheme.outcomeTeal)
+                    .font(.caption)
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dataQualityTitle)
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(LumaTheme.ink)
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
+                        .textCase(.uppercase)
 
                     Text(dataQualityMessage)
                         .font(.caption)
@@ -221,8 +285,13 @@ struct SchoolDetailView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(14)
-            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(LumaTheme.outcomeTeal.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.outcomeTeal.opacity(0.14))
+            }
         }
     }
 
@@ -315,6 +384,14 @@ struct SchoolDetailView: View {
         }
 
         return ROIOutcomeCalculator.result(for: school, program: viewModel.selectedProgram)
+    }
+
+    private func moneyText(_ value: Double) -> String {
+        guard value > 0 else {
+            return "Not reported"
+        }
+
+        return value.formatted(LumaFormat.currency)
     }
 
     private func scenarioPill(_ title: String) -> some View {
