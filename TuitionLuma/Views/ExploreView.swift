@@ -46,7 +46,7 @@ struct ExploreView: View {
                 if let coachMarkStep, !hasCompletedExploreCoachMarks {
                     ExploreCoachMarkOverlay(
                         step: coachMarkStep,
-                        targetRect: coachMarkStep == .profile ? targets[.profile] : nil,
+                        targetRect: nil,
                         onSkip: completeCoachMarks,
                         onNext: advanceCoachMark
                     )
