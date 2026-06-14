@@ -92,14 +92,6 @@ struct SchoolCard: View {
                 action: onSaveTapped
             )
         }
-        .overlay {
-            GeometryReader { proxy in
-                Color.clear.preference(
-                    key: ExploreCoachMarkTargetKey.self,
-                    value: actionButtonTargetFrames(in: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName)))
-                )
-            }
-        }
     }
 
     private var titleBlock: some View {
@@ -418,18 +410,6 @@ struct SchoolCard: View {
         .accessibilityAddTraits(.isButton)
     }
 
-    private func actionButtonTargetFrames(in frame: CGRect) -> [ExploreCoachMarkTarget: CGRect] {
-        let spacing: CGFloat = 8
-        let compareWidth = max(80, (frame.width - spacing) * 0.56)
-        let saveWidth = max(64, frame.width - compareWidth - spacing)
-        let compareFrame = CGRect(x: frame.minX, y: frame.minY, width: compareWidth, height: frame.height)
-        let saveFrame = CGRect(x: frame.maxX - saveWidth, y: frame.minY, width: saveWidth, height: frame.height)
-
-        return [
-            .compare: compareFrame,
-            .save: saveFrame
-        ]
-    }
 }
 
 private struct StateFlagBackdrop: View {

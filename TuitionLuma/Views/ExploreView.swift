@@ -217,6 +217,16 @@ struct ExploreView: View {
                                 onSaveTapped: { saveTapped(school) },
                                 onCompareTapped: { compareTapped(school) }
                             )
+                            .background {
+                                GeometryReader { proxy in
+                                    Color.clear.preference(
+                                        key: ExploreCoachMarkTargetKey.self,
+                                        value: schoolCardCoachMarkTargets(
+                                            in: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))
+                                        )
+                                    )
+                                }
+                            }
                         }
                         .buttonStyle(.plain)
                     }
@@ -359,6 +369,33 @@ struct ExploreView: View {
             hasCompletedExploreCoachMarks = true
             coachMarkStep = nil
         }
+    }
+
+    private func schoolCardCoachMarkTargets(in frame: CGRect) -> [ExploreCoachMarkTarget: CGRect] {
+        let contentPadding: CGFloat = 18
+        let heroHeight: CGFloat = 124
+        let buttonHeight: CGFloat = 44
+        let saveWidth: CGFloat = 86
+        let compareWidth: CGFloat = 118
+        let spacing: CGFloat = 8
+        let buttonTop = frame.minY + heroHeight + contentPadding
+        let saveFrame = CGRect(
+            x: frame.maxX - contentPadding - saveWidth,
+            y: buttonTop,
+            width: saveWidth,
+            height: buttonHeight
+        )
+        let compareFrame = CGRect(
+            x: saveFrame.minX - spacing - compareWidth,
+            y: buttonTop,
+            width: compareWidth,
+            height: buttonHeight
+        )
+
+        return [
+            .save: saveFrame,
+            .compare: compareFrame
+        ]
     }
 }
 
