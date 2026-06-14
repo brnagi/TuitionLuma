@@ -5,6 +5,7 @@ struct SchoolCard: View {
     var recommendation: ProfileRecommendation? = nil
     var isSaved: Bool
     var isCompared: Bool
+    var coachMarkHighlight: ExploreCoachMarkTarget? = nil
     var onSaveTapped: () -> Void
     var onCompareTapped: () -> Void
 
@@ -81,6 +82,7 @@ struct SchoolCard: View {
                 systemImage: isCompared ? "checkmark.circle.fill" : "plus.circle",
                 tint: isCompared ? LumaTheme.scorePurple : LumaTheme.ink,
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
+                isHighlighted: coachMarkHighlight == .compare,
                 action: onCompareTapped
             )
 
@@ -89,6 +91,7 @@ struct SchoolCard: View {
                 systemImage: isSaved ? "bookmark.fill" : "bookmark",
                 tint: isSaved ? LumaTheme.valueGreen : LumaTheme.ink,
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
+                isHighlighted: coachMarkHighlight == .save,
                 action: onSaveTapped
             )
         }
@@ -383,6 +386,7 @@ struct SchoolCard: View {
         systemImage: String,
         tint: Color,
         accessibilityLabel: String,
+        isHighlighted: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -397,11 +401,18 @@ struct SchoolCard: View {
             .frame(minHeight: 44)
             .padding(.vertical, 8)
             .padding(.horizontal, 10)
-            .background(.white, in: Capsule())
+            .background(isHighlighted ? LumaTheme.coral.opacity(0.13) : .white, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(tint.opacity(0.14))
+                    .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.14), lineWidth: isHighlighted ? 3 : 1)
             }
+            .shadow(
+                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : .clear,
+                radius: isHighlighted ? 14 : 0,
+                y: isHighlighted ? 6 : 0
+            )
+            .scaleEffect(isHighlighted ? 1.04 : 1)
+            .animation(.easeInOut(duration: 0.18), value: isHighlighted)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)

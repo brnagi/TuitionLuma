@@ -46,7 +46,7 @@ struct ExploreView: View {
                 if let coachMarkStep, !hasCompletedExploreCoachMarks {
                     ExploreCoachMarkOverlay(
                         step: coachMarkStep,
-                        targetRect: targets[coachMarkStep.target],
+                        targetRect: coachMarkStep == .profile ? targets[.profile] : nil,
                         onSkip: completeCoachMarks,
                         onNext: advanceCoachMark
                     )
@@ -205,7 +205,7 @@ struct ExploreView: View {
                 )
             } else {
                 LazyVStack(spacing: 14) {
-                    ForEach(rankedVisibleSchools) { school in
+                    ForEach(Array(rankedVisibleSchools.enumerated()), id: \.element.id) { index, school in
                         NavigationLink {
                             SchoolDetailView(school: school)
                         } label: {
@@ -214,19 +214,10 @@ struct ExploreView: View {
                                 recommendation: recommendation(for: school),
                                 isSaved: appViewModel.isSaved(school),
                                 isCompared: appViewModel.isCompared(school),
+                                coachMarkHighlight: coachMarkHighlight(forFirstCard: index == 0),
                                 onSaveTapped: { saveTapped(school) },
                                 onCompareTapped: { compareTapped(school) }
                             )
-                            .background {
-                                GeometryReader { proxy in
-                                    Color.clear.preference(
-                                        key: ExploreCoachMarkTargetKey.self,
-                                        value: schoolCardCoachMarkTargets(
-                                            in: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))
-                                        )
-                                    )
-                                }
-                            }
                         }
                         .buttonStyle(.plain)
                     }
@@ -371,31 +362,17 @@ struct ExploreView: View {
         }
     }
 
-    private func schoolCardCoachMarkTargets(in frame: CGRect) -> [ExploreCoachMarkTarget: CGRect] {
-        let contentPadding: CGFloat = 18
-        let heroHeight: CGFloat = 124
-        let buttonHeight: CGFloat = 44
-        let saveWidth: CGFloat = 86
-        let compareWidth: CGFloat = 118
-        let spacing: CGFloat = 8
-        let buttonTop = frame.minY + heroHeight + contentPadding
-        let saveFrame = CGRect(
-            x: frame.maxX - contentPadding - saveWidth,
-            y: buttonTop,
-            width: saveWidth,
-            height: buttonHeight
-        )
-        let compareFrame = CGRect(
-            x: saveFrame.minX - spacing - compareWidth,
-            y: buttonTop,
-            width: compareWidth,
-            height: buttonHeight
-        )
+    private func coachMarkHighlight(forFirstCard isFirstCard: Bool) -> ExploreCoachMarkTarget? {
+        guard isFirstCard, !hasCompletedExploreCoachMarks else { return nil }
 
-        return [
-            .save: saveFrame,
-            .compare: compareFrame
-        ]
+        switch coachMarkStep {
+        case .save:
+            return .save
+        case .compare:
+            return .compare
+        case .profile, nil:
+            return nil
+        }
     }
 }
 
@@ -472,27 +449,34 @@ private struct ExploreCoachMarkOverlay: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let targetRect = resolvedTargetRect(in: proxy)
-            let bubbleIsBelow = targetRect.midY < proxy.size.height * 0.58
-
             ZStack {
-                spotlightMask(targetRect: targetRect)
+                if let targetRect, !targetRect.isEmpty {
+                    let bubbleIsBelow = targetRect.midY < proxy.size.height * 0.58
 
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(.white.opacity(0.95), lineWidth: 2)
-                    .shadow(color: .black.opacity(0.22), radius: 14, y: 8)
-                    .frame(
-                        width: max(96, targetRect.width + 20),
-                        height: max(54, targetRect.height + 18)
-                    )
-                    .position(x: targetRect.midX, y: targetRect.midY)
+                    spotlightMask(targetRect: targetRect)
 
-                bubble
-                    .frame(maxWidth: min(proxy.size.width - 40, 340))
-                    .position(
-                        x: min(max(targetRect.midX, 190), proxy.size.width - 190),
-                        y: bubbleY(targetRect: targetRect, in: proxy.size, isBelow: bubbleIsBelow)
-                    )
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(.white.opacity(0.95), lineWidth: 2)
+                        .shadow(color: .black.opacity(0.22), radius: 14, y: 8)
+                        .frame(
+                            width: max(96, targetRect.width + 20),
+                            height: max(54, targetRect.height + 18)
+                        )
+                        .position(x: targetRect.midX, y: targetRect.midY)
+
+                    bubble
+                        .frame(maxWidth: min(proxy.size.width - 40, 340))
+                        .position(
+                            x: min(max(targetRect.midX, 190), proxy.size.width - 190),
+                            y: bubbleY(targetRect: targetRect, in: proxy.size, isBelow: bubbleIsBelow)
+                        )
+                } else {
+                    Color.black.opacity(0.38)
+
+                    bubble
+                        .frame(maxWidth: min(proxy.size.width - 40, 340))
+                        .position(x: proxy.size.width / 2, y: proxy.size.height * 0.42)
+                }
             }
             .ignoresSafeArea()
         }
@@ -566,14 +550,6 @@ private struct ExploreCoachMarkOverlay: View {
                     }
                     .compositingGroup()
             }
-    }
-
-    private func resolvedTargetRect(in proxy: GeometryProxy) -> CGRect {
-        guard let targetRect, !targetRect.isEmpty else {
-            return CGRect(x: 24, y: proxy.size.height * 0.36, width: proxy.size.width - 48, height: 70)
-        }
-
-        return targetRect
     }
 
     private func bubbleY(targetRect: CGRect, in size: CGSize, isBelow: Bool) -> CGFloat {
