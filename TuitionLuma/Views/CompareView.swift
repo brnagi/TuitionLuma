@@ -71,57 +71,27 @@ struct CompareView: View {
     }
 
     private var selectors: some View {
-        VStack(spacing: 10) {
-            ForEach(viewModel.selectedSchools.indices, id: \.self) { index in
-                Menu {
-                    Picker(
-                        "School \(index + 1)",
-                        selection: Binding(
-                            get: { viewModel.selectedSchools[index] },
-                            set: { school in
-                                appViewModel.replaceComparedSchool(at: index, with: school)
-                                viewModel.replaceSchool(at: index, with: school)
+        VStack(spacing: 12) {
+            List {
+                ForEach(viewModel.selectedSchools.indices, id: \.self) { index in
+                    compareSelectorRow(for: index)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                removeComparedSchool(at: index)
+                            } label: {
+                                Label("Remove", systemImage: "trash")
                             }
-                        )
-                    ) {
-                        ForEach(appViewModel.knownSchools) { school in
-                            Text(school.name).tag(school)
                         }
-                    }
-                } label: {
-                    HStack {
-                        Text("\(index + 1)")
-                            .font(.headline.weight(.heavy))
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background(indexColor(index), in: Circle())
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(viewModel.selectedSchools[index].name)
-                                .font(.headline)
-                                .foregroundStyle(LumaTheme.ink)
-                                .lineLimit(1)
-
-                            Text("\(viewModel.selectedSchools[index].city), \(viewModel.selectedSchools[index].state)")
-                                .font(.caption)
-                                .foregroundStyle(LumaTheme.slate)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(LumaTheme.slate)
-                            .accessibilityHidden(true)
-                    }
-                    .padding(14)
-                    .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Compared school \(index + 1)")
-                    .accessibilityValue(viewModel.selectedSchools[index].name)
                 }
-                .accessibilityHint("Opens a menu to replace this compared school.")
             }
+            .listStyle(.plain)
+            .scrollDisabled(true)
+            .frame(height: CGFloat(viewModel.selectedSchools.count) * 74)
+            .background(Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
 
             if viewModel.selectedSchools.count < compareLimit && !appViewModel.knownSchools.isEmpty {
                 Button {
@@ -157,6 +127,75 @@ struct CompareView: View {
                 .accessibilityHint("Shows the active comparison limit.")
             }
         }
+    }
+
+    private func compareSelectorRow(for index: Int) -> some View {
+        let school = viewModel.selectedSchools[index]
+
+        return HStack(spacing: 10) {
+            Menu {
+                Picker(
+                    "School \(index + 1)",
+                    selection: Binding(
+                        get: { viewModel.selectedSchools[index] },
+                        set: { school in
+                            appViewModel.replaceComparedSchool(at: index, with: school)
+                            viewModel.replaceSchool(at: index, with: school)
+                        }
+                    )
+                ) {
+                    ForEach(appViewModel.knownSchools) { school in
+                        Text(school.name).tag(school)
+                    }
+                }
+            } label: {
+                HStack {
+                    Text("\(index + 1)")
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                        .background(indexColor(index), in: Circle())
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(school.name)
+                            .font(.headline)
+                            .foregroundStyle(LumaTheme.ink)
+                            .lineLimit(1)
+
+                        Text("\(school.city), \(school.state)")
+                            .font(.caption)
+                            .foregroundStyle(LumaTheme.slate)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(LumaTheme.slate)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Rectangle())
+            }
+            .accessibilityLabel("Compared school \(index + 1)")
+            .accessibilityValue(school.name)
+            .accessibilityHint("Opens a menu to replace this compared school.")
+
+            Button(role: .destructive) {
+                removeComparedSchool(at: index)
+            } label: {
+                Image(systemName: "trash")
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.warningOrange)
+                    .frame(width: 40, height: 40)
+                    .background(LumaTheme.warningOrange.opacity(0.10), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Remove \(school.name) from compare")
+        }
+        .padding(.vertical, 8)
+        .padding(.leading, 14)
+        .padding(.trailing, 10)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     @ViewBuilder
@@ -542,6 +581,12 @@ struct CompareView: View {
         }
 
         // TODO: Replace this first-available-school behavior with a searchable add-to-compare picker.
+        syncCompareSelection()
+    }
+
+    private func removeComparedSchool(at index: Int) {
+        guard viewModel.selectedSchools.indices.contains(index) else { return }
+        _ = appViewModel.removeFromCompare(viewModel.selectedSchools[index])
         syncCompareSelection()
     }
 
