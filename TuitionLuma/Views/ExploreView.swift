@@ -4,8 +4,10 @@ struct ExploreView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
+    @AppStorage("hasCompletedExploreCoachMarks") private var hasCompletedExploreCoachMarks = false
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isShowingPaywall = false
+    @State private var coachMarkStep: ExploreCoachMarkStep?
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
@@ -21,6 +23,9 @@ struct ExploreView: View {
                         StudentProfileCard {
                             isShowingPaywall = true
                         }
+                        .anchorPreference(key: ExploreCoachMarkTargetKey.self, value: .bounds) { anchor in
+                            [.profile: anchor]
+                        }
                         content
                     }
                     .padding()
@@ -29,6 +34,21 @@ struct ExploreView: View {
                 .scrollDismissesKeyboard(.interactively)
                 .onTapGesture {
                     isSearchFocused = false
+                }
+            }
+            .overlayPreferenceValue(ExploreCoachMarkTargetKey.self) { targets in
+                if let coachMarkStep, !hasCompletedExploreCoachMarks {
+                    ExploreCoachMarkOverlay(
+                        step: coachMarkStep,
+                        targetAnchor: targets[coachMarkStep.target],
+                        onSkip: completeCoachMarks,
+                        onNext: advanceCoachMark
+                    )
+                }
+            }
+            .onAppear {
+                if !hasCompletedExploreCoachMarks, coachMarkStep == nil {
+                    coachMarkStep = .save
                 }
             }
             .task {
@@ -306,5 +326,213 @@ struct ExploreView: View {
             for: school,
             profile: studentProfileStore.profile
         )
+    }
+
+    private func advanceCoachMark() {
+        guard let coachMarkStep else {
+            completeCoachMarks()
+            return
+        }
+
+        if let nextStep = coachMarkStep.next {
+            withAnimation(.spring(response: 0.34, dampingFraction: 0.88)) {
+                self.coachMarkStep = nextStep
+            }
+        } else {
+            completeCoachMarks()
+        }
+    }
+
+    private func completeCoachMarks() {
+        withAnimation(.easeOut(duration: 0.18)) {
+            hasCompletedExploreCoachMarks = true
+            coachMarkStep = nil
+        }
+    }
+}
+
+enum ExploreCoachMarkTarget: Hashable {
+    case save
+    case compare
+    case profile
+}
+
+struct ExploreCoachMarkTargetKey: PreferenceKey {
+    static var defaultValue: [ExploreCoachMarkTarget: Anchor<CGRect>] = [:]
+
+    static func reduce(
+        value: inout [ExploreCoachMarkTarget: Anchor<CGRect>],
+        nextValue: () -> [ExploreCoachMarkTarget: Anchor<CGRect>]
+    ) {
+        value.merge(nextValue(), uniquingKeysWith: { current, _ in current })
+    }
+}
+
+enum ExploreCoachMarkStep: Int, CaseIterable {
+    case save
+    case compare
+    case profile
+
+    var target: ExploreCoachMarkTarget {
+        switch self {
+        case .save:
+            return .save
+        case .compare:
+            return .compare
+        case .profile:
+            return .profile
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .save:
+            return "Save schools"
+        case .compare:
+            return "Compare your options"
+        case .profile:
+            return "Personalize your results"
+        }
+    }
+
+    var body: String {
+        switch self {
+        case .save:
+            return "Build a shortlist of schools you're considering so you can compare cost, debt, and outcomes later."
+        case .compare:
+            return "Compare up to 3 schools side-by-side and see which one looks strongest for your profile."
+        case .profile:
+            return "Add your major, residency, and income to improve recommendations, affordability, and ROI estimates."
+        }
+    }
+
+    var next: ExploreCoachMarkStep? {
+        ExploreCoachMarkStep(rawValue: rawValue + 1)
+    }
+
+    var primaryButtonTitle: String {
+        next == nil ? "Get Started" : "Next"
+    }
+}
+
+private struct ExploreCoachMarkOverlay: View {
+    var step: ExploreCoachMarkStep
+    var targetAnchor: Anchor<CGRect>?
+    var onSkip: () -> Void
+    var onNext: () -> Void
+
+    var body: some View {
+        GeometryReader { proxy in
+            let targetRect = resolvedTargetRect(in: proxy)
+            let bubbleIsBelow = targetRect.midY < proxy.size.height * 0.58
+
+            ZStack {
+                spotlightMask(targetRect: targetRect)
+
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(.white.opacity(0.95), lineWidth: 2)
+                    .shadow(color: .black.opacity(0.22), radius: 14, y: 8)
+                    .frame(
+                        width: max(96, targetRect.width + 20),
+                        height: max(54, targetRect.height + 18)
+                    )
+                    .position(x: targetRect.midX, y: targetRect.midY)
+
+                bubble
+                    .frame(maxWidth: min(proxy.size.width - 40, 340))
+                    .position(
+                        x: min(max(targetRect.midX, 190), proxy.size.width - 190),
+                        y: bubbleY(targetRect: targetRect, in: proxy.size, isBelow: bubbleIsBelow)
+                    )
+            }
+            .ignoresSafeArea()
+        }
+        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+        .zIndex(20)
+    }
+
+    private var bubble: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(step.title)
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text(step.body)
+                        .font(.subheadline)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 8)
+
+                Text("\(step.rawValue + 1)/\(ExploreCoachMarkStep.allCases.count)")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.coral)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
+                    .background(LumaTheme.coral.opacity(0.10), in: Capsule())
+            }
+
+            HStack(spacing: 10) {
+                Button("Skip", action: onSkip)
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.slate)
+                    .frame(minHeight: 44)
+                    .padding(.horizontal, 8)
+
+                Spacer()
+
+                Button(step.primaryButtonTitle, action: onNext)
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .frame(minHeight: 44)
+                    .padding(.horizontal, 16)
+                    .background(LumaTheme.heroGradient, in: Capsule())
+            }
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke)
+        }
+        .shadow(color: .black.opacity(0.22), radius: 24, y: 14)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func spotlightMask(targetRect: CGRect) -> some View {
+        Color.black.opacity(0.54)
+            .mask {
+                Rectangle()
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18)
+                            .frame(
+                                width: max(96, targetRect.width + 20),
+                                height: max(54, targetRect.height + 18)
+                            )
+                            .position(x: targetRect.midX, y: targetRect.midY)
+                            .blendMode(.destinationOut)
+                    }
+                    .compositingGroup()
+            }
+    }
+
+    private func resolvedTargetRect(in proxy: GeometryProxy) -> CGRect {
+        guard let targetAnchor else {
+            return CGRect(x: 24, y: proxy.size.height * 0.36, width: proxy.size.width - 48, height: 70)
+        }
+
+        return proxy[targetAnchor]
+    }
+
+    private func bubbleY(targetRect: CGRect, in size: CGSize, isBelow: Bool) -> CGFloat {
+        let spacing: CGFloat = 112
+        if isBelow {
+            return min(targetRect.maxY + spacing, size.height - 158)
+        }
+
+        return max(targetRect.minY - spacing, 156)
     }
 }

@@ -83,6 +83,9 @@ struct SchoolCard: View {
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
                 action: onCompareTapped
             )
+            .anchorPreference(key: ExploreCoachMarkTargetKey.self, value: .bounds) { anchor in
+                [.compare: anchor]
+            }
 
             labeledActionButton(
                 title: isSaved ? "Saved" : "Save",
@@ -91,6 +94,9 @@ struct SchoolCard: View {
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
                 action: onSaveTapped
             )
+            .anchorPreference(key: ExploreCoachMarkTargetKey.self, value: .bounds) { anchor in
+                [.save: anchor]
+            }
         }
     }
 
