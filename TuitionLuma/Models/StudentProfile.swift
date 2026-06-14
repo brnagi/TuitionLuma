@@ -131,13 +131,6 @@ enum StudentProfileRecommendationEngine {
         return schools.sorted { lhs, rhs in
             let lhsProgram = bestMatchingProgram(for: lhs, profile: profile)
             let rhsProgram = bestMatchingProgram(for: rhs, profile: profile)
-            let lhsHasProgramMatch = lhsProgram != nil
-            let rhsHasProgramMatch = rhsProgram != nil
-
-            if lhsHasProgramMatch != rhsHasProgramMatch {
-                return lhsHasProgramMatch
-            }
-
             let lhsNetCost = estimateNetCost(for: lhs, profile: profile)
             let rhsNetCost = estimateNetCost(for: rhs, profile: profile)
             let lhsScore = recommendationRankingScore(for: lhs, profile: profile, program: lhsProgram, estimatedNetCost: lhsNetCost)
@@ -301,18 +294,51 @@ enum StudentProfileRecommendationEngine {
         let roi = ROIOutcomeCalculator.result(for: school, program: program, estimatedNetCost: estimatedNetCost)
         let outcomeScore = outcomeStrengthScore(for: school, program: program)
         let affordability = affordabilityScore(for: profile, estimatedNetCost: estimatedNetCost) / 19 * 100
+        let residency = residencyRankingScore(for: school, profile: profile, estimatedNetCost: estimatedNetCost)
+        let majorMatch = program == nil ? 0.0 : 100.0
 
         if program != nil {
-            return Double(roi.score) * 0.62
-                + outcomeScore * 0.16
-                + Double(school.lumaScore) * 0.14
-                + affordability * 0.08
+            return Double(roi.score) * 0.46
+                + outcomeScore * 0.14
+                + Double(school.lumaScore) * 0.12
+                + affordability * 0.10
+                + residency * 0.10
+                + majorMatch * 0.08
         }
 
-        return Double(roi.score) * 0.46
-            + Double(school.lumaScore) * 0.30
+        return Double(roi.score) * 0.38
+            + Double(school.lumaScore) * 0.22
             + outcomeScore * 0.12
-            + affordability * 0.12
+            + affordability * 0.14
+            + residency * 0.14
+    }
+
+    private static func residencyRankingScore(
+        for school: School,
+        profile: StudentProfile,
+        estimatedNetCost: Double
+    ) -> Double {
+        guard school.type == .publicUniversity || school.type == .communityCollege else {
+            return 35
+        }
+
+        guard profile.normalizedStateResidency == school.state.uppercased() else {
+            return 18
+        }
+
+        let burden = affordabilityBurden(for: profile, estimatedNetCost: estimatedNetCost)
+        let affordabilityComponent = normalizedInverseScore(value: burden, low: 0.08, high: 0.32)
+        let stickerCost = max(school.costEstimate.estimatedAnnualCost, school.costEstimate.averageNetPrice)
+        let savingsComponent: Double
+
+        if stickerCost > 0 {
+            let savingsRatio = max(0, min(1, (stickerCost - estimatedNetCost) / stickerCost))
+            savingsComponent = savingsRatio * 100
+        } else {
+            savingsComponent = 50
+        }
+
+        return min(100, 45 + affordabilityComponent * 0.35 + savingsComponent * 0.20)
     }
 
     private static func outcomeStrengthScore(for school: School, program: AcademicProgram?) -> Double {
