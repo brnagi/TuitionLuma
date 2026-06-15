@@ -292,16 +292,20 @@ struct CompareView: View {
                         HStack(alignment: .center, spacing: 14) {
                             VStack(spacing: 0) {
                                 Text("\(school.lumaScore)")
-                                    .font(.system(size: 42, weight: .heavy))
+                                    .font(.system(size: 46, weight: .heavy))
                                     .foregroundStyle(lumaScoreColor(for: school.valueLabel))
                                     .lineLimit(1)
 
-                                Text("Luma")
-                                    .font(.caption2.weight(.heavy))
-                                    .foregroundStyle(LumaTheme.slate)
+                                Text("LumaScore")
+                                    .font(.caption.weight(.heavy))
+                                    .foregroundStyle(LumaTheme.ink)
                             }
-                            .frame(width: 82, height: 82)
+                            .frame(width: 104, height: 90)
                             .background(lumaScoreColor(for: school.valueLabel).opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                                    .stroke(lumaScoreColor(for: school.valueLabel).opacity(0.22))
+                            }
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(comparisonHeaderName(for: school))

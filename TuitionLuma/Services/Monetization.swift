@@ -90,7 +90,6 @@ final class ProPurchaseManager: ObservableObject {
 
         Task {
             await loadProducts()
-            await refreshEntitlements()
         }
     }
 

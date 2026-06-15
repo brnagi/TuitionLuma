@@ -498,13 +498,16 @@ private struct StudentProfileEditorView: View {
                         .font(.subheadline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Picker("Debt tolerance", selection: $draft.debtTolerance) {
+                    HStack(spacing: 8) {
                         ForEach(DebtTolerance.allCases) { tolerance in
-                            Text(tolerance.rawValue).tag(tolerance)
+                            preferenceButton(
+                                title: tolerance.rawValue,
+                                isSelected: draft.debtTolerance == tolerance
+                            ) {
+                                draft.debtTolerance = tolerance
+                            }
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .accessibilityValue(draft.debtTolerance.rawValue)
 
                     Text(draft.debtTolerance.summary)
                         .font(.caption)
@@ -517,13 +520,16 @@ private struct StudentProfileEditorView: View {
                         .font(.subheadline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Picker("Public or private preference", selection: $draft.ownershipPreference) {
+                    HStack(spacing: 8) {
                         ForEach(SchoolOwnershipPreference.allCases) { preference in
-                            Text(preference.rawValue).tag(preference)
+                            preferenceButton(
+                                title: preference.rawValue,
+                                isSelected: draft.ownershipPreference == preference
+                            ) {
+                                draft.ownershipPreference = preference
+                            }
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .accessibilityValue(draft.ownershipPreference.rawValue)
 
                     Text(draft.ownershipPreference.summary)
                         .font(.caption)
@@ -532,6 +538,28 @@ private struct StudentProfileEditorView: View {
                 }
             }
         }
+    }
+
+    private func preferenceButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(isSelected ? .white : LumaTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 42)
+                .background(isSelected ? AnyShapeStyle(LumaTheme.heroGradient) : AnyShapeStyle(LumaTheme.canvas), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(isSelected ? LumaTheme.coral.opacity(0.26) : LumaTheme.cardStroke)
+                }
+                .shadow(color: isSelected ? LumaTheme.coral.opacity(0.16) : .clear, radius: 8, y: 4)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     private func insightPill(_ title: String, systemImage: String) -> some View {
