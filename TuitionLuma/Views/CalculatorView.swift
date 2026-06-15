@@ -33,11 +33,11 @@ struct CalculatorView: View {
                         tuitionInfoCard
                         if hasProAccess {
                             aidInputs
+                            planningModeCard
+                            advancedCalculatorSection
                         } else {
-                            aidAndBorrowingLock
+                            proPlanningUnlockCard
                         }
-                        planningModeCard
-                        advancedCalculatorSection
                     }
                 }
                 .padding()
@@ -110,8 +110,8 @@ struct CalculatorView: View {
 
             if !hasProAccess {
                 UpgradePrompt(
-                    title: "Unlock advanced planning",
-                    message: "Plan aid, borrowing, scholarships, repayment, scenarios, and family reports with Pro.",
+                    title: "Unlock TuitionLuma Pro",
+                    message: "Add aid, scholarships, repayment, scenarios, planning mode, and family reports.",
                     action: { isShowingPaywall = true }
                 )
             }
@@ -444,6 +444,82 @@ struct CalculatorView: View {
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+    }
+
+    private var proPlanningUnlockCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LumaTheme.heroGradient)
+
+                    Image(systemName: "sparkles")
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 52, height: 52)
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Unlock the full college plan")
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text("Go beyond the basic estimate with aid, debt, scenarios, and shareable family planning.")
+                        .font(.subheadline)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 10) {
+                proPlanningBenefit("Aid & scholarships", systemImage: "sparkles", tint: LumaTheme.mint)
+                proPlanningBenefit("Planning Mode", systemImage: "person.2.fill", tint: LumaTheme.aqua)
+                proPlanningBenefit("Repayment calculator", systemImage: "creditcard.fill", tint: LumaTheme.coral)
+                proPlanningBenefit("Scenario modeling", systemImage: "slider.horizontal.3", tint: LumaTheme.scoreGold)
+                proPlanningBenefit("Family report", systemImage: "square.and.arrow.up.fill", tint: LumaTheme.outcomeTeal)
+            }
+
+            Button {
+                isShowingPaywall = true
+            } label: {
+                Label("See Pro Features", systemImage: "arrow.up.forward")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 50)
+                    .background(LumaTheme.heroGradient, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens the TuitionLuma Pro unlock screen.")
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.coral.opacity(0.14))
+        }
+        .shadow(color: LumaTheme.coral.opacity(0.08), radius: 16, y: 8)
+    }
+
+    private func proPlanningBenefit(_ title: String, systemImage: String, tint: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(tint)
+                .frame(width: 24, height: 24)
+                .background(tint.opacity(0.12), in: Circle())
+                .accessibilityHidden(true)
+
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: 14))
+        .accessibilityElement(children: .combine)
     }
 
     private var aidAndBorrowingLock: some View {

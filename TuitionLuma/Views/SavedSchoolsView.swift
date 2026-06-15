@@ -110,6 +110,11 @@ struct SavedSchoolsView: View {
     }
 
     private func compareTapped(_ school: School) {
+        guard proPurchaseManager.state.isPro else {
+            isShowingPaywall = true
+            return
+        }
+
         if appViewModel.isCompared(school) {
             _ = appViewModel.removeFromCompare(school)
             return
