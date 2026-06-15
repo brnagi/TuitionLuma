@@ -23,7 +23,7 @@ struct StudentProfileCard: View {
 
     private var incompleteProfilePrompt: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(LumaTheme.heroGradient)
@@ -40,35 +40,35 @@ struct StudentProfileCard: View {
                     Text(promptTitle)
                         .font(.headline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text(promptSubtitle)
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer()
-
-                Button(promptCTA) {
-                    if proPurchaseManager.state.isPro {
-                        isShowingEditor = true
-                    } else {
-                        onUpgradeTapped()
-                    }
-                }
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(LumaTheme.coral)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
-                .background(.white, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(LumaTheme.coral.opacity(0.18))
-                }
-                .buttonStyle(.plain)
-                .frame(minHeight: 44)
-                .accessibilityHint(proPurchaseManager.state.isPro ? "Opens the student profile form." : "Opens TuitionLuma Pro options.")
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            Button(promptCTA) {
+                if proPurchaseManager.state.isPro {
+                    isShowingEditor = true
+                } else {
+                    onUpgradeTapped()
+                }
+            }
+            .font(.caption.weight(.heavy))
+            .foregroundStyle(LumaTheme.coral)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(.white, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(LumaTheme.coral.opacity(0.18))
+            }
+            .buttonStyle(.plain)
+            .frame(minHeight: 44)
+            .accessibilityHint(proPurchaseManager.state.isPro ? "Opens the student profile form." : "Opens TuitionLuma Pro options.")
         }
         .padding(14)
         .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
