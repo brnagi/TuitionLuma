@@ -447,47 +447,63 @@ struct CalculatorView: View {
     }
 
     private var proPlanningUnlockCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LumaTheme.heroGradient)
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    ProBadge()
 
-                    Image(systemName: "sparkles")
-                        .font(.title3.weight(.heavy))
+                    Spacer()
+
+                    Text("$4.99 one-time")
+                        .font(.caption.weight(.heavy))
                         .foregroundStyle(.white)
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 10)
+                        .background(.white.opacity(0.18), in: Capsule())
                 }
-                .frame(width: 52, height: 52)
-                .accessibilityHidden(true)
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Unlock the full college plan")
-                        .font(.title3.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Unlock smarter college planning")
+                        .font(.title2.weight(.heavy))
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Go beyond the basic estimate with aid, debt, scenarios, and shareable family planning.")
-                        .font(.subheadline)
-                        .foregroundStyle(LumaTheme.slate)
+                    Text("Turn one school estimate into a family-ready plan for aid, debt, repayment, and real-world scenarios.")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.90))
                         .fixedSize(horizontal: false, vertical: true)
                 }
-            }
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 10) {
-                proPlanningBenefit("Aid & scholarships", systemImage: "sparkles", tint: LumaTheme.mint)
-                proPlanningBenefit("Planning Mode", systemImage: "person.2.fill", tint: LumaTheme.aqua)
-                proPlanningBenefit("Repayment calculator", systemImage: "creditcard.fill", tint: LumaTheme.coral)
-                proPlanningBenefit("Scenario modeling", systemImage: "slider.horizontal.3", tint: LumaTheme.scoreGold)
-                proPlanningBenefit("Family report", systemImage: "square.and.arrow.up.fill", tint: LumaTheme.outcomeTeal)
+                HStack(spacing: 10) {
+                    proImpactPill("Loan payments", systemImage: "creditcard.fill")
+                    proImpactPill("Family PDF", systemImage: "doc.richtext.fill")
+                }
+            }
+            .padding(18)
+            .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Pro includes")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 10) {
+                    proPlanningBenefit("Aid & scholarships", subtitle: "Model real net cost", systemImage: "sparkles", tint: LumaTheme.mint)
+                    proPlanningBenefit("Planning Mode", subtitle: "Student or parent view", systemImage: "person.2.fill", tint: LumaTheme.aqua)
+                    proPlanningBenefit("Repayment", subtitle: "5, 10, 15, 20 years", systemImage: "creditcard.fill", tint: LumaTheme.coral)
+                    proPlanningBenefit("Scenarios", subtitle: "Campus, residency, path", systemImage: "slider.horizontal.3", tint: LumaTheme.scoreGold)
+                    proPlanningBenefit("Family report", subtitle: "Share polished PDF", systemImage: "square.and.arrow.up.fill", tint: LumaTheme.outcomeTeal)
+                }
             }
 
             Button {
                 isShowingPaywall = true
             } label: {
-                Label("See Pro Features", systemImage: "arrow.up.forward")
+                Label("Unlock TuitionLuma Pro", systemImage: "sparkles")
                     .font(.headline.weight(.heavy))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(minHeight: 50)
+                    .frame(minHeight: 54)
                     .background(LumaTheme.heroGradient, in: Capsule())
             }
             .buttonStyle(.plain)
@@ -502,22 +518,44 @@ struct CalculatorView: View {
         .shadow(color: LumaTheme.coral.opacity(0.08), radius: 16, y: 8)
     }
 
-    private func proPlanningBenefit(_ title: String, systemImage: String, tint: Color) -> some View {
-        HStack(spacing: 8) {
+    private func proImpactPill(_ title: String, systemImage: String) -> some View {
+        HStack(spacing: 6) {
             Image(systemName: systemImage)
                 .font(.caption.weight(.heavy))
-                .foregroundStyle(tint)
-                .frame(width: 24, height: 24)
-                .background(tint.opacity(0.12), in: Circle())
                 .accessibilityHidden(true)
 
             Text(title)
                 .font(.caption.weight(.heavy))
-                .foregroundStyle(LumaTheme.ink)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .foregroundStyle(.white)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(.white.opacity(0.18), in: Capsule())
+    }
+
+    private func proPlanningBenefit(_ title: String, subtitle: String, systemImage: String, tint: Color) -> some View {
+        HStack(alignment: .top, spacing: 9) {
+            Image(systemName: systemImage)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(tint)
+                .frame(width: 28, height: 28)
+                .background(tint.opacity(0.12), in: Circle())
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(subtitle)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(11)
+        .frame(maxWidth: .infinity, minHeight: 70, alignment: .topLeading)
         .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: 14))
         .accessibilityElement(children: .combine)
     }
