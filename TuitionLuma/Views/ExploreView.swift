@@ -270,6 +270,8 @@ struct ExploreView: View {
             proPurchaseManager.state.isPro ? "pro" : "free",
             studentProfileStore.profile.normalizedStateResidency,
             studentProfileStore.profile.normalizedMajor,
+            studentProfileStore.profile.debtTolerance.rawValue,
+            studentProfileStore.profile.ownershipPreference.rawValue,
             String(viewModel.schools.count)
         ].joined(separator: "|")
     }

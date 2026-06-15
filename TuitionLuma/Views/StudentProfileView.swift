@@ -128,6 +128,8 @@ struct StudentProfileCard: View {
                 profilePill(studentProfileStore.profile.intendedMajor, systemImage: "book.closed.fill")
                 profilePill("\(studentProfileStore.profile.stateResidencyDisplayName) Resident", systemImage: "map.fill")
                 profilePill("Income: \(studentProfileStore.profile.familyIncomeRange.rawValue)", systemImage: "house.fill")
+                profilePill("Debt: \(studentProfileStore.profile.debtTolerance.rawValue)", systemImage: "creditcard.fill")
+                profilePill(studentProfileStore.profile.ownershipPreference.rawValue, systemImage: "building.columns.fill")
             }
         }
         .padding(14)
@@ -138,7 +140,7 @@ struct StudentProfileCard: View {
         }
         .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Recommendations are personalized using your profile.")
+        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Recommendations are personalized using your profile.")
     }
 
     private var profileGreeting: String {
@@ -192,7 +194,7 @@ struct StudentProfileCard: View {
 
     private var promptSubtitle: String {
         if proPurchaseManager.state.isPro {
-            return "Add GPA, major, residency, and income to receive personalized recommendations."
+            return "Add GPA, major, residency, income, and preferences to receive personalized recommendations."
         }
 
         return "See affordability, major-specific outcomes, and schools that fit your goals."
@@ -237,6 +239,7 @@ private struct StudentProfileEditorView: View {
                         majorSection
                             .id(ProfileField.intendedMajor)
                         incomeSection
+                        preferenceSection
                     }
                     .padding(.horizontal)
                     .padding(.top, 34)
@@ -479,6 +482,55 @@ private struct StudentProfileEditorView: View {
             .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .accessibilityLabel("Family income range")
             .accessibilityValue(draft.familyIncomeRange.rawValue)
+        }
+    }
+
+    private var preferenceSection: some View {
+        formSection(
+            title: "Decision preferences",
+            subtitle: "Fine-tunes rankings for debt comfort and public/private fit.",
+            systemImage: "slider.horizontal.3",
+            tint: LumaTheme.coral
+        ) {
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Debt tolerance")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Picker("Debt tolerance", selection: $draft.debtTolerance) {
+                        ForEach(DebtTolerance.allCases) { tolerance in
+                            Text(tolerance.rawValue).tag(tolerance)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityValue(draft.debtTolerance.rawValue)
+
+                    Text(draft.debtTolerance.summary)
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Public/private")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Picker("Public or private preference", selection: $draft.ownershipPreference) {
+                        ForEach(SchoolOwnershipPreference.allCases) { preference in
+                            Text(preference.rawValue).tag(preference)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityValue(draft.ownershipPreference.rawValue)
+
+                    Text(draft.ownershipPreference.summary)
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
     }
 

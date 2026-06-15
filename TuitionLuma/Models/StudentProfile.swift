@@ -125,6 +125,52 @@ enum FamilyIncomeRange: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum DebtTolerance: String, CaseIterable, Identifiable, Codable {
+    case low = "Low"
+    case medium = "Moderate"
+    case high = "Flexible"
+
+    var id: String { rawValue }
+
+    var summary: String {
+        switch self {
+        case .low:
+            "Prioritize schools with lower borrowing."
+        case .medium:
+            "Balance debt with outcomes."
+        case .high:
+            "Consider higher debt if outcomes are strong."
+        }
+    }
+
+    var maximumComfortableDebt: Double {
+        switch self {
+        case .low: 18_000
+        case .medium: 30_000
+        case .high: 45_000
+        }
+    }
+}
+
+enum SchoolOwnershipPreference: String, CaseIterable, Identifiable, Codable {
+    case any = "Any"
+    case publicOnly = "Public"
+    case privateOnly = "Private"
+
+    var id: String { rawValue }
+
+    var summary: String {
+        switch self {
+        case .any:
+            "Show public and private options."
+        case .publicOnly:
+            "Prefer public colleges and universities."
+        case .privateOnly:
+            "Prefer private nonprofit colleges."
+        }
+    }
+}
+
 struct StudentProfile: Codable, Equatable {
     var nickname: String
     var gpa: Double
@@ -132,6 +178,8 @@ struct StudentProfile: Codable, Equatable {
     var stateResidency: String
     var intendedMajor: String
     var familyIncomeRange: FamilyIncomeRange
+    var debtTolerance: DebtTolerance
+    var ownershipPreference: SchoolOwnershipPreference
 
     init(
         nickname: String = "",
@@ -139,7 +187,9 @@ struct StudentProfile: Codable, Equatable {
         testScore: String,
         stateResidency: String,
         intendedMajor: String,
-        familyIncomeRange: FamilyIncomeRange
+        familyIncomeRange: FamilyIncomeRange,
+        debtTolerance: DebtTolerance = .medium,
+        ownershipPreference: SchoolOwnershipPreference = .any
     ) {
         self.nickname = nickname
         self.gpa = gpa
@@ -147,6 +197,8 @@ struct StudentProfile: Codable, Equatable {
         self.stateResidency = USState.normalizedAbbreviation(from: stateResidency)
         self.intendedMajor = intendedMajor
         self.familyIncomeRange = familyIncomeRange
+        self.debtTolerance = debtTolerance
+        self.ownershipPreference = ownershipPreference
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -156,6 +208,8 @@ struct StudentProfile: Codable, Equatable {
         case stateResidency
         case intendedMajor
         case familyIncomeRange
+        case debtTolerance
+        case ownershipPreference
     }
 
     init(from decoder: Decoder) throws {
@@ -167,6 +221,8 @@ struct StudentProfile: Codable, Equatable {
         stateResidency = USState.normalizedAbbreviation(from: decodedStateResidency)
         intendedMajor = try container.decode(String.self, forKey: .intendedMajor)
         familyIncomeRange = try container.decode(FamilyIncomeRange.self, forKey: .familyIncomeRange)
+        debtTolerance = try container.decodeIfPresent(DebtTolerance.self, forKey: .debtTolerance) ?? .medium
+        ownershipPreference = try container.decodeIfPresent(SchoolOwnershipPreference.self, forKey: .ownershipPreference) ?? .any
     }
 
     static let empty = StudentProfile(
@@ -175,7 +231,9 @@ struct StudentProfile: Codable, Equatable {
         testScore: "",
         stateResidency: "",
         intendedMajor: "",
-        familyIncomeRange: .range75to110k
+        familyIncomeRange: .range75to110k,
+        debtTolerance: .medium,
+        ownershipPreference: .any
     )
 
     var normalizedStateResidency: String {
@@ -396,21 +454,49 @@ enum StudentProfileRecommendationEngine {
         let affordability = affordabilityScore(for: profile, estimatedNetCost: estimatedNetCost) / 19 * 100
         let residency = residencyRankingScore(for: school, profile: profile, estimatedNetCost: estimatedNetCost)
         let majorMatch = program == nil ? 0.0 : 100.0
+        let preference = preferenceScore(for: school, profile: profile, program: program)
 
         if program != nil {
-            return Double(roi.score) * 0.46
-                + outcomeScore * 0.14
-                + Double(school.lumaScore) * 0.12
-                + affordability * 0.10
-                + residency * 0.10
-                + majorMatch * 0.08
+            return Double(roi.score) * 0.42
+                + outcomeScore * 0.13
+                + Double(school.lumaScore) * 0.10
+                + affordability * 0.09
+                + residency * 0.09
+                + majorMatch * 0.07
+                + preference * 0.10
         }
 
-        return Double(roi.score) * 0.38
-            + Double(school.lumaScore) * 0.22
-            + outcomeScore * 0.12
-            + affordability * 0.14
-            + residency * 0.14
+        return Double(roi.score) * 0.34
+            + Double(school.lumaScore) * 0.18
+            + outcomeScore * 0.11
+            + affordability * 0.13
+            + residency * 0.12
+            + preference * 0.12
+    }
+
+    private static func preferenceScore(for school: School, profile: StudentProfile, program: AcademicProgram?) -> Double {
+        let ownershipScore: Double
+        switch profile.ownershipPreference {
+        case .any:
+            ownershipScore = 70
+        case .publicOnly:
+            ownershipScore = (school.type == .publicUniversity || school.type == .communityCollege) ? 100 : 18
+        case .privateOnly:
+            ownershipScore = (school.type == .privateNonprofit || school.type == .liberalArts) ? 100 : 18
+        }
+
+        let debt = program?.debt.flatMap { $0 > 0 ? $0 : nil } ?? school.averageDebt
+        let debtScore: Double
+        if debt <= 0 {
+            debtScore = 55
+        } else {
+            let comfortableDebt = profile.debtTolerance.maximumComfortableDebt
+            let low = comfortableDebt * 0.55
+            let high = comfortableDebt * 1.45
+            debtScore = normalizedInverseScore(value: debt, low: low, high: high)
+        }
+
+        return ownershipScore * 0.45 + debtScore * 0.55
     }
 
     private static func residencyRankingScore(
