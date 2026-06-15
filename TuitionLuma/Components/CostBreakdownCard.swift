@@ -34,7 +34,7 @@ struct CostBreakdownCard: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Estimated annual cost")
-                        .font(.headline)
+                        .font(.headline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
                     Text("Before grants, scholarships, or family contributions.")
@@ -75,7 +75,11 @@ struct CostBreakdownCard: View {
             }
             .font(.subheadline)
             .padding(12)
-            .background(LumaTheme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(LumaTheme.mint.opacity(0.16), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.mint.opacity(0.22))
+            }
 
             if cost.hasEstimatedComponents {
                 Label("Estimated rows use reported College Scorecard data where available, then TuitionLuma planning assumptions for missing line items.", systemImage: "info.circle.fill")
@@ -88,8 +92,9 @@ struct CostBreakdownCard: View {
         .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(.black.opacity(0.06))
+                .stroke(LumaTheme.cardStroke)
         }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.65), radius: 16, y: 8)
     }
 
     private func costRow(_ row: CostRow) -> some View {
@@ -99,6 +104,7 @@ struct CostBreakdownCard: View {
                 .frame(width: 10, height: 10)
 
             Text(row.title)
+                .fontWeight(.medium)
                 .foregroundStyle(LumaTheme.slate)
 
             if cost.isEstimated(row.component) {
@@ -108,7 +114,7 @@ struct CostBreakdownCard: View {
             Spacer()
 
             Text(moneyText(row.value))
-                .fontWeight(.semibold)
+                .fontWeight(.heavy)
                 .foregroundStyle((row.value ?? 0) > 0 ? LumaTheme.ink : LumaTheme.slate)
         }
         .font(.subheadline)

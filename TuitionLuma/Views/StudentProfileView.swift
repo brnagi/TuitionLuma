@@ -4,7 +4,6 @@ struct StudentProfileCard: View {
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @State private var isShowingEditor = false
-    var onUpgradeTapped: () -> Void
 
     @ViewBuilder
     var body: some View {
@@ -51,11 +50,7 @@ struct StudentProfileCard: View {
             }
 
             Button(promptCTA) {
-                if proPurchaseManager.state.isPro {
-                    isShowingEditor = true
-                } else {
-                    onUpgradeTapped()
-                }
+                isShowingEditor = true
             }
             .font(.caption.weight(.heavy))
             .foregroundStyle(LumaTheme.coral)
@@ -68,7 +63,7 @@ struct StudentProfileCard: View {
             }
             .buttonStyle(.plain)
             .frame(minHeight: 44)
-            .accessibilityHint(proPurchaseManager.state.isPro ? "Opens the student profile form." : "Opens TuitionLuma Pro options.")
+            .accessibilityHint("Opens the student profile form.")
         }
         .padding(14)
         .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -185,27 +180,23 @@ struct StudentProfileCard: View {
 
     private var promptTitle: String {
         let nickname = studentProfileStore.profile.displayNickname
-        if proPurchaseManager.state.isPro, !nickname.isEmpty {
+        if !nickname.isEmpty {
             return "Hi \(nickname) 👋"
         }
 
-        return proPurchaseManager.state.isPro ? "Complete your profile" : "Get personalized recommendations"
+        return "Get personalized recommendations"
     }
 
     private var promptSubtitle: String {
-        if proPurchaseManager.state.isPro {
-            return "Add GPA, major, residency, income, and preferences to receive personalized recommendations."
-        }
-
-        return "See affordability, major-specific outcomes, and schools that fit your goals."
+        "Add GPA, major, residency, income, and preferences to see affordability, major-specific outcomes, and schools that fit your goals."
     }
 
     private var promptCTA: String {
-        proPurchaseManager.state.isPro ? "Complete Profile" : "Get Pro"
+        "Complete Profile"
     }
 }
 
-private struct StudentProfileEditorView: View {
+struct StudentProfileEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var profile: StudentProfile
     @State private var draft: StudentProfile

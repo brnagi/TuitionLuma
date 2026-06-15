@@ -7,7 +7,7 @@ struct ComparisonRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.caption.weight(.heavy))
                 .foregroundStyle(LumaTheme.slate)
                 .textCase(.uppercase)
 
@@ -19,7 +19,11 @@ struct ComparisonRow: View {
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
-                        .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                                .stroke(LumaTheme.cardStroke.opacity(0.55))
+                        }
                         .accessibilityLabel(title)
                         .accessibilityValue(value)
                 }

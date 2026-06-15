@@ -376,7 +376,7 @@ struct SchoolDetailView: View {
     }
 
     private var roiOutcome: ROIOutcomeResult {
-        if proPurchaseManager.state.isPro, studentProfileStore.profile.isComplete {
+        if studentProfileStore.profile.isComplete {
             return StudentProfileRecommendationEngine.personalizedROIOutcome(
                 for: school,
                 profile: studentProfileStore.profile

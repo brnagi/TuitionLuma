@@ -29,7 +29,11 @@ struct LumaButton: View {
             .padding(.vertical, 15)
             .foregroundStyle(style == .primary ? .white : LumaTheme.ink)
             .background(backgroundStyle, in: Capsule())
-            .shadow(color: LumaTheme.coral.opacity(style == .primary ? 0.25 : 0), radius: 14, y: 8)
+            .overlay {
+                Capsule()
+                    .stroke(style == .primary ? .white.opacity(0.18) : LumaTheme.aqua.opacity(0.26))
+            }
+            .shadow(color: LumaTheme.coral.opacity(style == .primary ? 0.30 : 0.06), radius: 14, y: 8)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
@@ -41,7 +45,7 @@ struct LumaButton: View {
         case .primary:
             AnyShapeStyle(LumaTheme.heroGradient)
         case .secondary:
-            AnyShapeStyle(LumaTheme.aqua.opacity(0.14))
+            AnyShapeStyle(LumaTheme.aqua.opacity(0.18))
         }
     }
 }

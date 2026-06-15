@@ -38,7 +38,7 @@ struct SchoolCard: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.cardStroke)
         }
-        .shadow(color: LumaTheme.cardShadow, radius: 18, y: 10)
+        .shadow(color: LumaTheme.cardShadow, radius: 22, y: 12)
     }
 
     private var campusImage: some View {
@@ -124,7 +124,11 @@ struct SchoolCard: View {
         .foregroundStyle(scoreTint)
         .padding(.vertical, 7)
         .padding(.horizontal, 10)
-        .background(scoreTint.opacity(0.10), in: Capsule())
+        .background(scoreTint.opacity(0.15), in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(scoreTint.opacity(0.20))
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("TuitionLuma score")
         .accessibilityValue("\(school.lumaScore), \(school.valueLabel)")
@@ -157,7 +161,11 @@ struct SchoolCard: View {
             )
         }
         .padding(.vertical, 12)
-        .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.canvas.opacity(0.85), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.55))
+        }
         .accessibilityElement(children: .contain)
     }
 
@@ -209,10 +217,10 @@ struct SchoolCard: View {
             }
         }
         .padding(14)
-        .background(recommendationTint(for: recommendation).opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(recommendationTint(for: recommendation).opacity(0.11), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(recommendationTint(for: recommendation).opacity(0.14))
+                .stroke(recommendationTint(for: recommendation).opacity(0.24))
         }
     }
 
@@ -351,7 +359,11 @@ struct SchoolCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.16))
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)
@@ -404,12 +416,12 @@ struct SchoolCard: View {
             .background(isHighlighted ? LumaTheme.coral.opacity(0.13) : .white, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.14), lineWidth: isHighlighted ? 3 : 1)
+                    .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.28), lineWidth: isHighlighted ? 3 : 1)
             }
             .shadow(
-                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : .clear,
-                radius: isHighlighted ? 14 : 0,
-                y: isHighlighted ? 6 : 0
+                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : .black.opacity(0.07),
+                radius: isHighlighted ? 14 : 6,
+                y: isHighlighted ? 6 : 3
             )
             .scaleEffect(isHighlighted ? 1.04 : 1)
             .animation(.easeInOut(duration: 0.18), value: isHighlighted)

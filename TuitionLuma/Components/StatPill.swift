@@ -17,20 +17,24 @@ struct StatPill: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(value)
-                    .font(.subheadline.weight(.bold))
+                    .font(.subheadline.weight(.heavy))
                     .foregroundStyle(LumaTheme.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
 
                 Text(title)
-                    .font(.caption2.weight(.medium))
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(LumaTheme.slate)
                     .lineLimit(1)
             }
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
-        .background(tint.opacity(0.12), in: Capsule())
+        .background(tint.opacity(0.16), in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(tint.opacity(0.22))
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)

@@ -7,6 +7,7 @@ struct ExploreView: View {
     @AppStorage("hasCompletedExploreCoachMarks") private var hasCompletedExploreCoachMarks = false
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isShowingPaywall = false
+    @State private var compareLimitMessage: String?
     @State private var coachMarkStep: ExploreCoachMarkStep?
     @FocusState private var isSearchFocused: Bool
 
@@ -20,9 +21,7 @@ struct ExploreView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         header
                         searchAndFilters
-                        StudentProfileCard {
-                            isShowingPaywall = true
-                        }
+                        StudentProfileCard()
                         .background {
                             GeometryReader { proxy in
                                 Color.clear.preference(
@@ -39,6 +38,14 @@ struct ExploreView: View {
                 .scrollDismissesKeyboard(.interactively)
                 .onTapGesture {
                     isSearchFocused = false
+                }
+
+                if let compareLimitMessage {
+                    limitBanner(compareLimitMessage)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
             .coordinateSpace(name: ExploreCoachMarkTargetKey.coordinateSpaceName)
@@ -254,8 +261,7 @@ struct ExploreView: View {
     }
 
     private var rankedVisibleSchools: [School] {
-        guard proPurchaseManager.state.isPro,
-              studentProfileStore.profile.isComplete else {
+        guard studentProfileStore.profile.isComplete else {
             return viewModel.visibleSchools
         }
 
@@ -267,7 +273,6 @@ struct ExploreView: View {
 
     private var majorRecommendationKey: String {
         [
-            proPurchaseManager.state.isPro ? "pro" : "free",
             studentProfileStore.profile.normalizedStateResidency,
             studentProfileStore.profile.normalizedMajor,
             studentProfileStore.profile.debtTolerance.rawValue,
@@ -278,8 +283,7 @@ struct ExploreView: View {
 
     private func refreshMajorRecommendationsIfNeeded() async {
         await viewModel.refreshProgramsForMajorRecommendations(
-            profile: studentProfileStore.profile,
-            isPro: proPurchaseManager.state.isPro
+            profile: studentProfileStore.profile
         )
     }
 
@@ -324,15 +328,14 @@ struct ExploreView: View {
         let result = appViewModel.addToCompare(school, compareLimit: limit)
 
         if result == .limitReached {
-            isShowingPaywall = true
+            showCompareLimitMessage()
         }
 
         // TODO: Consider switching to the Compare tab after add once tab selection is centralized.
     }
 
     private func recommendation(for school: School) -> ProfileRecommendation? {
-        guard proPurchaseManager.state.isPro,
-              studentProfileStore.profile.isComplete else {
+        guard studentProfileStore.profile.isComplete else {
             return nil
         }
 
@@ -340,6 +343,35 @@ struct ExploreView: View {
             for: school,
             profile: studentProfileStore.profile
         )
+    }
+
+    private func showCompareLimitMessage() {
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.9)) {
+            compareLimitMessage = "Compare limit reached. You can compare up to 3 schools at a time."
+        }
+
+        Task {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    compareLimitMessage = nil
+                }
+            }
+        }
+    }
+
+    private func limitBanner(_ message: String) -> some View {
+        Label(message, systemImage: "info.circle.fill")
+            .font(.subheadline.weight(.heavy))
+            .foregroundStyle(LumaTheme.ink)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.coral.opacity(0.22))
+            }
+            .shadow(color: LumaTheme.cardShadow, radius: 14, y: 8)
     }
 
     private func advanceCoachMark() {

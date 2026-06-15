@@ -79,8 +79,8 @@ final class ProPurchaseManager: ObservableObject {
 
     private var transactionUpdatesTask: Task<Void, Never>?
 
-    init(state: ProAccessState = .free) {
-        self.state = state
+    init(state: ProAccessState? = nil) {
+        self.state = state ?? Self.cachedState()
 
         transactionUpdatesTask = Task { [weak self] in
             for await result in StoreKit.Transaction.updates {
@@ -89,6 +89,7 @@ final class ProPurchaseManager: ObservableObject {
         }
 
         Task {
+            await refreshEntitlements()
             await loadProducts()
         }
     }
@@ -253,6 +254,15 @@ final class ProPurchaseManager: ObservableObject {
         if let data = try? JSONEncoder().encode(state) {
             UserDefaults.standard.set(data, forKey: StoreKitConfig.entitlementCacheKey)
         }
+    }
+
+    private static func cachedState() -> ProAccessState {
+        guard let data = UserDefaults.standard.data(forKey: StoreKitConfig.entitlementCacheKey),
+              let state = try? JSONDecoder().decode(ProAccessState.self, from: data) else {
+            return .free
+        }
+
+        return state
     }
 }
 

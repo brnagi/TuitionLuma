@@ -4,32 +4,43 @@ struct SavedSchoolsView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @State private var isShowingPaywall = false
+    @State private var compareLimitMessage: String?
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("Saved")
-                        .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            ZStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        Text("Saved")
+                            .font(.largeTitle.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                    savedLimitPrompt
+                        savedLimitPrompt
 
-                    if appViewModel.savedSchools.isEmpty {
-                        shortlistEmptyState
-                    } else {
-                        LazyVStack(alignment: .leading, spacing: 14) {
-                            ForEach(appViewModel.savedSchools) { school in
-                                savedSchoolLink(school)
+                        if appViewModel.savedSchools.isEmpty {
+                            shortlistEmptyState
+                        } else {
+                            LazyVStack(alignment: .leading, spacing: 14) {
+                                ForEach(appViewModel.savedSchools) { school in
+                                    savedSchoolLink(school)
+                                }
                             }
                         }
                     }
+                    .padding()
+                    .padding(.bottom, 72)
                 }
-                .padding()
-                .padding(.bottom, 72)
+                .background(LumaTheme.canvas)
+
+                if let compareLimitMessage {
+                    limitBanner(compareLimitMessage)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                }
             }
-            .background(LumaTheme.canvas)
             .sheet(isPresented: $isShowingPaywall) {
                 PaywallView()
                     .environmentObject(proPurchaseManager)
@@ -124,10 +135,39 @@ struct SavedSchoolsView: View {
         let result = appViewModel.addToCompare(school, compareLimit: limit)
 
         if result == .limitReached {
-            isShowingPaywall = true
+            showCompareLimitMessage()
         }
 
         // TODO: Route directly to Compare after adding once global tab selection is introduced.
+    }
+
+    private func showCompareLimitMessage() {
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.9)) {
+            compareLimitMessage = "Compare limit reached. You can compare up to 3 schools at a time."
+        }
+
+        Task {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    compareLimitMessage = nil
+                }
+            }
+        }
+    }
+
+    private func limitBanner(_ message: String) -> some View {
+        Label(message, systemImage: "info.circle.fill")
+            .font(.subheadline.weight(.heavy))
+            .foregroundStyle(LumaTheme.ink)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.coral.opacity(0.22))
+            }
+            .shadow(color: LumaTheme.cardShadow, radius: 14, y: 8)
     }
 
     private func selectExploreTab() {
@@ -169,7 +209,11 @@ private struct SavedSchoolShortlistCard: View {
                         .foregroundStyle(scoreTint)
                         .padding(.vertical, 5)
                         .padding(.horizontal, 9)
-                        .background(scoreTint.opacity(0.10), in: Capsule())
+                        .background(scoreTint.opacity(0.15), in: Capsule())
+                        .overlay {
+                            Capsule()
+                                .stroke(scoreTint.opacity(0.22))
+                        }
                 }
             }
 
@@ -212,7 +256,11 @@ private struct SavedSchoolShortlistCard: View {
                 .foregroundStyle(LumaTheme.slate)
         }
         .frame(width: 76, height: 76)
-        .background(scoreTint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(scoreTint.opacity(0.16), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(scoreTint.opacity(0.24))
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Luma Score")
         .accessibilityValue("\(school.lumaScore), \(school.valueLabel)")
@@ -245,7 +293,11 @@ private struct SavedSchoolShortlistCard: View {
             )
         }
         .padding(.vertical, 11)
-        .background(.black.opacity(0.025), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.canvas.opacity(0.85), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.55))
+        }
     }
 
     private var scoreTint: Color {

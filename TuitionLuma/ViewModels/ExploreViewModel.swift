@@ -84,8 +84,8 @@ final class ExploreViewModel: ObservableObject {
         }
     }
 
-    func refreshProgramsForMajorRecommendations(profile: StudentProfile, isPro: Bool) async {
-        guard isPro, profile.isComplete else { return }
+    func refreshProgramsForMajorRecommendations(profile: StudentProfile) async {
+        guard profile.isComplete else { return }
 
         let keywords = StudentProfileRecommendationEngine.majorKeywords(from: profile.normalizedMajor)
         guard !keywords.isEmpty else { return }

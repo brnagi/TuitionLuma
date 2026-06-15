@@ -46,6 +46,12 @@ struct LumaScoreCard: View {
                         .font(.caption.weight(.bold))
                 }
                 .foregroundStyle(LumaTheme.ink)
+                .padding(12)
+                .background(LumaTheme.canvas.opacity(0.85), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.cardStroke.opacity(0.55))
+                }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Why this score")
@@ -68,13 +74,14 @@ struct LumaScoreCard: View {
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(scoreTint.opacity(0.16), lineWidth: 1)
+                .stroke(scoreTint.opacity(0.28), lineWidth: 1)
         }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.70), radius: 18, y: 9)
         .accessibilityElement(children: .contain)
     }
 
     private var scoreTint: Color {
-        if school.lumaScore >= 85 { return LumaTheme.mint }
+        if school.lumaScore >= 85 { return LumaTheme.valueGreen }
         if school.lumaScore >= 70 { return LumaTheme.outcomeTeal }
         if school.lumaScore >= 55 { return LumaTheme.scoreGold }
         return LumaTheme.warningOrange
