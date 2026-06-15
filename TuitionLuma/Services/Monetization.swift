@@ -80,12 +80,7 @@ final class ProPurchaseManager: ObservableObject {
     private var transactionUpdatesTask: Task<Void, Never>?
 
     init(state: ProAccessState = .free) {
-        if let data = UserDefaults.standard.data(forKey: StoreKitConfig.entitlementCacheKey),
-           let savedState = try? JSONDecoder().decode(ProAccessState.self, from: data) {
-            self.state = savedState
-        } else {
-            self.state = state
-        }
+        self.state = state
 
         transactionUpdatesTask = Task { [weak self] in
             for await result in StoreKit.Transaction.updates {
