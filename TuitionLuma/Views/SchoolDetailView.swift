@@ -359,16 +359,47 @@ struct SchoolDetailView: View {
 
     private var outcomesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Outcome snapshot")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(LumaTheme.ink)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Outcome snapshot")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(LumaTheme.ink)
 
-            ComparisonRow(title: "Students", values: [LumaFormat.number(school.studentCount)])
-            ComparisonRow(title: "Acceptance rate", values: [school.admissionRate?.formatted(LumaFormat.percent) ?? "N/A"])
-            ComparisonRow(title: "Graduation rate", values: [school.graduationRate.formatted(LumaFormat.percent)])
+                Text("A quick read on selectivity, completion, and campus size.")
+                    .font(.subheadline)
+                    .foregroundStyle(LumaTheme.slate)
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                outcomeTile(
+                    title: "Students",
+                    value: LumaFormat.number(school.studentCount),
+                    systemImage: "person.3.fill",
+                    tint: LumaTheme.scorePurple
+                )
+
+                outcomeTile(
+                    title: "Acceptance",
+                    value: school.admissionRate?.formatted(LumaFormat.percent) ?? "N/A",
+                    systemImage: "checkmark.seal.fill",
+                    tint: LumaTheme.outcomeTeal
+                )
+
+                outcomeTile(
+                    title: "Graduation",
+                    value: school.graduationRate.formatted(LumaFormat.percent),
+                    systemImage: "graduationcap.fill",
+                    tint: LumaTheme.valueGreen
+                )
+                .gridCellColumns(2)
+            }
         }
         .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke)
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.55), radius: 12, y: 6)
     }
 
     private var roiScore: String {
@@ -403,6 +434,42 @@ struct SchoolDetailView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .background(LumaTheme.aqua.opacity(0.12), in: Capsule())
+    }
+
+    private func outcomeTile(title: String, value: String, systemImage: String, tint: Color) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(tint)
+                .frame(width: 34, height: 34)
+                .background(tint.opacity(0.14), in: Circle())
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.title3.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+
+                Text(title)
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.slate)
+                    .textCase(.uppercase)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
+        .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.14))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
     }
 
     private func saveTapped() {
