@@ -80,7 +80,7 @@ final class ProPurchaseManager: ObservableObject {
     private var transactionUpdatesTask: Task<Void, Never>?
 
     init(state: ProAccessState? = nil) {
-        self.state = state ?? Self.cachedState()
+        self.state = state ?? .free
 
         transactionUpdatesTask = Task { [weak self] in
             for await result in StoreKit.Transaction.updates {
@@ -191,6 +191,9 @@ final class ProPurchaseManager: ObservableObject {
     }
 
     private func refreshEntitlements() async {
+        isLoading = true
+        defer { isLoading = false }
+
         var verifiedState = ProAccessState.free
 
         for await result in StoreKit.Transaction.currentEntitlements {
