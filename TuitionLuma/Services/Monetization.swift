@@ -373,12 +373,39 @@ struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let benefits = [
-        "Compare more schools",
+        "Plan aid, borrowing, and scholarships",
+        "Switch between student and parent planning",
         "Forecast student loan payments",
-        "Estimate your real net cost",
-        "Personalize fit and ROI recommendations",
-        "Model scholarships and grants",
-        "Share reports with family"
+        "Model campus, residency, and path scenarios",
+        "Share polished cost reports with family"
+    ]
+
+    private let featureHighlights: [(title: String, message: String, systemImage: String)] = [
+        (
+            "Aid, borrowing, and scholarships",
+            "Adjust grants, family help, work-study, and yearly loan amounts.",
+            "sparkles"
+        ),
+        (
+            "Planning Mode",
+            "View the same plan from a student or parent perspective.",
+            "person.2.fill"
+        ),
+        (
+            "Repayment calculator",
+            "Compare 5, 10, 15, and 20-year repayment terms and save plans.",
+            "creditcard.fill"
+        ),
+        (
+            "Scenario modeling",
+            "Test on-campus, off-campus, in-state, out-of-state, and degree path choices.",
+            "slider.horizontal.3"
+        ),
+        (
+            "Family report",
+            "Export a polished PDF with cost, aid, debt, and outcome details.",
+            "square.and.arrow.up.fill"
+        )
     ]
 
     var body: some View {
@@ -454,22 +481,27 @@ struct PaywallView: View {
 
     private var proFeatureGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            ForEach(ProFeature.allCases) { feature in
+            ForEach(featureHighlights, id: \.title) { feature in
                 VStack(alignment: .leading, spacing: 8) {
                     Image(systemName: feature.systemImage)
                         .foregroundStyle(LumaTheme.coral)
                         .accessibilityHidden(true)
 
-                    Text(feature.rawValue)
+                    Text(feature.title)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(LumaTheme.ink)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    Text(feature.message)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(maxWidth: .infinity, minHeight: 84, alignment: .topLeading)
+                .frame(maxWidth: .infinity, minHeight: 118, alignment: .topLeading)
                 .padding(12)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel(feature.rawValue)
+                .accessibilityLabel("\(feature.title). \(feature.message)")
             }
         }
     }

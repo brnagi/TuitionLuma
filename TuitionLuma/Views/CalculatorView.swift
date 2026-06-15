@@ -16,6 +16,10 @@ struct CalculatorView: View {
         appViewModel.savedSchools
     }
 
+    private var hasProAccess: Bool {
+        proPurchaseManager.state.isPro
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -27,7 +31,7 @@ struct CalculatorView: View {
                         programPicker
                         headlineNumbers
                         tuitionInfoCard
-                        if proPurchaseManager.state.isPro {
+                        if hasProAccess {
                             aidInputs
                         } else {
                             aidAndBorrowingLock
@@ -104,10 +108,10 @@ struct CalculatorView: View {
                 }
             }
 
-            if !proPurchaseManager.state.isPro {
+            if !hasProAccess {
                 UpgradePrompt(
                     title: "Unlock advanced planning",
-                    message: "Model loan payments, scholarships, grants, and living scenarios with Pro.",
+                    message: "Plan aid, borrowing, scholarships, repayment, scenarios, and family reports with Pro.",
                     action: { isShowingPaywall = true }
                 )
             }
@@ -307,7 +311,7 @@ struct CalculatorView: View {
                 .font(.footnote)
                 .foregroundStyle(.white.opacity(0.88))
 
-            if proPurchaseManager.state.isPro {
+            if hasProAccess {
                 Text(viewModel.scenarioSummary)
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.white.opacity(0.88))
@@ -377,7 +381,7 @@ struct CalculatorView: View {
     private var aidInputs: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text(proPurchaseManager.state.isPro ? "Aid, borrowing, and scholarships" : "Basic calculator")
+                Text("Aid, borrowing, and scholarships")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(LumaTheme.ink)
 
@@ -514,7 +518,7 @@ struct CalculatorView: View {
 
     @ViewBuilder
     private var advancedCalculatorSection: some View {
-        if proPurchaseManager.state.isPro {
+        if hasProAccess {
             repaymentCard
             scenarioModelingCard
             reportExportCard
@@ -544,7 +548,7 @@ struct CalculatorView: View {
 
     @ViewBuilder
     private var planningModeCard: some View {
-        if proPurchaseManager.state.isPro {
+        if hasProAccess {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Label("Planning mode", systemImage: "person.2.fill")
@@ -708,7 +712,7 @@ struct CalculatorView: View {
                 .foregroundStyle(LumaTheme.slate)
 
             LumaButton(title: "Save Repayment Plan", systemImage: "tray.and.arrow.down.fill") {
-                viewModel.saveRepaymentPlan()
+                saveRepaymentPlan()
             }
 
             if let repaymentSaveMessage = viewModel.repaymentSaveMessage {
@@ -870,6 +874,11 @@ struct CalculatorView: View {
     }
 
     private func generateAndShareReport() {
+        guard hasProAccess else {
+            isShowingPaywall = true
+            return
+        }
+
         guard let selectedSchool = viewModel.selectedSchool else {
             reportErrorMessage = "Choose a school before sharing a report."
             return
@@ -978,6 +987,15 @@ struct CalculatorView: View {
                     .background(LumaTheme.aqua.opacity(0.12), in: Capsule())
             }
         }
+    }
+
+    private func saveRepaymentPlan() {
+        guard hasProAccess else {
+            isShowingPaywall = true
+            return
+        }
+
+        viewModel.saveRepaymentPlan()
     }
 
     private func moneyText(_ value: Double?) -> String {
