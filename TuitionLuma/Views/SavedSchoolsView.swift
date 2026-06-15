@@ -251,7 +251,7 @@ private struct SavedSchoolShortlistCard: View {
                 .foregroundStyle(scoreTint)
                 .lineLimit(1)
 
-            Text("Luma")
+            Text("LumaScore")
                 .font(.caption2.weight(.heavy))
                 .foregroundStyle(LumaTheme.slate)
         }

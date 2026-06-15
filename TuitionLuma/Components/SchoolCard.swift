@@ -265,7 +265,7 @@ struct SchoolCard: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
 
-                    Text("Luma")
+                    Text("LumaScore")
                         .font(.caption2.weight(.heavy))
                         .foregroundStyle(.white.opacity(0.82))
                 }
