@@ -11,60 +11,62 @@ struct OnboardingView: View {
             LumaTheme.canvas
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack {
-                        Image(systemName: "sun.max.fill")
-                            .font(.title2)
-                        Text("TuitionLuma")
-                            .font(.title3.weight(.heavy))
-                    }
-                    .foregroundStyle(.white)
-
-                    Spacer()
-
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("Make the college decision with the full picture.")
-                            .font(.system(size: 40, weight: .heavy))
-                            .foregroundStyle(.white)
-                            .lineLimit(4)
-                            .minimumScaleFactor(0.72)
-
-                        Text("TuitionLuma brings real college cost, financial aid, debt, outcomes, and value into one friendly plan.")
-                            .font(.title3.weight(.medium))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    HStack(spacing: 10) {
-                        StatPill(title: "Cost data", value: "Real", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
-                        StatPill(title: "Value", value: "Luma", systemImage: "sparkles", tint: .white.opacity(0.24))
-                    }
-                }
-                .padding(26)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .background(LumaTheme.heroGradient)
-
-                VStack(spacing: 14) {
-                    decisionExample
-                    nicknamePrompt
-
-                    HStack(spacing: 10) {
-                        Button("Skip") {
-                            finishOnboarding()
+            ScrollView {
+                VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        HStack {
+                            Image(systemName: "sun.max.fill")
+                                .font(.title2)
+                            Text("TuitionLuma")
+                                .font(.title3.weight(.heavy))
                         }
-                        .font(.headline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.slate)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(.white, in: Capsule())
+                        .foregroundStyle(.white)
 
-                        LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
+                        Spacer(minLength: 18)
+
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("See what college will really cost.")
+                                .font(.system(size: 38, weight: .heavy))
+                                .foregroundStyle(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            Text("Compare tuition, aid, debt, earnings, and outcomes before making one of the biggest financial decisions of your life.")
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        HStack(spacing: 10) {
+                            StatPill(title: "Affordability", value: "Clear", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
+                            StatPill(title: "Outcomes", value: "Compared", systemImage: "chart.line.uptrend.xyaxis", tint: .white.opacity(0.24))
+                        }
                     }
+                    .padding(26)
+                    .frame(maxWidth: .infinity, minHeight: 360, alignment: .leading)
+                    .background(LumaTheme.heroGradient)
+
+                    VStack(spacing: 14) {
+                        decisionExample
+                        nicknamePrompt
+
+                        HStack(spacing: 10) {
+                            Button("Skip") {
+                                finishOnboarding()
+                            }
+                            .font(.headline.weight(.heavy))
+                            .foregroundStyle(LumaTheme.slate)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(.white, in: Capsule())
+
+                            LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
+                        }
+                    }
+                    .padding(22)
+                    .background(LumaTheme.canvas)
                 }
-                .padding(22)
-                .background(LumaTheme.canvas)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
     }
 
@@ -108,51 +110,55 @@ struct OnboardingView: View {
 
     private var decisionExample: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Best value for you")
-                        .font(.headline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Which school is the best value?")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
 
-                    Text("Compare real affordability, debt, earnings, and outcomes before you choose.")
-                        .font(.caption)
-                        .foregroundStyle(LumaTheme.slate)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer()
-
-                VStack(spacing: 2) {
-                    Text("92")
-                        .font(.title.weight(.heavy))
-                        .foregroundStyle(LumaTheme.valueGreen)
-
-                    Text("Luma")
-                        .font(.caption2.weight(.heavy))
-                        .foregroundStyle(LumaTheme.slate)
-                }
-                .frame(width: 66, height: 66)
-                .background(LumaTheme.valueGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                Text("TuitionLuma turns cost and outcome data into a simple decision signal.")
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             HStack(spacing: 8) {
-                examplePill("Lower debt", tint: LumaTheme.sun)
-                examplePill("Higher earnings", tint: LumaTheme.outcomeTeal)
-                examplePill("Affordable", tint: LumaTheme.valueGreen)
+                exampleMetric(title: "Net Price", value: "$14K", tint: LumaTheme.valueGreen)
+                exampleMetric(title: "Earnings", value: "$62K", tint: LumaTheme.outcomeTeal)
+                exampleMetric(title: "Luma Score", value: "69", tint: LumaTheme.scoreGold)
+            }
+
+            HStack(spacing: 8) {
+                Label("Fair Value", systemImage: "star.fill")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.scoreGold)
+                    .padding(.vertical, 7)
+                    .padding(.horizontal, 10)
+                    .background(LumaTheme.scoreGold.opacity(0.12), in: Capsule())
+
+                Text("Good earnings, but watch total debt.")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(16)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
-    private func examplePill(_ title: String, tint: Color) -> some View {
-        Text(title)
-            .font(.caption2.weight(.heavy))
-            .foregroundStyle(tint)
-            .lineLimit(1)
-            .minimumScaleFactor(0.78)
+    private func exampleMetric(title: String, value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(value)
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+
+            Text(title)
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(LumaTheme.slate)
+                .fixedSize(horizontal: false, vertical: true)
+        }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
-            .background(tint.opacity(0.10), in: Capsule())
+            .padding(10)
+            .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
     }
 }

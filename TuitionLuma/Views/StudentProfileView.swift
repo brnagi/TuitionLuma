@@ -126,7 +126,7 @@ struct StudentProfileCard: View {
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 8)], alignment: .leading, spacing: 8) {
                 profilePill(studentProfileStore.profile.intendedMajor, systemImage: "book.closed.fill")
-                profilePill("\(studentProfileStore.profile.normalizedStateResidency) Resident", systemImage: "map.fill")
+                profilePill("\(studentProfileStore.profile.stateResidencyDisplayName) Resident", systemImage: "map.fill")
                 profilePill("Income: \(studentProfileStore.profile.familyIncomeRange.rawValue)", systemImage: "house.fill")
             }
         }
@@ -138,7 +138,7 @@ struct StudentProfileCard: View {
         }
         .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.normalizedStateResidency) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Recommendations are personalized using your profile.")
+        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Recommendations are personalized using your profile.")
     }
 
     private var profileGreeting: String {
@@ -400,7 +400,7 @@ private struct StudentProfileEditorView: View {
                 .textInputAutocapitalization(.never)
                 .submitLabel(.next)
                 .onSubmit {
-                    focusedField = .stateResidency
+                    focusedField = .intendedMajor
                 }
                 .lumaTextField(isFocused: focusedField == .testScore)
                 .accessibilityLabel("SAT or ACT score")
@@ -415,26 +415,24 @@ private struct StudentProfileEditorView: View {
             systemImage: "map.fill",
             tint: LumaTheme.outcomeTeal
         ) {
-            TextField(
-                text: $draft.stateResidency,
-                prompt: Text("Two-letter state, for example TX")
-                    .foregroundStyle(LumaTheme.slate)
-            ) {
-                Text("State residency")
+            Picker("State residency", selection: $draft.stateResidency) {
+                Text("Select a state").tag("")
+
+                ForEach(USState.all) { state in
+                    Text(state.name).tag(state.abbreviation)
+                }
             }
-                .focused($focusedField, equals: .stateResidency)
-                .textInputAutocapitalization(.characters)
-                .autocorrectionDisabled()
-                .submitLabel(.next)
-                .onChange(of: draft.stateResidency) { _, newValue in
-                    draft.stateResidency = String(newValue.uppercased().prefix(2))
-                }
-                .onSubmit {
-                    focusedField = .intendedMajor
-                }
-                .lumaTextField(isFocused: focusedField == .stateResidency)
-                .accessibilityLabel("State residency")
-                .accessibilityHint("Enter a two-letter state abbreviation.")
+            .pickerStyle(.menu)
+            .tint(LumaTheme.coral)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(13)
+            .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .onAppear {
+                draft.stateResidency = draft.normalizedStateResidency
+            }
+            .accessibilityLabel("State residency")
+            .accessibilityValue(draft.stateResidency.isEmpty ? "No state selected" : draft.stateResidencyDisplayName)
+            .accessibilityHint("Choose your state of residency.")
         }
     }
 
