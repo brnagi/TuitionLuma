@@ -366,48 +366,45 @@ struct PaywallView: View {
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
     @Environment(\.dismiss) private var dismiss
 
-    private let benefits = [
-        "Plan aid, borrowing, and scholarships",
-        "Switch between student and parent planning",
-        "Forecast student loan payments",
-        "Model campus, residency, and path scenarios",
-        "Share polished cost reports with family"
-    ]
-
-    private let featureHighlights: [(title: String, message: String, systemImage: String)] = [
+    private let featureHighlights: [(title: String, message: String, systemImage: String, color: Color)] = [
         (
-            "Aid, borrowing, and scholarships",
-            "Adjust grants, family help, work-study, and yearly loan amounts.",
-            "sparkles"
+            "Real net cost",
+            "Model aid, scholarships, family help, and yearly loans.",
+            "dollarsign.circle.fill",
+            LumaTheme.mint
         ),
         (
-            "Planning Mode",
-            "View the same plan from a student or parent perspective.",
-            "person.2.fill"
-        ),
-        (
-            "Repayment calculator",
-            "Compare 5, 10, 15, and 20-year repayment terms and save plans.",
-            "creditcard.fill"
-        ),
-        (
-            "Scenario modeling",
-            "Test on-campus, off-campus, in-state, out-of-state, and degree path choices.",
-            "slider.horizontal.3"
+            "Debt forecast",
+            "Compare repayment terms and monthly payment pressure.",
+            "creditcard.fill",
+            LumaTheme.coral
         ),
         (
             "Family report",
-            "Export a polished PDF with cost, aid, debt, and outcome details.",
-            "square.and.arrow.up.fill"
+            "Share a polished PDF with cost, debt, and outcomes.",
+            "doc.richtext.fill",
+            LumaTheme.outcomeTeal
+        ),
+        (
+            "Scenario modeling",
+            "Try campus, residency, path, and planning choices.",
+            "slider.horizontal.3",
+            LumaTheme.scoreGold
+        ),
+        (
+            "Parent planning",
+            "Switch between student and parent decision views.",
+            "person.2.fill",
+            LumaTheme.aqua
         )
     ]
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 18) {
                     hero
-                    benefitsList
+                    decisionPreview
                     proFeatureGrid
                     pricingCard
                     restoreButton
@@ -426,74 +423,158 @@ struct PaywallView: View {
     }
 
     private var hero: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            ProBadge()
+        ZStack(alignment: .topTrailing) {
+            LumaTheme.heroGradient
 
-            Text("Unlock TuitionLuma Pro")
-                .font(.system(size: 36, weight: .heavy))
-                .foregroundStyle(.white)
-                .lineLimit(3)
-                .minimumScaleFactor(0.72)
+            Circle()
+                .fill(.white.opacity(0.16))
+                .frame(width: 180, height: 180)
+                .offset(x: 70, y: -82)
+                .accessibilityHidden(true)
 
-            Text("Plan college costs with more confidence.")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.9))
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .top) {
+                    ProBadge()
 
-            Text("For students and parents who want a fuller picture before making a major college decision.")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.86))
-        }
-        .padding(22)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-    }
+                    Spacer()
 
-    private var benefitsList: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Included with Pro")
-                .font(.title3.weight(.heavy))
-                .foregroundStyle(LumaTheme.ink)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(proPurchaseManager.displayPrice)
+                            .font(.title2.weight(.heavy))
+                            .foregroundStyle(.white)
 
-            ForEach(benefits, id: \.self) { benefit in
-                HStack(spacing: 10) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(LumaTheme.mint)
-                        .accessibilityHidden(true)
+                        Text("one-time")
+                            .font(.caption.weight(.heavy))
+                            .foregroundStyle(.white.opacity(0.84))
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 14))
+                }
 
-                    Text(benefit)
-                        .font(.headline)
-                        .foregroundStyle(LumaTheme.ink)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Make the college decision with confidence.")
+                        .font(.system(size: 34, weight: .heavy))
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text("Unlock deeper planning for aid, debt, repayment, scenarios, and family conversations.")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.90))
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-                .accessibilityElement(children: .combine)
+
+                HStack(spacing: 10) {
+                    heroMetric("Aid", "Plan")
+                    heroMetric("Debt", "Forecast")
+                    heroMetric("ROI", "Explain")
+                }
+            }
+            .padding(22)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay(alignment: .bottomTrailing) {
+            Image(systemName: "graduationcap.fill")
+                .font(.system(size: 76, weight: .heavy))
+                .foregroundStyle(.white.opacity(0.12))
+                .padding(20)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func heroMetric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption2.weight(.bold))
+                .textCase(.uppercase)
+                .foregroundStyle(.white.opacity(0.70))
+
+            Text(value)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var decisionPreview: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Pro helps answer")
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+
+            VStack(spacing: 10) {
+                previewRow("Can we afford this school?", detail: "See aid, cash gap, and likely borrowing.")
+                previewRow("What will debt feel like?", detail: "Forecast monthly payments before you commit.")
+                previewRow("How do we explain the choice?", detail: "Export a clear report for family review.")
             }
         }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.aqua.opacity(0.16))
+        }
+        .shadow(color: LumaTheme.aqua.opacity(0.06), radius: 14, y: 7)
+    }
+
+    private func previewRow(_ title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(LumaTheme.mint)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+
+                Text(detail)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 
     private var proFeatureGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
             ForEach(featureHighlights, id: \.title) { feature in
                 VStack(alignment: .leading, spacing: 8) {
-                    Image(systemName: feature.systemImage)
-                        .foregroundStyle(LumaTheme.coral)
-                        .accessibilityHidden(true)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(feature.color.opacity(0.16))
+
+                        Image(systemName: feature.systemImage)
+                            .font(.headline.weight(.heavy))
+                            .foregroundStyle(feature.color)
+                            .accessibilityHidden(true)
+                    }
+                    .frame(width: 38, height: 38)
 
                     Text(feature.title)
-                        .font(.caption.weight(.bold))
+                        .font(.subheadline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Text(feature.message)
-                        .font(.caption2.weight(.medium))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(LumaTheme.slate)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(maxWidth: .infinity, minHeight: 118, alignment: .topLeading)
+                .frame(maxWidth: .infinity, minHeight: 148, alignment: .topLeading)
                 .padding(12)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(feature.color.opacity(0.12))
+                }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("\(feature.title). \(feature.message)")
             }
@@ -502,23 +583,31 @@ struct PaywallView: View {
 
     private var pricingCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(proPurchaseManager.displayPrice)
-                    .font(.system(size: 42, weight: .heavy))
-                    .foregroundStyle(LumaTheme.ink)
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(proPurchaseManager.displayPrice)
+                        .font(.system(size: 42, weight: .heavy))
+                        .foregroundStyle(LumaTheme.ink)
 
-                Text("one-time")
-                    .font(.headline)
-                    .foregroundStyle(LumaTheme.slate)
+                    Text("one-time purchase")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(LumaTheme.slate)
+                }
+
+                Spacer()
+
+                Image(systemName: "lock.open.fill")
+                    .font(.title2.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .frame(width: 50, height: 50)
+                    .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: 16))
+                    .accessibilityHidden(true)
             }
 
-            Text("Buy once and keep TuitionLuma Pro. No subscription, renewals, or surprise bills.")
-                .font(.footnote)
+            Text("Buy once and keep TuitionLuma Pro. No subscriptions, renewals, or surprise bills.")
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
-
-            Text("One-time Pro access for students and families who want deeper planning tools.")
-                .font(.caption)
-                .foregroundStyle(LumaTheme.slate.opacity(0.78))
+                .fixedSize(horizontal: false, vertical: true)
 
             if let errorMessage = proPurchaseManager.errorMessage {
                 Text(errorMessage)
@@ -546,6 +635,11 @@ struct PaywallView: View {
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.coral.opacity(0.14))
+        }
+        .shadow(color: LumaTheme.coral.opacity(0.08), radius: 16, y: 8)
         .accessibilityElement(children: .contain)
     }
 
