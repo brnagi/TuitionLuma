@@ -17,6 +17,10 @@ struct SavedProgramChoice: Codable, Equatable {
     var name: String
     var credential: String
     var cipCode: String?
+    var medianEarnings: Double?
+    var debt: Double?
+    var category: String?
+    var typicalDurationYears: Int?
 }
 
 @MainActor
@@ -142,7 +146,11 @@ final class AppViewModel: ObservableObject {
             savedProgramChoices[school.idString] = SavedProgramChoice(
                 name: program.name,
                 credential: program.credential,
-                cipCode: program.cipCode
+                cipCode: program.cipCode,
+                medianEarnings: program.medianEarnings,
+                debt: program.debt,
+                category: program.category,
+                typicalDurationYears: program.typicalDurationYears
             )
         } else {
             savedProgramChoices.removeValue(forKey: school.idString)

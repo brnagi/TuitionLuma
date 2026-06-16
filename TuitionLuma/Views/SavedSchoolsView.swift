@@ -54,6 +54,8 @@ struct SavedSchoolsView: View {
         } label: {
             SavedSchoolShortlistCard(
                 school: school,
+                savedSchools: appViewModel.savedSchools,
+                programChoice: appViewModel.preferredProgramChoice(for: school),
                 isCompared: appViewModel.isCompared(school),
                 onRemoveTapped: { _ = appViewModel.toggleSaved(school) },
                 onCompareTapped: { compareTapped(school) }
@@ -156,6 +158,8 @@ struct SavedSchoolsView: View {
 
 private struct SavedSchoolShortlistCard: View {
     var school: School
+    var savedSchools: [School]
+    var programChoice: SavedProgramChoice?
     var isCompared: Bool
     var onRemoveTapped: () -> Void
     var onCompareTapped: () -> Void
@@ -191,6 +195,7 @@ private struct SavedSchoolShortlistCard: View {
             }
 
             metricRow
+            programPlanSection
 
             HStack(spacing: 10) {
                 shortlistAction(
@@ -273,6 +278,77 @@ private struct SavedSchoolShortlistCard: View {
         }
     }
 
+    @ViewBuilder
+    private var programPlanSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: programChoice == nil ? "book.closed" : "checkmark.seal.fill")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(programChoice == nil ? LumaTheme.slate : LumaTheme.coral)
+                    .frame(width: 28, height: 28)
+                    .background((programChoice == nil ? LumaTheme.slate : LumaTheme.coral).opacity(0.12), in: Circle())
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(programChoice == nil ? "Choose a program for planning" : "Program of study")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text(programChoice?.name ?? "Save a program from school details or Calculator to compare program-specific cost and outcomes.")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(programChoice == nil ? LumaTheme.slate : LumaTheme.ink)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let programChoice {
+                        Text(programChoice.credential)
+                            .font(.caption2.weight(.heavy))
+                            .foregroundStyle(LumaTheme.outcomeTeal)
+                            .padding(.vertical, 5)
+                            .padding(.horizontal, 8)
+                            .background(LumaTheme.aqua.opacity(0.12), in: Capsule())
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            if let programChoice {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    programMetric(
+                        title: programChoice.medianEarnings ?? 0 > 0 ? "Program earnings" : "School earnings",
+                        value: earningsValue(for: programChoice),
+                        tint: LumaTheme.outcomeTeal
+                    )
+
+                    programMetric(
+                        title: "ROI grade",
+                        value: roiResult(for: programChoice).grade,
+                        tint: LumaTheme.scorePurple
+                    )
+
+                    programMetric(
+                        title: "Program debt",
+                        value: debtValue(for: programChoice),
+                        tint: LumaTheme.sun
+                    )
+
+                    programMetric(
+                        title: "Cost vs saved",
+                        value: shortlistCostComparison,
+                        tint: LumaTheme.valueGreen
+                    )
+                }
+            }
+        }
+        .padding(13)
+        .background(LumaTheme.canvas.opacity(0.74), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke((programChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.20)))
+        }
+    }
+
     private var scoreTint: Color {
         switch school.valueLabel {
         case "Excellent Value":
@@ -286,6 +362,73 @@ private struct SavedSchoolShortlistCard: View {
         default:
             LumaTheme.scorePurple
         }
+    }
+
+    private func programMetric(title: String, value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(value)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(LumaTheme.slate)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+        .padding(.horizontal, 10)
+        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
+    }
+
+    private func earningsValue(for choice: SavedProgramChoice) -> String {
+        let earnings = choice.medianEarnings ?? school.medianEarnings
+        return earnings > 0 ? LumaFormat.compactCurrency(earnings) : "N/A"
+    }
+
+    private func debtValue(for choice: SavedProgramChoice) -> String {
+        let debt = choice.debt ?? school.averageDebt
+        return debt > 0 ? LumaFormat.compactCurrency(debt) : "N/A"
+    }
+
+    private func roiResult(for choice: SavedProgramChoice) -> ROIOutcomeResult {
+        ROIOutcomeCalculator.result(
+            for: school,
+            program: AcademicProgram(
+                name: choice.name,
+                credential: choice.credential,
+                cipCode: choice.cipCode,
+                medianEarnings: choice.medianEarnings ?? 0,
+                debt: choice.debt,
+                typicalDurationYears: choice.typicalDurationYears ?? 4,
+                category: choice.category
+            )
+        )
+    }
+
+    private var shortlistCostComparison: String {
+        let costs = savedSchools
+            .map(\.costEstimate.averageNetPrice)
+            .filter { $0 > 0 }
+
+        guard !costs.isEmpty, school.costEstimate.averageNetPrice > 0 else {
+            return "N/A"
+        }
+
+        let average = costs.reduce(0, +) / Double(costs.count)
+        let difference = school.costEstimate.averageNetPrice - average
+
+        if abs(difference) < 500 {
+            return "Near avg"
+        }
+
+        return difference < 0
+            ? "\(LumaFormat.compactCurrency(abs(difference))) lower"
+            : "\(LumaFormat.compactCurrency(difference)) higher"
     }
 
     private func shortlistMetric(title: String, value: String, tint: Color) -> some View {
