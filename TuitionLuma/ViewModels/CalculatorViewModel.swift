@@ -288,11 +288,10 @@ final class CalculatorViewModel: ObservableObject {
     private func modeledAnnualCost(for school: School) -> Double {
         let cost = school.costEstimate
         var annualCost = cost.estimatedAnnualCost
+        let modeledTuition = tuitionForSelectedResidency(in: school)
 
-        if residencyScenario == .outOfState,
-           let outOfStateTuition = cost.outOfStateTuition,
-           outOfStateTuition > cost.tuitionAndFees {
-            annualCost += outOfStateTuition - cost.tuitionAndFees
+        if modeledTuition > cost.tuitionAndFees {
+            annualCost += modeledTuition - cost.tuitionAndFees
         }
 
         if livingScenario == .offCampus {
@@ -301,6 +300,26 @@ final class CalculatorViewModel: ObservableObject {
         }
 
         return annualCost
+    }
+
+    private func tuitionForSelectedResidency(in school: School) -> Double {
+        let cost = school.costEstimate
+
+        guard residencyScenario == .outOfState else {
+            return cost.tuitionAndFees
+        }
+
+        if let outOfStateTuition = cost.outOfStateTuition,
+           outOfStateTuition > cost.tuitionAndFees {
+            return outOfStateTuition
+        }
+
+        switch school.type {
+        case .publicUniversity, .communityCollege:
+            return cost.tuitionAndFees > 0 ? cost.tuitionAndFees * 2.35 : cost.outOfStateTuition ?? 0
+        case .privateNonprofit, .liberalArts:
+            return cost.outOfStateTuition ?? cost.tuitionAndFees
+        }
     }
 
     private func persistSavedRepaymentPlans() {

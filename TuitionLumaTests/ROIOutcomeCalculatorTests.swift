@@ -268,3 +268,86 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         )
     }
 }
+
+@MainActor
+final class CalculatorViewModelTests: XCTestCase {
+    func testOutOfStateScenarioUsesReportedOutOfStateTuition() {
+        let school = makeSchool(
+            type: .publicUniversity,
+            tuitionAndFees: 12_000,
+            outOfStateTuition: 32_000,
+            costOfAttendance: 25_000
+        )
+        let viewModel = CalculatorViewModel(school: school)
+
+        XCTAssertEqual(viewModel.annualCost, 25_000)
+
+        viewModel.residencyScenario = .outOfState
+
+        XCTAssertEqual(viewModel.annualCost, 45_000)
+    }
+
+    func testOutOfStateScenarioEstimatesPublicSchoolTuitionWhenMissing() {
+        let school = makeSchool(
+            type: .publicUniversity,
+            tuitionAndFees: 10_000,
+            outOfStateTuition: nil,
+            costOfAttendance: 22_000
+        )
+        let viewModel = CalculatorViewModel(school: school)
+
+        viewModel.residencyScenario = .outOfState
+
+        XCTAssertEqual(viewModel.annualCost, 35_500)
+    }
+
+    func testOutOfStateScenarioDoesNotIncreasePrivateSchoolTuitionWhenMissing() {
+        let school = makeSchool(
+            type: .privateNonprofit,
+            tuitionAndFees: 30_000,
+            outOfStateTuition: nil,
+            costOfAttendance: 48_000
+        )
+        let viewModel = CalculatorViewModel(school: school)
+
+        viewModel.residencyScenario = .outOfState
+
+        XCTAssertEqual(viewModel.annualCost, 48_000)
+    }
+
+    private func makeSchool(
+        type: School.SchoolType,
+        tuitionAndFees: Double,
+        outOfStateTuition: Double?,
+        costOfAttendance: Double
+    ) -> School {
+        School(
+            scorecardID: 987,
+            name: "Scenario University",
+            city: "Austin",
+            state: "TX",
+            type: type,
+            acceptanceRate: 0.7,
+            graduationRate: 0.68,
+            lumaScore: 74,
+            valueLabel: "Good Value",
+            medianEarnings: 62_000,
+            averageDebt: 19_000,
+            studentCount: 22_000,
+            campusVibe: "Test campus",
+            programs: [],
+            costEstimate: CostEstimate(
+                tuitionAndFees: tuitionAndFees,
+                outOfStateTuition: outOfStateTuition,
+                costOfAttendance: costOfAttendance,
+                reportedAverageNetPrice: 16_000,
+                housingAndMeals: 9_000,
+                booksAndSupplies: 1_200,
+                transportation: 1_000,
+                personalExpenses: 1_500,
+                averageGrantAid: 6_000
+            ),
+            highlights: []
+        )
+    }
+}
