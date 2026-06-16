@@ -43,8 +43,8 @@ struct StudentProfileCard: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
-            .background(LumaTheme.coolGradient, in: Capsule())
-            .shadow(color: LumaTheme.aqua.opacity(0.18), radius: 12, y: 6)
+            .background(LumaTheme.ink, in: Capsule())
+            .shadow(color: LumaTheme.ink.opacity(0.18), radius: 12, y: 6)
             .buttonStyle(.plain)
             .frame(minHeight: 44)
             .accessibilityHint("Opens the student profile form.")
@@ -53,9 +53,9 @@ struct StudentProfileCard: View {
         .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.aqua.opacity(0.18))
+                .stroke(.white.opacity(0.72))
         }
-        .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.16), radius: 16, y: 8)
     }
 
     private var completeProfileSummary: some View {
@@ -154,8 +154,7 @@ struct StudentProfileCard: View {
         LinearGradient(
             colors: [
                 .white,
-                LumaTheme.aqua.opacity(0.08),
-                LumaTheme.mint.opacity(0.06)
+                .white.opacity(0.96)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
