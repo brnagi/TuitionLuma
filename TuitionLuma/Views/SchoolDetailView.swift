@@ -80,34 +80,95 @@ struct SchoolDetailView: View {
 
             Text(school.campusVibe)
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.92))
+                .foregroundStyle(.white.opacity(0.94))
+                .shadow(color: .black.opacity(0.24), radius: 4, y: 2)
 
-            HStack(spacing: 8) {
-                ForEach(school.highlights.prefix(2), id: \.self) { highlight in
-                    Text(highlight)
-                        .font(.caption.weight(.bold))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(.white)
-                        .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-                }
+            HStack(spacing: 10) {
+                heroMetricChip(
+                    title: "Avg net price",
+                    value: school.costEstimate.averageNetPrice > 0 ? school.costEstimate.averageNetPrice.formatted(LumaFormat.currency) : "N/A",
+                    systemImage: "dollarsign.circle.fill",
+                    tint: LumaTheme.valueGreen
+                )
+
+                heroMetricChip(
+                    title: "Median earnings",
+                    value: school.medianEarnings > 0 ? school.medianEarnings.formatted(LumaFormat.currency) : "N/A",
+                    systemImage: "chart.line.uptrend.xyaxis.circle.fill",
+                    tint: LumaTheme.outcomeTeal
+                )
             }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [
-                    LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.coral),
-                    LumaTheme.color(hex: school.secondaryColor, fallback: LumaTheme.aqua)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ),
-            in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-        )
+        .background {
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        LumaTheme.color(hex: school.primaryColor, fallback: LumaTheme.coral),
+                        LumaTheme.color(hex: school.secondaryColor, fallback: LumaTheme.aqua)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                LinearGradient(
+                    colors: [
+                        .black.opacity(0.42),
+                        .black.opacity(0.18),
+                        .black.opacity(0.34)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                RadialGradient(
+                    colors: [.white.opacity(0.18), .clear],
+                    center: .topLeading,
+                    startRadius: 20,
+                    endRadius: 260
+                )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(.white.opacity(0.16))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.60), radius: 16, y: 8)
+    }
+
+    private func heroMetricChip(title: String, value: String, systemImage: String, tint: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(tint)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+
+                Text(title)
+                    .font(.caption2.weight(.heavy))
+                    .foregroundStyle(.white.opacity(0.78))
+                    .lineLimit(1)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.black.opacity(0.22), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.42))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
     }
 
     private var decisionSnapshot: some View {
