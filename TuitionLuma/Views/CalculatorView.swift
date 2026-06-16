@@ -119,28 +119,19 @@ struct CalculatorView: View {
     }
 
     private var calculatorEmptyState: some View {
-        VStack(spacing: 18) {
-            EmptyStateView(
-                title: "Save a school first",
-                message: "The calculator uses your saved schools so your planning stays focused. Save schools from Explore, then return here to model tuition, aid, and loan payments.",
-                systemImage: "bookmark"
-            )
-
+        EmptyStateCard(
+            title: "Save a school first",
+            message: "The calculator uses your saved schools so your planning stays focused. Save schools from Explore, then return here to model tuition, aid, and loan payments.",
+            systemImage: "bookmark"
+        ) {
             NavigationLink {
                 ExploreView()
             } label: {
-                Label("Explore Schools", systemImage: "magnifyingglass")
-                    .font(.headline.weight(.heavy))
-                    .foregroundStyle(LumaTheme.coral)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 48)
-                    .background(LumaTheme.coral.opacity(0.10), in: Capsule())
+                EmptyStateActionLabel(title: "Explore Schools", systemImage: "magnifyingglass")
             }
             .buttonStyle(.plain)
             .accessibilityHint("Use the Explore tab to search and save schools.")
         }
-        .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
     private var programPicker: some View {

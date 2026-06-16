@@ -25,12 +25,11 @@ struct CompareView: View {
                             action: { isShowingPaywall = true }
                         )
                     } else if viewModel.selectedSchools.isEmpty {
-                        EmptyStateView(
-                            title: "No schools selected",
-                            message: "Use Explore to search live College Scorecard schools, then tap compare on the cards.",
+                        EmptyStateCard(
+                            title: "Start a comparison",
+                            message: "Use Explore to search live College Scorecard schools, then tap Compare to line up cost, debt, and outcomes.",
                             systemImage: "rectangle.split.3x1"
                         )
-                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                     } else {
                         selectors
                         compareLimitMessage

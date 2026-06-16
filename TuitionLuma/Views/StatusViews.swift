@@ -49,6 +49,73 @@ struct EmptyStateView: View {
     }
 }
 
+struct EmptyStateCard<CTA: View>: View {
+    var title: String
+    var message: String
+    var systemImage: String
+    @ViewBuilder var cta: () -> CTA
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Image(systemName: systemImage)
+                .font(.system(size: 36, weight: .bold))
+                .foregroundStyle(LumaTheme.heroGradient)
+                .frame(width: 76, height: 76)
+                .background(LumaTheme.aqua.opacity(0.14), in: Circle())
+                .accessibilityHidden(true)
+
+            VStack(spacing: 8) {
+                Text(title)
+                    .font(.title3.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(LumaTheme.slate)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: 310)
+            }
+
+            cta()
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke)
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.55), radius: 14, x: 0, y: 8)
+        .accessibilityElement(children: .contain)
+    }
+}
+
+extension EmptyStateCard where CTA == EmptyView {
+    init(title: String, message: String, systemImage: String) {
+        self.title = title
+        self.message = message
+        self.systemImage = systemImage
+        self.cta = { EmptyView() }
+    }
+}
+
+struct EmptyStateActionLabel: View {
+    var title: String
+    var systemImage: String
+
+    var body: some View {
+        Label(title, systemImage: systemImage)
+            .font(.headline.weight(.heavy))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 50)
+            .background(LumaTheme.heroGradient, in: Capsule())
+    }
+}
+
 struct ErrorStateView: View {
     var message: String
     var retry: () -> Void

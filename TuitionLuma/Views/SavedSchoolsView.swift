@@ -78,45 +78,18 @@ struct SavedSchoolsView: View {
     }
 
     private var shortlistEmptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "bookmark")
-                .font(.system(size: 34, weight: .bold))
-                .foregroundStyle(LumaTheme.coral)
-                .frame(width: 76, height: 76)
-                .background(LumaTheme.aqua.opacity(0.16), in: Circle())
-                .accessibilityHidden(true)
-
-            VStack(spacing: 8) {
-                Text("Build your college shortlist")
-                    .font(.title3.weight(.heavy))
-                    .foregroundStyle(LumaTheme.ink)
-
-                Text("Save schools you want to revisit, then compare cost, aid, debt, and outcomes side by side.")
-                    .font(.subheadline)
-                    .foregroundStyle(LumaTheme.slate)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
+        EmptyStateCard(
+            title: "Build your college shortlist",
+            message: "Save schools you want to revisit, then compare cost, aid, debt, and outcomes side by side.",
+            systemImage: "bookmark"
+        ) {
             Button {
                 selectExploreTab()
             } label: {
-                Label("Explore Schools", systemImage: "magnifyingglass")
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 50)
-                    .background(LumaTheme.heroGradient, in: Capsule())
+                EmptyStateActionLabel(title: "Explore Schools", systemImage: "magnifyingglass")
             }
             .buttonStyle(.plain)
             .accessibilityHint("Switches to Explore to search for schools.")
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke)
         }
     }
 
