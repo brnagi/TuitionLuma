@@ -118,13 +118,6 @@ struct CalculatorView: View {
                 }
             }
 
-            if !hasProAccess {
-                UpgradePrompt(
-                    title: "Unlock TuitionLuma Pro",
-                    message: "Add aid, scholarships, repayment, scenarios, planning mode, and family reports.",
-                    action: { isShowingPaywall = true }
-                )
-            }
         }
     }
 
