@@ -276,6 +276,8 @@ struct CalculatorView: View {
             profile: studentProfileStore.profile
         ) {
             viewModel.selectedProgram = profileProgram
+        } else {
+            viewModel.selectedProgram = nil
         }
     }
 

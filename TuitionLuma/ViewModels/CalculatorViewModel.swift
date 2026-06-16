@@ -225,7 +225,7 @@ final class CalculatorViewModel: ObservableObject {
 
         guard let scorecardID = selectedSchool.scorecardID else {
             availablePrograms = selectedSchool.programs
-            selectedProgram = selectedSchool.programs.first
+            selectedProgram = nil
             return
         }
 
@@ -236,20 +236,20 @@ final class CalculatorViewModel: ObservableObject {
         do {
             let programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
             availablePrograms = programs
-            selectedProgram = programs.first
+            selectedProgram = nil
         } catch CollegeScorecardError.missingAPIKey {
             availablePrograms = selectedSchool.programs
-            selectedProgram = selectedSchool.programs.first
+            selectedProgram = nil
             programErrorMessage = "Set COLLEGE_SCORECARD_API_KEY to load program outcomes."
         } catch let error as CollegeScorecardError {
             availablePrograms = selectedSchool.programs
-            selectedProgram = selectedSchool.programs.first
+            selectedProgram = nil
             programErrorMessage = selectedSchool.programs.isEmpty
                 ? "Program outcomes are not available right now. You can still use school-wide cost and outcome data."
                 : error.localizedDescription
         } catch {
             availablePrograms = selectedSchool.programs
-            selectedProgram = selectedSchool.programs.first
+            selectedProgram = nil
             programErrorMessage = selectedSchool.programs.isEmpty ? "Program outcomes are not available for this school yet." : nil
         }
     }

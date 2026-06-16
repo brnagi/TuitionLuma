@@ -233,6 +233,71 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertEqual(match?.name, "Computer and Information Sciences")
     }
 
+    func testBusinessMajorMatchesBusinessProgramBeforeHigherROINursingProgram() {
+        let school = makeSchool(
+            medianEarnings: 58_000,
+            averageDebt: 18_000,
+            programs: []
+        )
+        let programs = [
+            AcademicProgram(
+                name: "Registered Nursing, Nursing Administration, Nursing Research and Clinical Nursing",
+                credential: "Master's Degree",
+                cipCode: "51.38",
+                medianEarnings: 126_000,
+                debt: 21_000,
+                typicalDurationYears: 4,
+                category: "Health"
+            ),
+            AcademicProgram(
+                name: "Business Administration, Management and Operations",
+                credential: "Bachelor's Degree",
+                cipCode: "52.02",
+                medianEarnings: 64_000,
+                debt: 17_000,
+                typicalDurationYears: 4,
+                category: "Business"
+            )
+        ]
+        let profile = makeProfile(intendedMajor: "Business Administration")
+
+        let match = StudentProfileRecommendationEngine.matchingProgram(
+            in: programs,
+            for: school,
+            profile: profile
+        )
+
+        XCTAssertEqual(match?.name, "Business Administration, Management and Operations")
+    }
+
+    func testBusinessMajorReturnsNoProgramWhenCatalogHasOnlyUnrelatedPrograms() {
+        let school = makeSchool(
+            medianEarnings: 58_000,
+            averageDebt: 18_000,
+            programs: []
+        )
+        let programs = [
+            AcademicProgram(
+                name: "Registered Nursing, Nursing Administration, Nursing Research and Clinical Nursing",
+                credential: "Master's Degree",
+                cipCode: "51.38",
+                medianEarnings: 126_000,
+                debt: 21_000,
+                typicalDurationYears: 4,
+                category: "Health"
+            )
+        ]
+        let profile = makeProfile(intendedMajor: "Business Administration")
+
+        let match = StudentProfileRecommendationEngine.matchingProgram(
+            in: programs,
+            for: school,
+            profile: profile
+        )
+
+        XCTAssertNil(match)
+    }
+
     @MainActor
     func testRememberRefreshesSavedSchoolProgramCatalog() {
         let suiteName = "TuitionLumaTests.\(UUID().uuidString)"

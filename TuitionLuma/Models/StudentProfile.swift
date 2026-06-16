@@ -353,7 +353,8 @@ enum StudentProfileRecommendationEngine {
         }
 
         if normalizedMajor.contains("business") || normalizedMajor.contains("finance") || normalizedMajor.contains("account") {
-            keywords.append(contentsOf: ["business", "management", "finance"])
+            keywords.removeAll { $0 == "administration" || $0 == "operations" }
+            keywords.append(contentsOf: ["business", "management", "finance", "marketing"])
         }
 
         if normalizedMajor.contains("nurs") || normalizedMajor.contains("health") || normalizedMajor.contains("medical") {
@@ -441,22 +442,70 @@ enum StudentProfileRecommendationEngine {
 
         let keywords = majorKeywords(from: major)
         return programs
-            .filter { program in
-                let normalizedName = program.name.lowercased()
-                let normalizedCategory = program.category?.lowercased() ?? ""
-                return keywords.contains { normalizedName.contains($0) || normalizedCategory.contains($0) }
+            .compactMap { program -> (program: AcademicProgram, score: Int)? in
+                let score = programMatchScore(program, major: major, keywords: keywords)
+                guard score > 0 else { return nil }
+                return (program, score)
             }
             .sorted { lhs, rhs in
-                let lhsROI = ROIOutcomeCalculator.result(for: school, program: lhs).score
-                let rhsROI = ROIOutcomeCalculator.result(for: school, program: rhs).score
+                if lhs.score != rhs.score {
+                    return lhs.score > rhs.score
+                }
+
+                let lhsROI = ROIOutcomeCalculator.result(for: school, program: lhs.program).score
+                let rhsROI = ROIOutcomeCalculator.result(for: school, program: rhs.program).score
 
                 if lhsROI != rhsROI {
                     return lhsROI > rhsROI
                 }
 
-                return (lhs.completionCount ?? 0) > (rhs.completionCount ?? 0)
+                return (lhs.program.completionCount ?? 0) > (rhs.program.completionCount ?? 0)
             }
+            .map(\.program)
             .first
+    }
+
+    private static func programMatchScore(
+        _ program: AcademicProgram,
+        major: String,
+        keywords: [String]
+    ) -> Int {
+        let normalizedName = program.name.lowercased()
+        let normalizedCategory = program.category?.lowercased() ?? ""
+        let normalizedCIP = program.cipCode ?? ""
+        var score = 0
+
+        if normalizedName.contains(major) {
+            score += 80
+        }
+
+        for keyword in keywords {
+            if normalizedName.contains(keyword) {
+                score += 24
+            }
+
+            if normalizedCategory.contains(keyword) {
+                score += 10
+            }
+        }
+
+        if major.contains("business"), normalizedCIP.hasPrefix("52") {
+            score += 18
+        }
+
+        if major.contains("computer"), normalizedCIP.hasPrefix("11") {
+            score += 18
+        }
+
+        if major.contains("nurs"), normalizedCIP.hasPrefix("51") {
+            score += 18
+        }
+
+        if major.contains("engineer"), normalizedCIP.hasPrefix("14") {
+            score += 18
+        }
+
+        return score
     }
 
     private static func recommendationRankingScore(
