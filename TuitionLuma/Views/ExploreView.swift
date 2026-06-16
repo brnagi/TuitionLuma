@@ -21,15 +21,6 @@ struct ExploreView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         header
                         searchAndFilters
-                        StudentProfileCard()
-                        .background {
-                            GeometryReader { proxy in
-                                Color.clear.preference(
-                                    key: ExploreCoachMarkTargetKey.self,
-                                    value: [.profile: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
-                                )
-                            }
-                        }
                         content
                     }
                     .padding()
@@ -111,6 +102,17 @@ struct ExploreView: View {
             Text("Search by school name or state abbreviation.")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.9))
+
+            StudentProfileCard()
+                .padding(.top, 8)
+                .background {
+                    GeometryReader { proxy in
+                        Color.clear.preference(
+                            key: ExploreCoachMarkTargetKey.self,
+                            value: [.profile: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
+                        )
+                    }
+                }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
