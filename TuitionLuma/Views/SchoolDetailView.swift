@@ -32,6 +32,7 @@ struct SchoolDetailView: View {
         .navigationTitle(school.name)
         .task {
             await viewModel.load()
+            applySavedProgramChoice()
         }
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -279,7 +280,11 @@ struct SchoolDetailView: View {
                     NavigationLink {
                         ProgramDetailView(school: school, program: program)
                     } label: {
-                        ProgramListRow(program: program, school: school)
+                        ProgramListRow(
+                            program: program,
+                            school: school,
+                            isSavedChoice: appViewModel.isPreferredProgram(program, for: school)
+                        )
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint("Opens program details.")
@@ -539,6 +544,12 @@ struct SchoolDetailView: View {
 
         if result == .limitReached {
             isShowingPaywall = true
+        }
+    }
+
+    private func applySavedProgramChoice() {
+        if let preferredProgram = appViewModel.preferredProgram(for: school, in: viewModel.programs) {
+            viewModel.selectedProgram = preferredProgram
         }
     }
 

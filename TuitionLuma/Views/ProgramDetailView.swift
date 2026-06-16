@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ProgramDetailView: View {
+    @EnvironmentObject private var appViewModel: AppViewModel
+    @State private var saveMessage: String?
+
     var school: School
     var program: AcademicProgram
 
@@ -41,6 +44,37 @@ struct ProgramDetailView: View {
                     .padding(.vertical, 7)
                     .padding(.horizontal, 10)
                     .background(LumaTheme.aqua.opacity(0.12), in: Capsule())
+            }
+
+            Button {
+                saveProgramForPlanning()
+            } label: {
+                Label(
+                    appViewModel.isPreferredProgram(program, for: school) ? "Saved for Planning" : "Save Program for Planning",
+                    systemImage: appViewModel.isPreferredProgram(program, for: school) ? "checkmark.circle.fill" : "bookmark"
+                )
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(appViewModel.isPreferredProgram(program, for: school) ? LumaTheme.valueGreen : .white)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 48)
+                .background {
+                    if appViewModel.isPreferredProgram(program, for: school) {
+                        Capsule()
+                            .fill(LumaTheme.valueGreen.opacity(0.12))
+                    } else {
+                        Capsule()
+                            .fill(LumaTheme.heroGradient)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Uses this program when planning costs for this school in the calculator.")
+
+            if let saveMessage {
+                Text(saveMessage)
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(18)
@@ -150,6 +184,16 @@ struct ProgramDetailView: View {
             return "Equipment intensive"
         case .longerTimeToDegreeRisk:
             return "Longer time-to-degree risk"
+        }
+    }
+
+    private func saveProgramForPlanning() {
+        appViewModel.savePreferredProgram(program, for: school)
+
+        if appViewModel.isSaved(school) {
+            saveMessage = "Calculator will use this program when you plan costs for \(school.name)."
+        } else {
+            saveMessage = "Program saved. Save this school too so it appears in Calculator."
         }
     }
 }

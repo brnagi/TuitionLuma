@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ProgramExplorerView: View {
+    @EnvironmentObject private var appViewModel: AppViewModel
+
     var school: School
     var programs: [AcademicProgram]
     @State private var searchText = ""
@@ -60,7 +62,11 @@ struct ProgramExplorerView: View {
                         NavigationLink {
                             ProgramDetailView(school: school, program: program)
                         } label: {
-                            ProgramListRow(program: program, school: school)
+                            ProgramListRow(
+                                program: program,
+                                school: school,
+                                isSavedChoice: appViewModel.isPreferredProgram(program, for: school)
+                            )
                         }
                         .buttonStyle(.plain)
                     }
@@ -173,6 +179,7 @@ struct ProgramExplorerView: View {
 struct ProgramListRow: View {
     var program: AcademicProgram
     var school: School
+    var isSavedChoice = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -187,6 +194,12 @@ struct ProgramListRow: View {
                     .font(.caption)
                     .foregroundStyle(LumaTheme.slate)
                     .lineLimit(2)
+
+                if isSavedChoice {
+                    Label("Saved for planning", systemImage: "checkmark.circle.fill")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(LumaTheme.valueGreen)
+                }
 
                 if program.medianEarnings <= 0 {
                     Text("No program-specific salary data is available for this program.")

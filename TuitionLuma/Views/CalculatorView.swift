@@ -56,6 +56,9 @@ struct CalculatorView: View {
                     selectedProgram: viewModel.selectedProgram,
                     onSelect: { program in
                         viewModel.selectedProgram = program
+                        if let selectedSchool = viewModel.selectedSchool {
+                            appViewModel.savePreferredProgram(program, for: selectedSchool)
+                        }
                         isShowingProgramDetails = false
                         isShowingProgramBrowser = false
                     }
@@ -102,8 +105,10 @@ struct CalculatorView: View {
                 .onChange(of: viewModel.selectedSchool) { _, newSchool in
                     isShowingProgramDetails = false
                     viewModel.applySchoolDefaults(for: newSchool)
+                    applySavedProgramChoice()
                     Task {
                         await viewModel.loadProgramsForSelectedSchool()
+                        applySavedProgramChoice()
                     }
                 }
             }
@@ -169,6 +174,14 @@ struct CalculatorView: View {
                         .lineLimit(2)
                         .truncationMode(.tail)
 
+                    if let selectedSchool = viewModel.selectedSchool,
+                       let selectedProgram = viewModel.selectedProgram,
+                       appViewModel.isPreferredProgram(selectedProgram, for: selectedSchool) {
+                        Label("Saved for planning", systemImage: "checkmark.circle.fill")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(LumaTheme.valueGreen)
+                    }
+
                     Button {
                         isShowingProgramBrowser = true
                     } label: {
@@ -206,6 +219,18 @@ struct CalculatorView: View {
 
     private var selectedProgramTitle: String {
         viewModel.selectedProgram?.name ?? "Use institution average"
+    }
+
+    private func applySavedProgramChoice() {
+        guard let selectedSchool = viewModel.selectedSchool,
+              let preferredProgram = appViewModel.preferredProgram(
+                for: selectedSchool,
+                in: viewModel.availablePrograms
+              ) else {
+            return
+        }
+
+        viewModel.selectedProgram = preferredProgram
     }
 
     private func programOutcomePreview(_ program: AcademicProgram) -> some View {

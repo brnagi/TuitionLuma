@@ -13,16 +13,24 @@ enum CompareSchoolResult {
     case limitReached
 }
 
+struct SavedProgramChoice: Codable, Equatable {
+    var name: String
+    var credential: String
+    var cipCode: String?
+}
+
 @MainActor
 final class AppViewModel: ObservableObject {
     private enum StorageKey {
         static let savedSchoolIDs = "tuitionLuma.savedSchoolIDs"
         static let comparedSchoolIDs = "tuitionLuma.comparedSchoolIDs"
+        static let savedProgramChoices = "tuitionLuma.savedProgramChoices"
     }
 
     @Published private(set) var knownSchools: [School] = []
     @Published private(set) var savedSchools: [School] = []
     @Published private(set) var comparedSchools: [School] = []
+    @Published private(set) var savedProgramChoices: [String: SavedProgramChoice] = [:]
 
     private var savedSchoolIDStrings: [String]
     private var comparedSchoolIDStrings: [String]
@@ -32,6 +40,7 @@ final class AppViewModel: ObservableObject {
         self.userDefaults = userDefaults
         self.savedSchoolIDStrings = userDefaults.stringArray(forKey: StorageKey.savedSchoolIDs) ?? []
         self.comparedSchoolIDStrings = userDefaults.stringArray(forKey: StorageKey.comparedSchoolIDs) ?? []
+        self.savedProgramChoices = Self.loadSavedProgramChoices(from: userDefaults)
     }
 
     var comparedSchoolIDs: [School.ID] {
@@ -128,6 +137,37 @@ final class AppViewModel: ObservableObject {
         comparedSchoolIDStrings.contains(school.idString)
     }
 
+    func savePreferredProgram(_ program: AcademicProgram?, for school: School) {
+        if let program {
+            savedProgramChoices[school.idString] = SavedProgramChoice(
+                name: program.name,
+                credential: program.credential,
+                cipCode: program.cipCode
+            )
+        } else {
+            savedProgramChoices.removeValue(forKey: school.idString)
+        }
+
+        remember([school])
+        persistSavedProgramChoices()
+    }
+
+    func preferredProgramChoice(for school: School) -> SavedProgramChoice? {
+        savedProgramChoices[school.idString]
+    }
+
+    func preferredProgram(for school: School, in programs: [AcademicProgram]) -> AcademicProgram? {
+        guard let choice = preferredProgramChoice(for: school) else { return nil }
+
+        return programs.first { program in
+            choice.matches(program)
+        }
+    }
+
+    func isPreferredProgram(_ program: AcademicProgram, for school: School) -> Bool {
+        preferredProgramChoice(for: school)?.matches(program) == true
+    }
+
     private func restorePersistedSchools() {
         savedSchools = schools(matching: savedSchoolIDStrings)
         comparedSchools = schools(matching: comparedSchoolIDStrings)
@@ -146,10 +186,43 @@ final class AppViewModel: ObservableObject {
     private func persistComparedSchools() {
         userDefaults.set(comparedSchoolIDStrings, forKey: StorageKey.comparedSchoolIDs)
     }
+
+    private func persistSavedProgramChoices() {
+        if let data = try? JSONEncoder().encode(savedProgramChoices) {
+            userDefaults.set(data, forKey: StorageKey.savedProgramChoices)
+        }
+    }
+
+    private static func loadSavedProgramChoices(from userDefaults: UserDefaults) -> [String: SavedProgramChoice] {
+        guard let data = userDefaults.data(forKey: StorageKey.savedProgramChoices),
+              let choices = try? JSONDecoder().decode([String: SavedProgramChoice].self, from: data) else {
+            return [:]
+        }
+
+        return choices
+    }
 }
 
 private extension School {
     var idString: String {
         String(describing: id)
+    }
+}
+
+private extension SavedProgramChoice {
+    func matches(_ program: AcademicProgram) -> Bool {
+        if let cipCode, let programCIPCode = program.cipCode, normalized(cipCode) == normalized(programCIPCode) {
+            return normalized(credential) == normalized(program.credential)
+        }
+
+        return normalized(name) == normalized(program.name)
+            && normalized(credential) == normalized(program.credential)
+    }
+
+    private func normalized(_ value: String) -> String {
+        value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .lowercased()
     }
 }
