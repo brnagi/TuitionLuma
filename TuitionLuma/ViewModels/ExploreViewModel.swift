@@ -37,14 +37,14 @@ final class ExploreViewModel: ObservableObject {
         hasMoreResults && loadState == .loaded && !isLoadingMore
     }
 
-    func refreshForCurrentQuery() async {
+    func refreshForCurrentQuery(homeState: String? = nil) async {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         currentPage = 0
         hasMoreResults = false
         loadState = .loading
 
         do {
-            let page = try await fetchPage(query: trimmedQuery, page: 0)
+            let page = try await fetchPage(query: trimmedQuery, page: 0, homeState: homeState)
             schools = rankedSchools(page.schools, query: trimmedQuery)
             hasMoreResults = page.hasMore
             loadState = schools.isEmpty ? .empty : .loaded
@@ -57,20 +57,20 @@ final class ExploreViewModel: ObservableObject {
         }
     }
 
-    func searchDebounced() async {
+    func searchDebounced(homeState: String? = nil) async {
         try? await Task.sleep(nanoseconds: 350_000_000)
         guard !Task.isCancelled else { return }
-        await refreshForCurrentQuery()
+        await refreshForCurrentQuery(homeState: homeState)
     }
 
-    func loadMore() async {
+    func loadMore(homeState: String? = nil) async {
         guard canLoadMore else { return }
         isLoadingMore = true
         defer { isLoadingMore = false }
 
         do {
             let nextPage = currentPage + 1
-            let page = try await fetchPage(query: query.trimmingCharacters(in: .whitespacesAndNewlines), page: nextPage)
+            let page = try await fetchPage(query: query.trimmingCharacters(in: .whitespacesAndNewlines), page: nextPage, homeState: homeState)
             currentPage = page.page
             hasMoreResults = page.hasMore
             schools.append(contentsOf: rankedSchools(page.schools, query: query))
@@ -125,13 +125,18 @@ final class ExploreViewModel: ObservableObject {
         loadState = .loaded
     }
 
-    private func fetchPage(query: String, page: Int) async throws -> PaginatedSchools {
+    private func fetchPage(query: String, page: Int, homeState: String? = nil) async throws -> PaginatedSchools {
         let result: PaginatedSchools
 
         if query.count == 2, query.rangeOfCharacter(from: CharacterSet.letters.inverted) == nil {
             result = try await provider.fetchSchoolsByState(state: query, page: page, perPage: perPage)
         } else if query.isEmpty {
-            result = try await provider.fetchFeaturedSchools(page: page, perPage: perPage)
+            let normalizedHomeState = homeState?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() ?? ""
+            if normalizedHomeState.count == 2 {
+                result = try await provider.fetchSchoolsByState(state: normalizedHomeState, page: page, perPage: perPage)
+            } else {
+                result = try await provider.fetchFeaturedSchools(page: page, perPage: perPage)
+            }
         } else {
             result = try await provider.searchSchools(query: query, page: page, perPage: perPage)
         }

@@ -66,14 +66,21 @@ struct ExploreView: View {
             }
             .task {
                 if viewModel.loadState == .idle {
-                    await viewModel.refreshForCurrentQuery()
+                    await viewModel.refreshForCurrentQuery(homeState: homeStateKey)
                     await refreshMajorRecommendationsIfNeeded()
                     appViewModel.remember(viewModel.schools)
                 }
             }
             .task(id: viewModel.query) {
                 guard viewModel.loadState != .idle else { return }
-                await viewModel.searchDebounced()
+                await viewModel.searchDebounced(homeState: homeStateKey)
+                await refreshMajorRecommendationsIfNeeded()
+                appViewModel.remember(viewModel.schools)
+            }
+            .task(id: homeStateKey) {
+                guard viewModel.loadState != .idle,
+                      viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+                await viewModel.refreshForCurrentQuery(homeState: homeStateKey)
                 await refreshMajorRecommendationsIfNeeded()
                 appViewModel.remember(viewModel.schools)
             }
@@ -232,7 +239,7 @@ struct ExploreView: View {
                     if viewModel.canLoadMore {
                         Button {
                             Task {
-                                await viewModel.loadMore()
+                                await viewModel.loadMore(homeState: homeStateKey)
                                 await refreshMajorRecommendationsIfNeeded()
                                 appViewModel.remember(viewModel.schools)
                             }
@@ -261,14 +268,21 @@ struct ExploreView: View {
     }
 
     private var rankedVisibleSchools: [School] {
-        guard studentProfileStore.profile.isComplete else {
-            return viewModel.visibleSchools
+        let schools: [School]
+        if studentProfileStore.profile.isComplete {
+            schools = StudentProfileRecommendationEngine.rankedSchools(
+                viewModel.visibleSchools,
+                profile: studentProfileStore.profile
+            )
+        } else {
+            schools = viewModel.visibleSchools
         }
 
-        return StudentProfileRecommendationEngine.rankedSchools(
-            viewModel.visibleSchools,
-            profile: studentProfileStore.profile
-        )
+        return homeStatePrioritized(schools)
+    }
+
+    private var homeStateKey: String {
+        studentProfileStore.profile.normalizedStateResidency
     }
 
     private var majorRecommendationKey: String {
@@ -279,6 +293,22 @@ struct ExploreView: View {
             studentProfileStore.profile.ownershipPreference.rawValue,
             String(viewModel.schools.count)
         ].joined(separator: "|")
+    }
+
+    private func homeStatePrioritized(_ schools: [School]) -> [School] {
+        let homeState = homeStateKey
+        guard !homeState.isEmpty else { return schools }
+
+        return schools.enumerated().sorted { lhs, rhs in
+            let leftIsHomeState = lhs.element.state.uppercased() == homeState
+            let rightIsHomeState = rhs.element.state.uppercased() == homeState
+
+            if leftIsHomeState != rightIsHomeState {
+                return leftIsHomeState
+            }
+
+            return lhs.offset < rhs.offset
+        }.map(\.element)
     }
 
     private func refreshMajorRecommendationsIfNeeded() async {
