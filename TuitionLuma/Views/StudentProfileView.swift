@@ -43,8 +43,8 @@ struct StudentProfileCard: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
-            .background(LumaTheme.heroGradient, in: Capsule())
-            .shadow(color: LumaTheme.coral.opacity(0.18), radius: 12, y: 6)
+            .background(LumaTheme.coolGradient, in: Capsule())
+            .shadow(color: LumaTheme.aqua.opacity(0.18), radius: 12, y: 6)
             .buttonStyle(.plain)
             .frame(minHeight: 44)
             .accessibilityHint("Opens the student profile form.")
@@ -154,8 +154,8 @@ struct StudentProfileCard: View {
         LinearGradient(
             colors: [
                 .white,
-                LumaTheme.aqua.opacity(0.07),
-                LumaTheme.sun.opacity(0.05)
+                LumaTheme.aqua.opacity(0.08),
+                LumaTheme.mint.opacity(0.06)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
