@@ -393,10 +393,10 @@ struct CompareView: View {
             }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                summaryPill("Better value", school: highestLumaScoreSchool, tint: LumaTheme.scorePurple)
-                summaryPill("Lower net price", school: lowestNetPriceSchool, tint: LumaTheme.valueGreen)
-                summaryPill("Lower debt", school: lowestDebtSchool, tint: LumaTheme.sun)
-                summaryPill("Stronger outcomes", school: strongestOutcomesSchool, tint: LumaTheme.outcomeTeal)
+                summaryPill("Better value", icon: "sparkles", school: highestLumaScoreSchool, tint: LumaTheme.scorePurple)
+                summaryPill("Lower net price", icon: "dollarsign.circle.fill", school: lowestNetPriceSchool, tint: LumaTheme.valueGreen)
+                summaryPill("Lower debt", icon: "creditcard.fill", school: lowestDebtSchool, tint: LumaTheme.sun)
+                summaryPill("Stronger outcomes", icon: "chart.line.uptrend.xyaxis", school: strongestOutcomesSchool, tint: LumaTheme.outcomeTeal)
             }
         }
         .padding(16)
@@ -436,22 +436,37 @@ struct CompareView: View {
             .max { $0.medianEarnings < $1.medianEarnings }
     }
 
-    private func summaryPill(_ title: String, school: School?, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(tint)
-                .lineLimit(1)
+    private func summaryPill(_ title: String, icon: String, school: School?, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(tint)
+                    .frame(width: 26, height: 26)
+                    .background(tint.opacity(0.14), in: Circle())
+                    .accessibilityHidden(true)
+
+                Text(title)
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Text(school.map(comparisonHeaderName(for:)) ?? "Not enough data")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(LumaTheme.ink)
-                .lineLimit(1)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(tint)
+                .lineLimit(2)
                 .truncationMode(.tail)
         }
-        .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
-        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 104, alignment: .leading)
+        .padding(14)
         .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.22), lineWidth: 1)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private func primaryMetric(_ title: String, _ value: String, tint: Color) -> some View {
