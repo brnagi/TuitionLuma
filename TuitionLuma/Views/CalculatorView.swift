@@ -82,6 +82,11 @@ struct CalculatorView: View {
                 .font(.largeTitle.weight(.heavy))
                 .foregroundStyle(LumaTheme.ink)
 
+            Text("Save a school from Explore first. Then come back here to model costs, aid, debt, and program outcomes.")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(LumaTheme.slate)
+                .fixedSize(horizontal: false, vertical: true)
+
             Text("Choose a school")
                 .font(.headline)
                 .foregroundStyle(LumaTheme.ink)
@@ -140,11 +145,25 @@ struct CalculatorView: View {
     }
 
     private var programPicker: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Academic program", systemImage: "book.closed.fill")
-                    .font(.headline)
-                    .foregroundStyle(LumaTheme.ink)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "book.closed.fill")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .frame(width: 42, height: 42)
+                    .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: 14))
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Program focus")
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text("Choose a major or program so cost planning can use program-level earnings, debt, and ROI where available.")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
                 Spacer()
 
@@ -155,47 +174,67 @@ struct CalculatorView: View {
             }
 
             if viewModel.availablePrograms.isEmpty {
-                Text("Institution-level earnings and debt will be used until program outcomes are available.")
-                    .font(.subheadline)
-                    .foregroundStyle(LumaTheme.slate)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-            } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Selected Program")
-                        .font(.caption.weight(.heavy))
-                        .foregroundStyle(LumaTheme.slate)
-
-                    Text(selectedProgramTitle)
-                        .font(.subheadline.weight(.bold))
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Using school-wide outcomes")
+                        .font(.headline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
-                        .lineLimit(2)
-                        .truncationMode(.tail)
 
-                    if let selectedSchool = viewModel.selectedSchool,
-                       let selectedProgram = viewModel.selectedProgram,
-                       appViewModel.isPreferredProgram(selectedProgram, for: selectedSchool) {
-                        Label("Saved for planning", systemImage: "checkmark.circle.fill")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(LumaTheme.valueGreen)
-                    }
-
-                    Button {
-                        isShowingProgramBrowser = true
-                    } label: {
-                        Label("Change Program", systemImage: "magnifyingglass")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(LumaTheme.coral)
-                            .frame(minHeight: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Opens program search and filters.")
+                    Text("Program outcomes are not available yet, so TuitionLuma will use institution-level earnings and debt for this estimate.")
+                        .font(.subheadline)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Planning with")
+                                .font(.caption.weight(.heavy))
+                                .foregroundStyle(LumaTheme.slate)
+                                .textCase(.uppercase)
+
+                            Text(selectedProgramTitle)
+                                .font(.title3.weight(.heavy))
+                                .foregroundStyle(LumaTheme.ink)
+                                .lineLimit(3)
+                                .truncationMode(.tail)
+
+                            if let selectedSchool = viewModel.selectedSchool,
+                               let selectedProgram = viewModel.selectedProgram,
+                               appViewModel.isPreferredProgram(selectedProgram, for: selectedSchool) {
+                                Label("Saved for planning", systemImage: "checkmark.circle.fill")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(LumaTheme.valueGreen)
+                            }
+                        }
+
+                        Spacer(minLength: 10)
+
+                        Button {
+                            isShowingProgramBrowser = true
+                        } label: {
+                            Label("Change", systemImage: "magnifyingglass")
+                                .font(.caption.weight(.heavy))
+                                .foregroundStyle(.white)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 12)
+                                .background(LumaTheme.coral, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Change program")
+                        .accessibilityHint("Opens program search and filters.")
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.aqua.opacity(0.22))
+                }
                 .accessibilityLabel("Academic program")
                 .accessibilityValue(selectedProgramTitle)
                 .onChange(of: viewModel.selectedProgram) { _, _ in
@@ -215,6 +254,11 @@ struct CalculatorView: View {
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.coral.opacity(0.12))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.45), radius: 12, x: 0, y: 7)
     }
 
     private var selectedProgramTitle: String {
