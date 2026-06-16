@@ -22,45 +22,29 @@ struct StudentProfileCard: View {
 
     private var incompleteProfilePrompt: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(LumaTheme.heroGradient)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(promptTitle)
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                    Image(systemName: "person.crop.circle.badge.plus")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 38, height: 38)
-                .shadow(color: LumaTheme.aqua.opacity(0.20), radius: 10, y: 5)
-                .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(promptTitle)
-                        .font(.headline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(promptSubtitle)
-                        .font(.caption)
-                        .foregroundStyle(LumaTheme.slate)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(promptSubtitle)
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Button(promptCTA) {
                 isShowingEditor = true
             }
-            .font(.caption.weight(.heavy))
-            .foregroundStyle(LumaTheme.coral)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(.white, in: Capsule())
-            .overlay {
-                Capsule()
-                    .stroke(LumaTheme.coral.opacity(0.18))
-            }
+            .font(.subheadline.weight(.heavy))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(LumaTheme.heroGradient, in: Capsule())
+            .shadow(color: LumaTheme.coral.opacity(0.18), radius: 12, y: 6)
             .buttonStyle(.plain)
             .frame(minHeight: 44)
             .accessibilityHint("Opens the student profile form.")
