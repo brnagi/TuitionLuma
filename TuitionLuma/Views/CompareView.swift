@@ -347,7 +347,7 @@ struct CompareView: View {
                             .foregroundStyle(lumaScoreColor(for: topSchool.valueLabel))
                             .lineLimit(1)
 
-                        Text("Luma")
+                        Text("LumaScore")
                             .font(.caption2.weight(.heavy))
                             .foregroundStyle(LumaTheme.slate)
                     }

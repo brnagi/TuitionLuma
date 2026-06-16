@@ -80,7 +80,7 @@ final class ProPurchaseManager: ObservableObject {
     private var transactionUpdatesTask: Task<Void, Never>?
 
     init(state: ProAccessState? = nil) {
-        self.state = state ?? .free
+        self.state = state ?? Self.cachedState()
 
         transactionUpdatesTask = Task { [weak self] in
             for await result in StoreKit.Transaction.updates {
