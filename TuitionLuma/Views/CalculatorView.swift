@@ -185,15 +185,16 @@ struct CalculatorView: View {
                     HStack(alignment: .top, spacing: 12) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Planning with")
-                                .font(.caption.weight(.heavy))
+                                .font(.subheadline.weight(.heavy))
                                 .foregroundStyle(LumaTheme.slate)
                                 .textCase(.uppercase)
 
                             Text(selectedProgramTitle)
-                                .font(.title3.weight(.heavy))
+                                .font(.title2.weight(.heavy))
                                 .foregroundStyle(LumaTheme.ink)
                                 .lineLimit(3)
                                 .truncationMode(.tail)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             if let selectedSchool = viewModel.selectedSchool,
                                let selectedProgram = viewModel.selectedProgram,
@@ -210,10 +211,10 @@ struct CalculatorView: View {
                             isShowingProgramBrowser = true
                         } label: {
                             Label("Change", systemImage: "magnifyingglass")
-                                .font(.caption.weight(.heavy))
+                                .font(.subheadline.weight(.heavy))
                                 .foregroundStyle(.white)
                                 .padding(.vertical, 10)
-                                .padding(.horizontal, 12)
+                                .padding(.horizontal, 14)
                                 .background(LumaTheme.coral, in: Capsule())
                         }
                         .buttonStyle(.plain)
@@ -271,8 +272,8 @@ struct CalculatorView: View {
     }
 
     private func programOutcomePreview(_ program: AcademicProgram) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
                 programMetric(
                     title: "Program earnings",
                     value: program.medianEarnings > 0 ? program.medianEarnings.formatted(LumaFormat.currency) : "Not reported",
@@ -288,7 +289,7 @@ struct CalculatorView: View {
 
             DisclosureGroup(isExpanded: $isShowingProgramDetails) {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 12) {
                         programMetric(
                             title: "Program debt",
                             value: program.debt.map { $0.formatted(LumaFormat.currency) } ?? "Not reported",
@@ -1155,22 +1156,27 @@ struct CalculatorView: View {
     }
 
     private func programMetric(title: String, value: String, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(value)
-                .font(.subheadline.weight(.heavy))
+                .font(.title2.weight(.heavy))
                 .foregroundStyle(value == "Not reported" ? LumaTheme.slate : tint)
                 .lineLimit(2)
                 .truncationMode(.tail)
+                .minimumScaleFactor(0.78)
 
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(.subheadline.weight(.heavy))
                 .foregroundStyle(LumaTheme.slate)
                 .lineLimit(2)
                 .truncationMode(.tail)
         }
-        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-        .padding(12)
-        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+        .padding(14)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.16))
+        }
     }
 
     private func pathLabelWrap(_ labels: [AcademicPathLabel]) -> some View {
