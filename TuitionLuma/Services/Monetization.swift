@@ -381,22 +381,16 @@ struct PaywallView: View {
 
     private let featureHighlights: [(title: String, message: String, systemImage: String, color: Color)] = [
         (
-            "Real net cost",
-            "Model aid, scholarships, family help, and yearly loans.",
+            "Aid + scholarships",
+            "Plan grants, scholarships, family help, work-study, and borrowing.",
             "dollarsign.circle.fill",
             LumaTheme.mint
         ),
         (
-            "Debt forecast",
-            "Compare repayment terms and monthly payment pressure.",
+            "Repayment calculator",
+            "Choose loan terms, forecast payments, and save plans.",
             "creditcard.fill",
             LumaTheme.coral
-        ),
-        (
-            "Family report",
-            "Share a polished PDF with cost, debt, and outcomes.",
-            "doc.richtext.fill",
-            LumaTheme.outcomeTeal
         ),
         (
             "Scenario modeling",
@@ -405,10 +399,22 @@ struct PaywallView: View {
             LumaTheme.scoreGold
         ),
         (
-            "Parent planning",
+            "Planning mode",
             "Switch between student and parent decision views.",
             "person.2.fill",
             LumaTheme.aqua
+        ),
+        (
+            "Family report",
+            "Share a polished PDF with cost, debt, and outcomes.",
+            "doc.richtext.fill",
+            LumaTheme.outcomeTeal
+        ),
+        (
+            "Unlimited saves",
+            "Build a fuller shortlist without the free save limit.",
+            "bookmark.fill",
+            LumaTheme.valueGreen
         )
     ]
 
@@ -417,9 +423,9 @@ struct PaywallView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     hero
+                    pricingCard
                     decisionPreview
                     proFeatureGrid
-                    pricingCard
                     restoreButton
                 }
                 .padding()
@@ -471,7 +477,7 @@ struct PaywallView: View {
                         .foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Unlock deeper planning for aid, debt, repayment, scenarios, and family conversations.")
+                    Text("Unlock aid planning, repayment forecasts, scenarios, saved plans, family reports, and unlimited school saves.")
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.90))
                         .fixedSize(horizontal: false, vertical: true)
@@ -520,9 +526,9 @@ struct PaywallView: View {
                 .foregroundStyle(LumaTheme.ink)
 
             VStack(spacing: 10) {
-                previewRow("Can we afford this school?", detail: "See aid, cash gap, and likely borrowing.")
-                previewRow("What will debt feel like?", detail: "Forecast monthly payments before you commit.")
-                previewRow("How do we explain the choice?", detail: "Export a clear report for family review.")
+                previewRow("Can we afford this school?", detail: "See aid, scholarships, cash gap, and likely borrowing.")
+                previewRow("What will debt feel like?", detail: "Forecast repayment terms and monthly payments before you commit.")
+                previewRow("How do we explain the choice?", detail: "Save repayment plans and export a clear family report.")
             }
         }
         .padding(16)

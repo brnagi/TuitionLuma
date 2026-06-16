@@ -196,6 +196,29 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertEqual(recommendation.roiGrade, roiOutcome.grade)
     }
 
+    @MainActor
+    func testFreeSaveLimitIgnoresUnrestoredStaleSavedIDs() {
+        let suiteName = "TuitionLumaTests.\(UUID().uuidString)"
+        let userDefaults = UserDefaults(suiteName: suiteName)!
+        userDefaults.set(["stale-1", "stale-2", "stale-3"], forKey: "tuitionLuma.savedSchoolIDs")
+        defer {
+            userDefaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let viewModel = AppViewModel(userDefaults: userDefaults)
+        let result = viewModel.toggleSaved(
+            makeSchool(name: "Visible Test University", medianEarnings: 62_000, averageDebt: 18_000),
+            savedLimit: 3
+        )
+
+        switch result {
+        case .saved:
+            break
+        default:
+            XCTFail("Expected the first visible saved school to be allowed.")
+        }
+    }
+
     private func makeSchool(
         name: String = "Test University",
         medianEarnings: Double,

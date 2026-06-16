@@ -63,7 +63,7 @@ final class AppViewModel: ObservableObject {
             return .removed
         }
 
-        if let savedLimit, savedSchoolIDStrings.count >= savedLimit {
+        if let savedLimit, savedSchools.count >= savedLimit {
             return .limitReached
         }
 
