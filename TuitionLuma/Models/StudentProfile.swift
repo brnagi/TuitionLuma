@@ -325,6 +325,14 @@ enum StudentProfileRecommendationEngine {
         bestMatchingProgram(for: school, profile: profile)
     }
 
+    static func matchingProgram(
+        in programs: [AcademicProgram],
+        for school: School,
+        profile: StudentProfile
+    ) -> AcademicProgram? {
+        bestMatchingProgram(in: programs, for: school, profile: profile)
+    }
+
     static func personalizedROIOutcome(for school: School, profile: StudentProfile) -> ROIOutcomeResult {
         ROIOutcomeCalculator.result(
             for: school,
@@ -420,11 +428,19 @@ enum StudentProfileRecommendationEngine {
     }
 
     private static func bestMatchingProgram(for school: School, profile: StudentProfile) -> AcademicProgram? {
+        bestMatchingProgram(in: school.programs, for: school, profile: profile)
+    }
+
+    private static func bestMatchingProgram(
+        in programs: [AcademicProgram],
+        for school: School,
+        profile: StudentProfile
+    ) -> AcademicProgram? {
         let major = profile.normalizedMajor
         guard !major.isEmpty else { return nil }
 
         let keywords = majorKeywords(from: major)
-        return school.programs
+        return programs
             .filter { program in
                 let normalizedName = program.name.lowercased()
                 let normalizedCategory = program.category?.lowercased() ?? ""

@@ -196,6 +196,72 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertEqual(recommendation.roiGrade, roiOutcome.grade)
     }
 
+    func testProfileMajorMatchesLoadedProgramCatalog() {
+        let school = makeSchool(
+            medianEarnings: 58_000,
+            averageDebt: 18_000,
+            programs: []
+        )
+        let programs = [
+            AcademicProgram(
+                name: "Marketing",
+                credential: "Bachelor's Degree",
+                cipCode: "52.14",
+                medianEarnings: 55_000,
+                debt: 19_000,
+                typicalDurationYears: 4,
+                category: "Business"
+            ),
+            AcademicProgram(
+                name: "Computer and Information Sciences",
+                credential: "Bachelor's Degree",
+                cipCode: "11.01",
+                medianEarnings: 92_000,
+                debt: 21_000,
+                typicalDurationYears: 4,
+                category: "Computer and information sciences"
+            )
+        ]
+        let profile = makeProfile(intendedMajor: "Computer Science")
+
+        let match = StudentProfileRecommendationEngine.matchingProgram(
+            in: programs,
+            for: school,
+            profile: profile
+        )
+
+        XCTAssertEqual(match?.name, "Computer and Information Sciences")
+    }
+
+    @MainActor
+    func testRememberRefreshesSavedSchoolProgramCatalog() {
+        let suiteName = "TuitionLumaTests.\(UUID().uuidString)"
+        let userDefaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            userDefaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let viewModel = AppViewModel(userDefaults: userDefaults)
+        let school = makeSchool(name: "Catalog University", medianEarnings: 58_000, averageDebt: 18_000)
+        _ = viewModel.toggleSaved(school)
+
+        var updatedSchool = school
+        updatedSchool.programs = [
+            AcademicProgram(
+                name: "Computer and Information Sciences",
+                credential: "Bachelor's Degree",
+                cipCode: "11.01",
+                medianEarnings: 92_000,
+                debt: 21_000,
+                typicalDurationYears: 4
+            )
+        ]
+
+        viewModel.remember([updatedSchool])
+
+        XCTAssertEqual(viewModel.savedSchools.first?.programs.first?.name, "Computer and Information Sciences")
+    }
+
     @MainActor
     func testFreeSaveLimitIgnoresUnrestoredStaleSavedIDs() {
         let suiteName = "TuitionLumaTests.\(UUID().uuidString)"

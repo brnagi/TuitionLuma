@@ -3,6 +3,7 @@ import SwiftUI
 struct SavedSchoolsView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
+    @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @State private var isShowingPaywall = false
     @State private var compareLimitMessage: String?
 
@@ -56,6 +57,7 @@ struct SavedSchoolsView: View {
                 school: school,
                 savedSchools: appViewModel.savedSchools,
                 programChoice: appViewModel.preferredProgramChoice(for: school),
+                profile: studentProfileStore.profile,
                 isCompared: appViewModel.isCompared(school),
                 onRemoveTapped: { _ = appViewModel.toggleSaved(school) },
                 onCompareTapped: { compareTapped(school) }
@@ -160,6 +162,7 @@ private struct SavedSchoolShortlistCard: View {
     var school: School
     var savedSchools: [School]
     var programChoice: SavedProgramChoice?
+    var profile: StudentProfile
     var isCompared: Bool
     var onRemoveTapped: () -> Void
     var onCompareTapped: () -> Void
@@ -282,26 +285,26 @@ private struct SavedSchoolShortlistCard: View {
     private var programPlanSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
-                Image(systemName: programChoice == nil ? "book.closed" : "checkmark.seal.fill")
+                Image(systemName: displayedProgramChoice == nil ? "book.closed" : "checkmark.seal.fill")
                     .font(.headline.weight(.heavy))
-                    .foregroundStyle(programChoice == nil ? LumaTheme.slate : LumaTheme.coral)
+                    .foregroundStyle(displayedProgramChoice == nil ? LumaTheme.slate : LumaTheme.coral)
                     .frame(width: 28, height: 28)
-                    .background((programChoice == nil ? LumaTheme.slate : LumaTheme.coral).opacity(0.12), in: Circle())
+                    .background((displayedProgramChoice == nil ? LumaTheme.slate : LumaTheme.coral).opacity(0.12), in: Circle())
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(programChoice == nil ? "Choose a program for planning" : "Program of study")
+                    Text(displayedProgramChoice == nil ? "Choose a program for planning" : "Program of study")
                         .font(.subheadline.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Text(programChoice?.name ?? "Save a program from school details or Calculator to compare program-specific cost and outcomes.")
+                    Text(displayedProgramChoice?.name ?? "Save a program from school details or Calculator to compare program-specific cost and outcomes.")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(programChoice == nil ? LumaTheme.slate : LumaTheme.ink)
+                        .foregroundStyle(displayedProgramChoice == nil ? LumaTheme.slate : LumaTheme.ink)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    if let programChoice {
-                        Text(programChoice.credential)
+                    if let displayedProgramChoice {
+                        Text(displayedProgramChoice.credential)
                             .font(.caption2.weight(.heavy))
                             .foregroundStyle(LumaTheme.outcomeTeal)
                             .padding(.vertical, 5)
@@ -313,23 +316,23 @@ private struct SavedSchoolShortlistCard: View {
                 Spacer(minLength: 0)
             }
 
-            if let programChoice {
+            if let displayedProgramChoice {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                     programMetric(
-                        title: programChoice.medianEarnings ?? 0 > 0 ? "Program earnings" : "School earnings",
-                        value: earningsValue(for: programChoice),
+                        title: displayedProgramChoice.medianEarnings ?? 0 > 0 ? "Program earnings" : "School earnings",
+                        value: earningsValue(for: displayedProgramChoice),
                         tint: LumaTheme.outcomeTeal
                     )
 
                     programMetric(
                         title: "ROI grade",
-                        value: roiResult(for: programChoice).grade,
+                        value: roiResult(for: displayedProgramChoice).grade,
                         tint: LumaTheme.scorePurple
                     )
 
                     programMetric(
                         title: "Program debt",
-                        value: debtValue(for: programChoice),
+                        value: debtValue(for: displayedProgramChoice),
                         tint: LumaTheme.sun
                     )
 
@@ -345,8 +348,32 @@ private struct SavedSchoolShortlistCard: View {
         .background(LumaTheme.canvas.opacity(0.74), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke((programChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.20)))
+                .stroke((displayedProgramChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.20)))
         }
+    }
+
+    private var displayedProgramChoice: SavedProgramChoice? {
+        if let programChoice {
+            return programChoice
+        }
+
+        guard let matchedProgram = StudentProfileRecommendationEngine.matchingProgram(
+            in: school.programs,
+            for: school,
+            profile: profile
+        ) else {
+            return nil
+        }
+
+        return SavedProgramChoice(
+            name: matchedProgram.name,
+            credential: matchedProgram.credential,
+            cipCode: matchedProgram.cipCode,
+            medianEarnings: matchedProgram.medianEarnings,
+            debt: matchedProgram.debt,
+            category: matchedProgram.category,
+            typicalDurationYears: matchedProgram.typicalDurationYears
+        )
     }
 
     private var scoreTint: Color {

@@ -32,6 +32,7 @@ struct SchoolDetailView: View {
         .navigationTitle(school.name)
         .task {
             await viewModel.load()
+            appViewModel.remember([viewModel.school])
             applySavedProgramChoice()
         }
         .toolbar {
@@ -550,6 +551,12 @@ struct SchoolDetailView: View {
     private func applySavedProgramChoice() {
         if let preferredProgram = appViewModel.preferredProgram(for: school, in: viewModel.programs) {
             viewModel.selectedProgram = preferredProgram
+        } else if let profileProgram = StudentProfileRecommendationEngine.matchingProgram(
+            in: viewModel.programs,
+            for: school,
+            profile: studentProfileStore.profile
+        ) {
+            viewModel.selectedProgram = profileProgram
         }
     }
 
@@ -636,6 +643,7 @@ final class SchoolDetailViewModel: ObservableObject {
 
         do {
             programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
+            school.programs = programs
             selectedProgram = topPrograms.first
         } catch {
             programs = school.programs

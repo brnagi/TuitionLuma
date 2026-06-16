@@ -17,10 +17,10 @@ struct SavedProgramChoice: Codable, Equatable {
     var name: String
     var credential: String
     var cipCode: String?
-    var medianEarnings: Double?
-    var debt: Double?
-    var category: String?
-    var typicalDurationYears: Int?
+    var medianEarnings: Double? = nil
+    var debt: Double? = nil
+    var category: String? = nil
+    var typicalDurationYears: Int? = nil
 }
 
 @MainActor
@@ -52,8 +52,12 @@ final class AppViewModel: ObservableObject {
     }
 
     func remember(_ schools: [School]) {
-        for school in schools where !knownSchools.contains(where: { $0.id == school.id }) {
-            knownSchools.append(school)
+        for school in schools {
+            if let index = knownSchools.firstIndex(where: { $0.id == school.id }) {
+                knownSchools[index] = school
+            } else {
+                knownSchools.append(school)
+            }
         }
 
         restorePersistedSchools()

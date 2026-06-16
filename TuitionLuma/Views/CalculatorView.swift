@@ -3,6 +3,7 @@ import SwiftUI
 struct CalculatorView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @EnvironmentObject private var proPurchaseManager: ProPurchaseManager
+    @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @StateObject private var viewModel = CalculatorViewModel()
     @State private var isShowingPaywall = false
     @State private var isGeneratingReport = false
@@ -260,15 +261,22 @@ struct CalculatorView: View {
     }
 
     private func applySavedProgramChoice() {
-        guard let selectedSchool = viewModel.selectedSchool,
-              let preferredProgram = appViewModel.preferredProgram(
-                for: selectedSchool,
-                in: viewModel.availablePrograms
-              ) else {
+        guard let selectedSchool = viewModel.selectedSchool else {
             return
         }
 
-        viewModel.selectedProgram = preferredProgram
+        if let preferredProgram = appViewModel.preferredProgram(
+            for: selectedSchool,
+            in: viewModel.availablePrograms
+        ) {
+            viewModel.selectedProgram = preferredProgram
+        } else if let profileProgram = StudentProfileRecommendationEngine.matchingProgram(
+            in: viewModel.availablePrograms,
+            for: selectedSchool,
+            profile: studentProfileStore.profile
+        ) {
+            viewModel.selectedProgram = profileProgram
+        }
     }
 
     private func programOutcomePreview(_ program: AcademicProgram) -> some View {
