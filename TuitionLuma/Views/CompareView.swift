@@ -17,11 +17,11 @@ struct CompareView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
-                    if !proPurchaseManager.state.isPro {
+                    if !ProAccessPolicy.canUse(.schoolCompare, state: proPurchaseManager.state) {
                         FeatureLock(
                             title: "Unlock school comparison",
                             message: "Compare up to 3 schools side-by-side across value, net price, debt, and outcomes.",
-                            feature: .fiveSchoolCompare,
+                            feature: .schoolCompare,
                             action: { isShowingPaywall = true }
                         )
                     } else if viewModel.selectedSchools.isEmpty {

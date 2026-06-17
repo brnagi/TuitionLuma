@@ -338,7 +338,7 @@ struct ExploreView: View {
     }
 
     private func compareTapped(_ school: School) {
-        guard proPurchaseManager.state.isPro else {
+        guard ProAccessPolicy.canUse(.schoolCompare, state: proPurchaseManager.state) else {
             isShowingPaywall = true
             return
         }

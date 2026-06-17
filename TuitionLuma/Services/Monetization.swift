@@ -20,14 +20,11 @@ struct ProAccessState: Equatable, Codable {
 
 enum ProFeature: String, CaseIterable, Identifiable {
     case unlimitedSavedSchools = "Unlimited saved schools"
-    case fiveSchoolCompare = "Compare up to 3 schools"
-    case advancedDebtCalculator = "Advanced debt repayment calculator"
+    case schoolCompare = "Compare schools"
+    case aidBorrowing = "Aid and borrowing tools"
+    case repaymentCalculator = "Repayment calculator"
     case scholarshipPlanning = "Scholarship and grant planning"
-    case roiScore = "ROI score by school"
-    case monthlyLoanPayments = "Monthly loan payment projections"
     case pdfExport = "Export/share cost report as PDF"
-    case affordabilityScore = "Personalized affordability score"
-    case studentProfile = "Personalized student profile"
     case planningMode = "Parent/student planning mode"
     case scenarioModeling = "Scenario modeling"
 
@@ -36,14 +33,11 @@ enum ProFeature: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .unlimitedSavedSchools: "bookmark.fill"
-        case .fiveSchoolCompare: "rectangle.split.3x1.fill"
-        case .advancedDebtCalculator: "creditcard.fill"
+        case .schoolCompare: "rectangle.split.3x1.fill"
+        case .aidBorrowing: "dollarsign.circle.fill"
+        case .repaymentCalculator: "creditcard.fill"
         case .scholarshipPlanning: "sparkles"
-        case .roiScore: "chart.line.uptrend.xyaxis"
-        case .monthlyLoanPayments: "calendar.badge.clock"
         case .pdfExport: "square.and.arrow.up.fill"
-        case .affordabilityScore: "gauge.with.dots.needle.67percent"
-        case .studentProfile: "person.text.rectangle.fill"
         case .planningMode: "person.2.fill"
         case .scenarioModeling: "slider.horizontal.3"
         }

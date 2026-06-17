@@ -18,7 +18,7 @@ struct CalculatorView: View {
     }
 
     private var hasProAccess: Bool {
-        proPurchaseManager.state.isPro
+        ProAccessPolicy.canUse(.aidBorrowing, state: proPurchaseManager.state)
     }
 
     var body: some View {
@@ -662,7 +662,7 @@ struct CalculatorView: View {
             FeatureLock(
                 title: "Unlock aid and borrowing",
                 message: "Model grants, family help, work-study, and yearly loans with TuitionLuma Pro.",
-                feature: .advancedDebtCalculator,
+                feature: .aidBorrowing,
                 action: { isShowingPaywall = true }
             )
 
@@ -739,7 +739,7 @@ struct CalculatorView: View {
             FeatureLock(
                 title: "Unlock repayment calculator",
                 message: "Upgrade to choose repayment terms, save plans on device, and compare debt scenarios.",
-                feature: .advancedDebtCalculator,
+                feature: .repaymentCalculator,
                 action: { isShowingPaywall = true }
             )
 

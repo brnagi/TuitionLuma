@@ -391,7 +391,7 @@ struct SchoolDetailView: View {
 
     private var proPlanningSection: some View {
         VStack(spacing: 12) {
-            if proPurchaseManager.state.isPro {
+            if ProAccessPolicy.canUse(.scenarioModeling, state: proPurchaseManager.state) {
                 HStack {
                     Label("ROI score", systemImage: "chart.line.uptrend.xyaxis")
                         .font(.headline)
@@ -416,8 +416,8 @@ struct SchoolDetailView: View {
             } else {
                 FeatureLock(
                     title: "Unlock deeper planning",
-                    message: "See ROI score, affordability guidance, PDF sharing, and scenario modeling for this school.",
-                    feature: .roiScore,
+                    message: "Model scenarios and unlock deeper planning tools for this school.",
+                    feature: .scenarioModeling,
                     action: { isShowingPaywall = true }
                 )
             }

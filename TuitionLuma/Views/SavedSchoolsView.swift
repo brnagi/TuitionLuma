@@ -69,7 +69,7 @@ struct SavedSchoolsView: View {
 
     @ViewBuilder
     private var savedLimitPrompt: some View {
-        if proPurchaseManager.state.isPro {
+        if ProAccessPolicy.canUse(.unlimitedSavedSchools, state: proPurchaseManager.state) {
             EmptyView()
         } else {
             let limit = ProAccessPolicy.savedSchoolLimit(for: proPurchaseManager.state) ?? 0
@@ -98,7 +98,7 @@ struct SavedSchoolsView: View {
     }
 
     private func compareTapped(_ school: School) {
-        guard proPurchaseManager.state.isPro else {
+        guard ProAccessPolicy.canUse(.schoolCompare, state: proPurchaseManager.state) else {
             isShowingPaywall = true
             return
         }
