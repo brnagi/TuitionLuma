@@ -47,6 +47,7 @@ struct StudentProfileCard: View {
             .shadow(color: LumaTheme.outcomeTeal.opacity(0.18), radius: 12, y: 6)
             .buttonStyle(.plain)
             .frame(minHeight: 44)
+            .profileCoachMarkTarget()
             .accessibilityHint("Opens the student profile form.")
         }
         .padding(14)
@@ -89,6 +90,7 @@ struct StudentProfileCard: View {
                 }
                 .buttonStyle(.plain)
                 .frame(minHeight: 44)
+                .profileCoachMarkTarget()
                 .accessibilityHint("Opens the student profile form.")
             }
 
@@ -187,6 +189,19 @@ struct StudentProfileCard: View {
 
     private var promptCTA: String {
         "Complete Profile"
+    }
+}
+
+private extension View {
+    func profileCoachMarkTarget() -> some View {
+        background {
+            GeometryReader { proxy in
+                Color.clear.preference(
+                    key: ExploreCoachMarkTargetKey.self,
+                    value: [.profile: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
+                )
+            }
+        }
     }
 }
 

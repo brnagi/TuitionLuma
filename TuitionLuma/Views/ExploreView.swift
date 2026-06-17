@@ -105,14 +105,6 @@ struct ExploreView: View {
 
             StudentProfileCard()
                 .padding(.top, 8)
-                .background {
-                    GeometryReader { proxy in
-                        Color.clear.preference(
-                            key: ExploreCoachMarkTargetKey.self,
-                            value: [.profile: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
-                        )
-                    }
-                }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
