@@ -448,7 +448,7 @@ struct ExploreCoachMarkTargetKey: PreferenceKey {
         value: inout [ExploreCoachMarkTarget: CGRect],
         nextValue: () -> [ExploreCoachMarkTarget: CGRect]
     ) {
-        value.merge(nextValue(), uniquingKeysWith: { current, _ in current })
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
     }
 }
 

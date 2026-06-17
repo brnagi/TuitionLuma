@@ -83,6 +83,7 @@ struct SchoolCard: View {
                 tint: isCompared ? LumaTheme.scorePurple : LumaTheme.ink,
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
                 isHighlighted: coachMarkHighlight == .compare,
+                coachMarkTarget: coachMarkHighlight == .compare ? .compare : nil,
                 action: onCompareTapped
             )
 
@@ -92,6 +93,7 @@ struct SchoolCard: View {
                 tint: isSaved ? LumaTheme.valueGreen : LumaTheme.ink,
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
                 isHighlighted: coachMarkHighlight == .save,
+                coachMarkTarget: coachMarkHighlight == .save ? .save : nil,
                 action: onSaveTapped
             )
         }
@@ -399,6 +401,7 @@ struct SchoolCard: View {
         tint: Color,
         accessibilityLabel: String,
         isHighlighted: Bool = false,
+        coachMarkTarget: ExploreCoachMarkTarget? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -431,6 +434,16 @@ struct SchoolCard: View {
         .accessibilityValue(title)
         .accessibilityHint(title == "Added" || title == "Saved" ? "Double tap to remove." : "Double tap to add.")
         .accessibilityAddTraits(.isButton)
+        .background {
+            if let coachMarkTarget {
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: ExploreCoachMarkTargetKey.self,
+                        value: [coachMarkTarget: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
+                    )
+                }
+            }
+        }
     }
 
 }

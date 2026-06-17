@@ -128,7 +128,7 @@ struct StudentProfileCard: View {
         }
         .shadow(color: LumaTheme.cardShadow.opacity(0.14), radius: 12, y: 6)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Recommendations are personalized using your profile.")
+        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Distance preference \(studentProfileStore.profile.distanceFromHomePreference.rawValue). Campus size \(studentProfileStore.profile.campusSizePreference.rawValue). Learning format \(studentProfileStore.profile.learningFormatPreference.rawValue). Recommendations are personalized using your profile.")
     }
 
     private var profileGreeting: String {
@@ -481,50 +481,84 @@ struct StudentProfileEditorView: View {
             systemImage: "slider.horizontal.3",
             tint: LumaTheme.coral
         ) {
-            VStack(alignment: .leading, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Debt tolerance")
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
-
-                    HStack(spacing: 8) {
-                        ForEach(DebtTolerance.allCases) { tolerance in
-                            preferenceButton(
-                                title: tolerance.rawValue,
-                                isSelected: draft.debtTolerance == tolerance
-                            ) {
-                                draft.debtTolerance = tolerance
-                            }
+                VStack(alignment: .leading, spacing: 14) {
+                preferenceGroup(title: "Debt tolerance", summary: draft.debtTolerance.summary) {
+                    ForEach(DebtTolerance.allCases) { tolerance in
+                        preferenceButton(
+                            title: tolerance.rawValue,
+                            isSelected: draft.debtTolerance == tolerance
+                        ) {
+                            draft.debtTolerance = tolerance
                         }
                     }
-
-                    Text(draft.debtTolerance.summary)
-                        .font(.caption)
-                        .foregroundStyle(LumaTheme.slate)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Public/private")
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
-
-                    HStack(spacing: 8) {
-                        ForEach(SchoolOwnershipPreference.allCases) { preference in
-                            preferenceButton(
-                                title: preference.rawValue,
-                                isSelected: draft.ownershipPreference == preference
-                            ) {
-                                draft.ownershipPreference = preference
-                            }
+                preferenceGroup(title: "Public/private", summary: draft.ownershipPreference.summary) {
+                    ForEach(SchoolOwnershipPreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.ownershipPreference == preference
+                        ) {
+                            draft.ownershipPreference = preference
                         }
                     }
-
-                    Text(draft.ownershipPreference.summary)
-                        .font(.caption)
-                        .foregroundStyle(LumaTheme.slate)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
+
+                preferenceGroup(title: "Distance from home") {
+                    ForEach(DistanceFromHomePreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.distanceFromHomePreference == preference
+                        ) {
+                            draft.distanceFromHomePreference = preference
+                        }
+                    }
+                }
+
+                preferenceGroup(title: "Campus size") {
+                    ForEach(CampusSizePreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.campusSizePreference == preference
+                        ) {
+                            draft.campusSizePreference = preference
+                        }
+                    }
+                }
+
+                preferenceGroup(title: "Learning format") {
+                    ForEach(LearningFormatPreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.learningFormatPreference == preference
+                        ) {
+                            draft.learningFormatPreference = preference
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func preferenceGroup<Content: View>(
+        title: String,
+        summary: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 118), spacing: 8)], alignment: .leading, spacing: 8) {
+                content()
+            }
+
+            if let summary {
+                Text(summary)
+                    .font(.caption)
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

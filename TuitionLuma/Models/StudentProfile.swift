@@ -17,6 +17,7 @@ extension USState {
         USState(name: "Colorado", abbreviation: "CO"),
         USState(name: "Connecticut", abbreviation: "CT"),
         USState(name: "Delaware", abbreviation: "DE"),
+        USState(name: "District of Columbia", abbreviation: "DC"),
         USState(name: "Florida", abbreviation: "FL"),
         USState(name: "Georgia", abbreviation: "GA"),
         USState(name: "Hawaii", abbreviation: "HI"),
@@ -171,6 +172,33 @@ enum SchoolOwnershipPreference: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum DistanceFromHomePreference: String, CaseIterable, Identifiable, Codable {
+    case closeToHome = "Close to Home"
+    case withinFewHours = "Within a Few Hours"
+    case anywhere = "Anywhere"
+    case noPreference = "No Preference"
+
+    var id: String { rawValue }
+}
+
+enum CampusSizePreference: String, CaseIterable, Identifiable, Codable {
+    case small = "Small"
+    case medium = "Medium"
+    case large = "Large"
+    case noPreference = "No Preference"
+
+    var id: String { rawValue }
+}
+
+enum LearningFormatPreference: String, CaseIterable, Identifiable, Codable {
+    case inPerson = "In Person"
+    case hybrid = "Hybrid"
+    case online = "Online"
+    case noPreference = "No Preference"
+
+    var id: String { rawValue }
+}
+
 struct StudentProfile: Codable, Equatable {
     var nickname: String
     var gpa: Double
@@ -180,6 +208,9 @@ struct StudentProfile: Codable, Equatable {
     var familyIncomeRange: FamilyIncomeRange
     var debtTolerance: DebtTolerance
     var ownershipPreference: SchoolOwnershipPreference
+    var distanceFromHomePreference: DistanceFromHomePreference
+    var campusSizePreference: CampusSizePreference
+    var learningFormatPreference: LearningFormatPreference
 
     init(
         nickname: String = "",
@@ -189,7 +220,10 @@ struct StudentProfile: Codable, Equatable {
         intendedMajor: String,
         familyIncomeRange: FamilyIncomeRange,
         debtTolerance: DebtTolerance = .medium,
-        ownershipPreference: SchoolOwnershipPreference = .any
+        ownershipPreference: SchoolOwnershipPreference = .any,
+        distanceFromHomePreference: DistanceFromHomePreference = .noPreference,
+        campusSizePreference: CampusSizePreference = .noPreference,
+        learningFormatPreference: LearningFormatPreference = .noPreference
     ) {
         self.nickname = nickname
         self.gpa = gpa
@@ -199,6 +233,9 @@ struct StudentProfile: Codable, Equatable {
         self.familyIncomeRange = familyIncomeRange
         self.debtTolerance = debtTolerance
         self.ownershipPreference = ownershipPreference
+        self.distanceFromHomePreference = distanceFromHomePreference
+        self.campusSizePreference = campusSizePreference
+        self.learningFormatPreference = learningFormatPreference
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -210,6 +247,9 @@ struct StudentProfile: Codable, Equatable {
         case familyIncomeRange
         case debtTolerance
         case ownershipPreference
+        case distanceFromHomePreference
+        case campusSizePreference
+        case learningFormatPreference
     }
 
     init(from decoder: Decoder) throws {
@@ -223,6 +263,9 @@ struct StudentProfile: Codable, Equatable {
         familyIncomeRange = try container.decode(FamilyIncomeRange.self, forKey: .familyIncomeRange)
         debtTolerance = try container.decodeIfPresent(DebtTolerance.self, forKey: .debtTolerance) ?? .medium
         ownershipPreference = try container.decodeIfPresent(SchoolOwnershipPreference.self, forKey: .ownershipPreference) ?? .any
+        distanceFromHomePreference = try container.decodeIfPresent(DistanceFromHomePreference.self, forKey: .distanceFromHomePreference) ?? .noPreference
+        campusSizePreference = try container.decodeIfPresent(CampusSizePreference.self, forKey: .campusSizePreference) ?? .noPreference
+        learningFormatPreference = try container.decodeIfPresent(LearningFormatPreference.self, forKey: .learningFormatPreference) ?? .noPreference
     }
 
     static let empty = StudentProfile(
@@ -233,7 +276,10 @@ struct StudentProfile: Codable, Equatable {
         intendedMajor: "",
         familyIncomeRange: .range75to110k,
         debtTolerance: .medium,
-        ownershipPreference: .any
+        ownershipPreference: .any,
+        distanceFromHomePreference: .noPreference,
+        campusSizePreference: .noPreference,
+        learningFormatPreference: .noPreference
     )
 
     var normalizedStateResidency: String {
