@@ -569,9 +569,14 @@ private struct ExploreCoachMarkOverlay: View {
             HStack(spacing: 10) {
                 Button("Skip", action: onSkip)
                     .font(.subheadline.weight(.heavy))
-                    .foregroundStyle(LumaTheme.slate)
+                    .foregroundStyle(LumaTheme.ink)
                     .frame(minHeight: 44)
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 14)
+                    .background(.white, in: Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(LumaTheme.ink.opacity(0.22), lineWidth: 1)
+                    }
 
                 Spacer()
 
@@ -581,6 +586,11 @@ private struct ExploreCoachMarkOverlay: View {
                     .frame(minHeight: 44)
                     .padding(.horizontal, 16)
                     .background(LumaTheme.heroGradient, in: Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(.white.opacity(0.28), lineWidth: 1)
+                    }
+                    .shadow(color: LumaTheme.coral.opacity(0.22), radius: 10, y: 5)
             }
         }
         .padding(16)

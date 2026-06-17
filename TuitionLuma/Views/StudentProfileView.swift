@@ -264,6 +264,8 @@ struct StudentProfileEditorView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
@@ -272,7 +274,8 @@ struct StudentProfileEditorView: View {
                         profile = draft
                         dismiss()
                     }
-                    .fontWeight(.bold)
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(LumaTheme.coral)
                 }
 
                 ToolbarItemGroup(placement: .keyboard) {
@@ -429,7 +432,11 @@ struct StudentProfileEditorView: View {
             .tint(LumaTheme.coral)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(13)
-            .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(draft.stateResidency.isEmpty ? LumaTheme.warningOrange.opacity(0.55) : LumaTheme.cardStroke)
+            }
             .onAppear {
                 draft.stateResidency = draft.normalizedStateResidency
             }
@@ -477,9 +484,14 @@ struct StudentProfileEditorView: View {
                 }
             }
             .pickerStyle(.menu)
+            .tint(LumaTheme.coral)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(13)
-            .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.cardStroke)
+            }
             .accessibilityLabel("Family income range")
             .accessibilityValue(draft.familyIncomeRange.rawValue)
         }
@@ -549,12 +561,12 @@ struct StudentProfileEditorView: View {
                 .minimumScaleFactor(0.82)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 42)
-                .background(isSelected ? AnyShapeStyle(LumaTheme.heroGradient) : AnyShapeStyle(LumaTheme.canvas), in: Capsule())
+                .background(isSelected ? AnyShapeStyle(LumaTheme.heroGradient) : AnyShapeStyle(.white), in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(isSelected ? LumaTheme.coral.opacity(0.26) : LumaTheme.cardStroke)
+                        .stroke(isSelected ? LumaTheme.coral : LumaTheme.ink.opacity(0.22), lineWidth: isSelected ? 2 : 1)
                 }
-                .shadow(color: isSelected ? LumaTheme.coral.opacity(0.16) : .clear, radius: 8, y: 4)
+                .shadow(color: isSelected ? LumaTheme.coral.opacity(0.20) : .black.opacity(0.04), radius: isSelected ? 10 : 4, y: isSelected ? 5 : 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
@@ -590,7 +602,7 @@ struct StudentProfileEditorView: View {
                     .font(.subheadline.weight(.heavy))
                     .foregroundStyle(tint)
                     .frame(width: 28, height: 28)
-                    .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+                    .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 8))
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -611,7 +623,8 @@ struct StudentProfileEditorView: View {
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(tint.opacity(0.08))
+                .stroke(tint.opacity(0.18))
         }
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
 }

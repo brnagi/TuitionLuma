@@ -416,10 +416,10 @@ struct SchoolCard: View {
             .background(isHighlighted ? LumaTheme.coral.opacity(0.13) : .white, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.28), lineWidth: isHighlighted ? 3 : 1)
+                    .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.42), lineWidth: isHighlighted ? 3 : 1.5)
             }
             .shadow(
-                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : .black.opacity(0.07),
+                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : .black.opacity(0.10),
                 radius: isHighlighted ? 14 : 6,
                 y: isHighlighted ? 6 : 3
             )

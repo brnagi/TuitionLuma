@@ -706,11 +706,12 @@ struct CalculatorView: View {
                 .disabled(viewModel.aidInput.yearsInSchool >= 6)
             }
             .padding(6)
-            .background(LumaTheme.canvas, in: Capsule())
+            .background(.white, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(LumaTheme.cardStroke)
+                    .stroke(LumaTheme.cardStroke, lineWidth: 1.5)
             }
+            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
         }
         .padding(12)
         .background(LumaTheme.canvas.opacity(0.65), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -723,6 +724,7 @@ struct CalculatorView: View {
                 .foregroundStyle(.white)
                 .frame(width: 36, height: 36)
                 .background(LumaTheme.ink, in: Circle())
+                .opacity(systemImage == "minus" && viewModel.aidInput.yearsInSchool <= 1 || systemImage == "plus" && viewModel.aidInput.yearsInSchool >= 6 ? 0.42 : 1)
         }
         .buttonStyle(.plain)
     }
@@ -818,11 +820,12 @@ struct CalculatorView: View {
             .foregroundStyle(isSelected ? .white : LumaTheme.ink)
             .frame(maxWidth: .infinity)
             .frame(minHeight: 46)
-            .background(isSelected ? LumaTheme.coral : LumaTheme.canvas, in: Capsule())
+            .background(isSelected ? LumaTheme.coral : .white, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(isSelected ? LumaTheme.coral.opacity(0.25) : LumaTheme.cardStroke)
+                    .stroke(isSelected ? LumaTheme.coral : LumaTheme.ink.opacity(0.22), lineWidth: isSelected ? 2 : 1)
             }
+            .shadow(color: isSelected ? LumaTheme.coral.opacity(0.20) : .black.opacity(0.04), radius: isSelected ? 9 : 4, y: isSelected ? 5 : 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(mode.rawValue) planning mode")
@@ -1343,7 +1346,12 @@ struct CalculatorView: View {
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 44)
                 .padding(.vertical, 10)
-                .background(isSelected ? LumaTheme.coral : LumaTheme.mint.opacity(0.14), in: Capsule())
+                .background(isSelected ? LumaTheme.coral : .white, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(isSelected ? LumaTheme.coral : LumaTheme.ink.opacity(0.20), lineWidth: isSelected ? 2 : 1)
+                }
+                .shadow(color: isSelected ? LumaTheme.coral.opacity(0.18) : .black.opacity(0.04), radius: isSelected ? 8 : 4, y: isSelected ? 4 : 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)

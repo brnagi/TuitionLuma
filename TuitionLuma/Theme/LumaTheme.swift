@@ -63,9 +63,9 @@ struct LumaTextFieldModifier: ViewModifier {
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    .stroke(isFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)
+                    .stroke(isFocused ? LumaTheme.coral : LumaTheme.cardStroke, lineWidth: isFocused ? 2 : 1)
             }
-            .shadow(color: isFocused ? LumaTheme.coral.opacity(0.12) : .clear, radius: 8, y: 3)
+            .shadow(color: isFocused ? LumaTheme.coral.opacity(0.18) : .black.opacity(0.03), radius: isFocused ? 10 : 4, y: isFocused ? 4 : 2)
     }
 }
 
