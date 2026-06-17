@@ -60,17 +60,18 @@ struct StudentProfileCard: View {
     }
 
     private var completeProfileSummary: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(profileGreeting)
                         .font(.title3.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Recommendations are personalized using your profile.")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(LumaTheme.slate)
+                    Text("\(studentProfileStore.profile.intendedMajor) • \(studentProfileStore.profile.stateResidencyDisplayName)")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink.opacity(0.84))
+                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
@@ -80,44 +81,52 @@ struct StudentProfileCard: View {
                     isShowingEditor = true
                 }
                 .font(.subheadline.weight(.heavy))
-                .foregroundStyle(LumaTheme.coral)
+                .foregroundStyle(.white)
                 .padding(.vertical, 10)
-                .padding(.horizontal, 14)
-                .background(.white, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(LumaTheme.coral.opacity(0.18))
-                }
+                .padding(.horizontal, 16)
+                .background(LumaTheme.coral, in: Capsule())
+                .shadow(color: LumaTheme.coral.opacity(0.18), radius: 10, y: 5)
                 .buttonStyle(.plain)
                 .frame(minHeight: 44)
                 .profileCoachMarkTarget()
                 .accessibilityHint("Opens the student profile form.")
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                profileSummaryRow(
-                    title: "Major",
-                    value: studentProfileStore.profile.intendedMajor
-                )
-                profileSummaryRow(
-                    title: "Residency",
-                    value: "\(studentProfileStore.profile.stateResidencyDisplayName) resident"
-                )
+            Divider()
+                .overlay(LumaTheme.cardStroke)
 
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 8)], alignment: .leading, spacing: 8) {
-                    profilePill("Income: \(studentProfileStore.profile.familyIncomeRange.rawValue)")
-                    profilePill("Debt: \(studentProfileStore.profile.debtTolerance.rawValue)")
-                    profilePill(studentProfileStore.profile.ownershipPreference.rawValue)
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("Income:")
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
+
+                    Text(studentProfileStore.profile.familyIncomeRange.rawValue)
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+                        .lineLimit(1)
                 }
+
+                Text("Recommendations are personalized.")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LumaTheme.slate)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(LumaTheme.canvas.opacity(0.66), in: RoundedRectangle(cornerRadius: 14))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(LumaTheme.cardStroke.opacity(0.62))
             }
         }
-        .padding(18)
-        .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .padding(14)
+        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.aqua.opacity(0.18))
+                .stroke(.white.opacity(0.74))
         }
-        .shadow(color: LumaTheme.aqua.opacity(0.08), radius: 16, y: 8)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.14), radius: 12, y: 6)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Recommendations are personalized using your profile.")
     }
@@ -129,38 +138,6 @@ struct StudentProfileCard: View {
         }
 
         return "Hi \(nickname) 👋"
-    }
-
-    private func profileSummaryRow(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(LumaTheme.slate)
-                .textCase(.uppercase)
-
-            Text(value)
-                .font(.headline.weight(.heavy))
-                .foregroundStyle(LumaTheme.ink)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 14))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(title)
-        .accessibilityValue(value)
-    }
-
-    private func profilePill(_ title: String) -> some View {
-        Text(title)
-            .font(.subheadline.weight(.heavy))
-            .foregroundStyle(LumaTheme.ink)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.vertical, 9)
-            .padding(.horizontal, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white.opacity(0.72), in: Capsule())
     }
 
     private var profileCardBackground: some ShapeStyle {
