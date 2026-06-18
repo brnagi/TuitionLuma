@@ -79,10 +79,11 @@ struct SchoolCard: View {
     private var actionButtons: some View {
         HStack(spacing: 8) {
             labeledActionButton(
-                title: isCompared ? "Added" : "Compare",
+                title: isCompared ? "Compared" : "Compare",
                 systemImage: isCompared ? "checkmark.circle.fill" : "plus.circle",
                 tint: isCompared ? LumaTheme.scorePurple : LumaTheme.ink,
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
+                isActive: isCompared,
                 isHighlighted: coachMarkHighlight == .compare,
                 coachMarkTarget: coachMarkHighlight == .compare ? .compare : nil,
                 action: onCompareTapped
@@ -93,6 +94,7 @@ struct SchoolCard: View {
                 systemImage: isSaved ? "bookmark.fill" : "bookmark",
                 tint: isSaved ? LumaTheme.valueGreen : LumaTheme.ink,
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
+                isActive: isSaved,
                 isHighlighted: coachMarkHighlight == .save,
                 coachMarkTarget: coachMarkHighlight == .save ? .save : nil,
                 action: onSaveTapped
@@ -402,6 +404,7 @@ struct SchoolCard: View {
         systemImage: String,
         tint: Color,
         accessibilityLabel: String,
+        isActive: Bool = false,
         isHighlighted: Bool = false,
         coachMarkTarget: ExploreCoachMarkTarget? = nil,
         action: @escaping () -> Void
@@ -414,27 +417,31 @@ struct SchoolCard: View {
                 Text(title)
                     .font(.caption.weight(.heavy))
             }
-            .foregroundStyle(tint)
+            .foregroundStyle(isActive ? .white : tint)
             .frame(minHeight: 44)
             .padding(.vertical, 8)
-            .padding(.horizontal, 10)
-            .background(isHighlighted ? LumaTheme.coral.opacity(0.13) : LumaTheme.card, in: Capsule())
+            .padding(.horizontal, isActive ? 12 : 10)
+            .background(actionButtonBackground(tint: tint, isActive: isActive, isHighlighted: isHighlighted), in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.42), lineWidth: isHighlighted ? 3 : 1.5)
+                    .stroke(
+                        isHighlighted ? LumaTheme.coral : (isActive ? .white.opacity(0.36) : tint.opacity(0.42)),
+                        lineWidth: isHighlighted ? 3 : (isActive ? 2 : 1.5)
+                    )
             }
             .shadow(
-                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : .black.opacity(0.10),
-                radius: isHighlighted ? 14 : 6,
-                y: isHighlighted ? 6 : 3
+                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : (isActive ? tint.opacity(0.26) : .black.opacity(0.10)),
+                radius: isHighlighted ? 14 : (isActive ? 10 : 6),
+                y: isHighlighted ? 6 : (isActive ? 5 : 3)
             )
-            .scaleEffect(isHighlighted ? 1.04 : 1)
+            .scaleEffect(isHighlighted ? 1.05 : 1)
             .animation(.easeInOut(duration: 0.18), value: isHighlighted)
+            .animation(.easeInOut(duration: 0.18), value: isActive)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(title)
-        .accessibilityHint(title == "Added" || title == "Saved" ? "Double tap to remove." : "Double tap to add.")
+        .accessibilityHint(title == "Compared" || title == "Saved" ? "Double tap to remove." : "Double tap to add.")
         .accessibilityAddTraits(.isButton)
         .background {
             if let coachMarkTarget {
@@ -446,6 +453,18 @@ struct SchoolCard: View {
                 }
             }
         }
+    }
+
+    private func actionButtonBackground(tint: Color, isActive: Bool, isHighlighted: Bool) -> AnyShapeStyle {
+        if isActive {
+            return AnyShapeStyle(tint.gradient)
+        }
+
+        if isHighlighted {
+            return AnyShapeStyle(LumaTheme.coral.opacity(0.13))
+        }
+
+        return AnyShapeStyle(LumaTheme.card)
     }
 
 }

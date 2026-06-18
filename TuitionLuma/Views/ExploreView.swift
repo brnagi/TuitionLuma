@@ -505,23 +505,18 @@ private struct ExploreCoachMarkOverlay: View {
     var targetRect: CGRect?
     var onSkip: () -> Void
     var onNext: () -> Void
+    @State private var isPulsing = false
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
+                Color.black.opacity(0.46)
+                    .ignoresSafeArea()
+
                 if let targetRect, !targetRect.isEmpty {
                     let bubbleIsBelow = targetRect.midY < proxy.size.height * 0.58
 
-                    spotlightMask(targetRect: targetRect)
-
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(.white.opacity(0.95), lineWidth: 2)
-                        .shadow(color: .black.opacity(0.22), radius: 14, y: 8)
-                        .frame(
-                            width: max(96, targetRect.width + 20),
-                            height: max(54, targetRect.height + 18)
-                        )
-                        .position(x: targetRect.midX, y: targetRect.midY)
+                    targetEmphasis(targetRect: targetRect, isBelow: bubbleIsBelow)
 
                     bubble
                         .frame(maxWidth: min(proxy.size.width - 40, 340))
@@ -530,8 +525,6 @@ private struct ExploreCoachMarkOverlay: View {
                             y: bubbleY(targetRect: targetRect, in: proxy.size, isBelow: bubbleIsBelow)
                         )
                 } else {
-                    Color.black.opacity(0.38)
-
                     bubble
                         .frame(maxWidth: min(proxy.size.width - 40, 340))
                         .position(x: proxy.size.width / 2, y: proxy.size.height * 0.42)
@@ -539,8 +532,45 @@ private struct ExploreCoachMarkOverlay: View {
             }
             .ignoresSafeArea()
         }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                isPulsing = true
+            }
+        }
         .transition(.opacity.combined(with: .scale(scale: 0.98)))
         .zIndex(20)
+    }
+
+    private func targetEmphasis(targetRect: CGRect, isBelow: Bool) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22)
+                .fill(.white.opacity(0.12))
+                .frame(
+                    width: max(96, targetRect.width + 24),
+                    height: max(54, targetRect.height + 22)
+                )
+                .position(x: targetRect.midX, y: targetRect.midY)
+
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(LumaTheme.coral, lineWidth: 3)
+                .frame(
+                    width: max(96, targetRect.width + 24),
+                    height: max(54, targetRect.height + 22)
+                )
+                .shadow(color: LumaTheme.coral.opacity(0.55), radius: isPulsing ? 18 : 8, y: 0)
+                .scaleEffect(isPulsing ? 1.05 : 0.98)
+                .position(x: targetRect.midX, y: targetRect.midY)
+
+            Image(systemName: isBelow ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
+                .font(.system(size: 30, weight: .heavy))
+                .foregroundStyle(.white, LumaTheme.coral)
+                .shadow(color: .black.opacity(0.20), radius: 8, y: 4)
+                .position(
+                    x: targetRect.midX,
+                    y: isBelow ? targetRect.minY - 28 : targetRect.maxY + 28
+                )
+        }
+        .allowsHitTesting(false)
     }
 
     private var bubble: some View {
@@ -602,23 +632,6 @@ private struct ExploreCoachMarkOverlay: View {
         }
         .shadow(color: .black.opacity(0.22), radius: 24, y: 14)
         .accessibilityElement(children: .contain)
-    }
-
-    private func spotlightMask(targetRect: CGRect) -> some View {
-        Color.black.opacity(0.54)
-            .mask {
-                Rectangle()
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 18)
-                            .frame(
-                                width: max(96, targetRect.width + 20),
-                                height: max(54, targetRect.height + 18)
-                            )
-                            .position(x: targetRect.midX, y: targetRect.midY)
-                            .blendMode(.destinationOut)
-                    }
-                    .compositingGroup()
-            }
     }
 
     private func bubbleY(targetRect: CGRect, in size: CGSize, isBelow: Bool) -> CGFloat {
