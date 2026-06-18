@@ -646,7 +646,19 @@ enum StudentProfileRecommendationEngine {
 
         let earningsScore = normalizedScore(value: earnings, low: 35_000, high: 120_000)
         let debtScore = normalizedInverseScore(value: debt, low: 8_000, high: 45_000)
-        return earningsScore * 0.65 + debtScore * 0.35
+        let completionScore: Double
+
+        if let completionCount = program?.completionCount, completionCount > 0 {
+            completionScore = normalizedScore(
+                value: log10(Double(completionCount)),
+                low: log10(25),
+                high: log10(800)
+            )
+        } else {
+            completionScore = 45
+        }
+
+        return earningsScore * 0.45 + debtScore * 0.35 + completionScore * 0.20
     }
 
     private static func academicScore(for school: School, profile: StudentProfile) -> Double {
