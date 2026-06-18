@@ -32,13 +32,13 @@ struct SchoolCard: View {
             }
             .padding(18)
         }
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.cardStroke)
         }
-        .shadow(color: LumaTheme.cardShadow, radius: 22, y: 12)
+        .shadow(color: LumaTheme.cardShadow.opacity(1.08), radius: 24, y: 14)
     }
 
     private var campusImage: some View {
@@ -73,6 +73,7 @@ struct SchoolCard: View {
         .padding(.vertical, 9)
         .padding(.horizontal, 12)
         .background(LumaTheme.ink, in: Capsule())
+        .shadow(color: LumaTheme.ink.opacity(0.18), radius: 8, y: 4)
     }
 
     private var actionButtons: some View {
@@ -163,11 +164,12 @@ struct SchoolCard: View {
             )
         }
         .padding(.vertical, 12)
-        .background(LumaTheme.canvas.opacity(0.85), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke.opacity(0.55))
+                .stroke(LumaTheme.cardStroke.opacity(0.75))
         }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.20), radius: 7, y: 4)
         .accessibilityElement(children: .contain)
     }
 
@@ -416,7 +418,7 @@ struct SchoolCard: View {
             .frame(minHeight: 44)
             .padding(.vertical, 8)
             .padding(.horizontal, 10)
-            .background(isHighlighted ? LumaTheme.coral.opacity(0.13) : .white, in: Capsule())
+            .background(isHighlighted ? LumaTheme.coral.opacity(0.13) : LumaTheme.card, in: Capsule())
             .overlay {
                 Capsule()
                     .stroke(isHighlighted ? LumaTheme.coral : tint.opacity(0.42), lineWidth: isHighlighted ? 3 : 1.5)

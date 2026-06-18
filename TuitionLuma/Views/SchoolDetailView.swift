@@ -14,7 +14,7 @@ struct SchoolDetailView: View {
     var body: some View {
         GeometryReader { proxy in
             ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 20) {
                     hero
                     decisionSnapshot
                     dataQualitySection
@@ -174,7 +174,7 @@ struct SchoolDetailView: View {
     }
 
     private var decisionSnapshot: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             LumaScoreCard(school: school)
             annualCostSummary
 
@@ -187,7 +187,7 @@ struct SchoolDetailView: View {
                 quickStats
             }
         }
-        .padding(10)
+        .padding(12)
         .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
@@ -205,7 +205,7 @@ struct SchoolDetailView: View {
                     .textCase(.uppercase)
 
                 Text(moneyText(school.costEstimate.estimatedAnnualCost))
-                    .font(.system(size: 34, weight: .heavy))
+                    .font(.system(size: 38, weight: .heavy))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.70)
@@ -225,7 +225,7 @@ struct SchoolDetailView: View {
                     .minimumScaleFactor(0.74)
             }
         }
-        .padding(16)
+        .padding(18)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
@@ -354,10 +354,10 @@ struct SchoolDetailView: View {
             }
             .padding(.vertical, 10)
             .padding(.horizontal, 12)
-            .background(LumaTheme.outcomeTeal.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(LumaTheme.outcomeTeal.opacity(0.06), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    .stroke(LumaTheme.outcomeTeal.opacity(0.14))
+                    .stroke(LumaTheme.outcomeTeal.opacity(0.12))
             }
         }
     }
@@ -405,6 +405,11 @@ struct SchoolDetailView: View {
                 }
                 .padding(16)
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.cardStroke.opacity(0.72))
+                }
+                .shadow(color: LumaTheme.cardShadow.opacity(0.32), radius: 10, y: 5)
 
                 HStack(spacing: 10) {
                     scenarioPill("On campus")
@@ -466,7 +471,7 @@ struct SchoolDetailView: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.cardStroke)
         }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.55), radius: 12, y: 6)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.68), radius: 15, y: 8)
     }
 
     private var roiScore: String {

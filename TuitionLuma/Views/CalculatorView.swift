@@ -225,11 +225,12 @@ struct CalculatorView: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LumaTheme.aqua.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .background(LumaTheme.aqua.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                        .stroke(LumaTheme.aqua.opacity(0.22))
+                        .stroke(LumaTheme.aqua.opacity(0.30), lineWidth: 1.2)
                 }
+                .shadow(color: LumaTheme.cardShadow.opacity(0.18), radius: 8, y: 4)
                 .accessibilityLabel("Academic program")
                 .accessibilityValue(selectedProgramTitle)
                 .onChange(of: viewModel.selectedProgram) { _, _ in
@@ -253,7 +254,7 @@ struct CalculatorView: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.coral.opacity(0.12))
         }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.45), radius: 12, x: 0, y: 7)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.60), radius: 16, x: 0, y: 9)
     }
 
     private var selectedProgramTitle: String {
@@ -386,6 +387,7 @@ struct CalculatorView: View {
         }
         .padding(20)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .shadow(color: LumaTheme.coral.opacity(0.18), radius: 16, y: 8)
     }
 
     @ViewBuilder
@@ -438,7 +440,12 @@ struct CalculatorView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(18)
-            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.cardStroke.opacity(0.70))
+            }
+            .shadow(color: LumaTheme.cardShadow.opacity(0.34), radius: 12, y: 6)
         }
     }
 
@@ -507,7 +514,12 @@ struct CalculatorView: View {
             }
         }
         .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.70))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.28), radius: 10, y: 5)
     }
 
     private var proPlanningUnlockCard: some View {

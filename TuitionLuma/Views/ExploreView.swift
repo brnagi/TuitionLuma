@@ -110,6 +110,7 @@ struct ExploreView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LumaTheme.coolGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .foregroundStyle(.white)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.36), radius: 16, y: 8)
     }
 
     private var searchAndFilters: some View {
@@ -152,7 +153,7 @@ struct ExploreView: View {
                 RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                     .stroke(isSearchFocused ? LumaTheme.coral.opacity(0.45) : LumaTheme.cardStroke)
             }
-            .shadow(color: LumaTheme.cardShadow.opacity(0.25), radius: 10, y: 4)
+            .shadow(color: LumaTheme.cardShadow.opacity(0.34), radius: 12, y: 6)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()

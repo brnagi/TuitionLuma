@@ -54,9 +54,9 @@ struct StudentProfileCard: View {
         .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(.white.opacity(0.72))
+                .stroke(LumaTheme.cardStroke.opacity(0.42))
         }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.16), radius: 16, y: 8)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.24), radius: 16, y: 8)
     }
 
     private var completeProfileSummary: some View {
@@ -93,7 +93,7 @@ struct StudentProfileCard: View {
             }
 
             Divider()
-                .overlay(LumaTheme.cardStroke)
+                .overlay(LumaTheme.cardStroke.opacity(0.80))
 
             VStack(alignment: .leading, spacing: 7) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -114,19 +114,19 @@ struct StudentProfileCard: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(LumaTheme.canvas.opacity(0.66), in: RoundedRectangle(cornerRadius: 14))
+            .background(LumaTheme.canvas.opacity(0.82), in: RoundedRectangle(cornerRadius: 14))
             .overlay {
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(LumaTheme.cardStroke.opacity(0.62))
+                    .stroke(LumaTheme.cardStroke.opacity(0.72))
             }
         }
         .padding(14)
         .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(.white.opacity(0.74))
+                .stroke(LumaTheme.cardStroke.opacity(0.42))
         }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.14), radius: 12, y: 6)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.22), radius: 14, y: 7)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Distance preference \(studentProfileStore.profile.distanceFromHomePreference.rawValue). Campus size \(studentProfileStore.profile.campusSizePreference.rawValue). Learning format \(studentProfileStore.profile.learningFormatPreference.rawValue). Recommendations are personalized using your profile.")
     }
@@ -302,7 +302,7 @@ struct StudentProfileEditorView: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .shadow(color: LumaTheme.coral.opacity(0.13), radius: 16, y: 8)
+        .shadow(color: LumaTheme.coral.opacity(0.18), radius: 18, y: 9)
     }
 
     private var greetingSubtitle: String {
@@ -636,6 +636,6 @@ struct StudentProfileEditorView: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(tint.opacity(0.18))
         }
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.24), radius: 10, y: 5)
     }
 }

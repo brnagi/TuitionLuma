@@ -5,18 +5,25 @@ struct LumaScoreCard: View {
     @State private var isExpanded = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Luma Score")
                         .font(.caption.weight(.heavy))
-                        .foregroundStyle(LumaTheme.slate)
+                        .foregroundStyle(scoreTint)
                         .textCase(.uppercase)
 
                     Text("\(school.lumaScore)")
-                        .font(.system(size: 48, weight: .heavy))
+                        .font(.system(size: 56, weight: .heavy))
                         .foregroundStyle(scoreTint)
                         .lineLimit(1)
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(scoreTint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(scoreTint.opacity(0.20), lineWidth: 1.5)
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
@@ -47,7 +54,7 @@ struct LumaScoreCard: View {
                 }
                 .foregroundStyle(LumaTheme.ink)
                 .padding(12)
-                .background(LumaTheme.canvas.opacity(0.85), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background(LumaTheme.canvas.opacity(0.95), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                         .stroke(LumaTheme.cardStroke.opacity(0.55))
@@ -70,13 +77,13 @@ struct LumaScoreCard: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(18)
+        .padding(20)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(scoreTint.opacity(0.28), lineWidth: 1)
+                .stroke(scoreTint.opacity(0.34), lineWidth: 1.5)
         }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.70), radius: 18, y: 9)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.92), radius: 22, y: 12)
         .accessibilityElement(children: .contain)
     }
 

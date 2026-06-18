@@ -113,7 +113,12 @@ struct CompareView: View {
                         .foregroundStyle(LumaTheme.coral)
                         .frame(maxWidth: .infinity)
                         .padding(14)
-                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                                .stroke(LumaTheme.cardStroke.opacity(0.70))
+                        }
+                        .shadow(color: LumaTheme.cardShadow.opacity(0.28), radius: 8, y: 4)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Add school")
@@ -206,7 +211,12 @@ struct CompareView: View {
         .padding(.vertical, 8)
         .padding(.leading, 14)
         .padding(.trailing, 10)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.70))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.24), radius: 8, y: 4)
     }
 
     @ViewBuilder
@@ -247,7 +257,12 @@ struct CompareView: View {
             .contentShape(Rectangle())
         }
         .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.70))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.26), radius: 9, y: 5)
     }
 
     private var comparisonTable: some View {
@@ -282,7 +297,7 @@ struct CompareView: View {
     private var primaryComparison: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Primary Comparison")
-                .font(.headline)
+                .font(.headline.weight(.heavy))
                 .foregroundStyle(LumaTheme.ink)
 
             VStack(spacing: 10) {
@@ -328,12 +343,21 @@ struct CompareView: View {
                         }
                     }
                     .padding(14)
-                    .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .background(LumaTheme.canvas.opacity(0.96), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                            .stroke(LumaTheme.cardStroke.opacity(0.56))
+                    }
                 }
             }
         }
         .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.72))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.34), radius: 12, y: 6)
         .accessibilityElement(children: .contain)
     }
 
@@ -343,7 +367,7 @@ struct CompareView: View {
                 HStack(alignment: .top, spacing: 14) {
                     VStack(spacing: 2) {
                         Text("\(topSchool.lumaScore)")
-                            .font(.system(size: 34, weight: .heavy))
+                            .font(.system(size: 42, weight: .heavy))
                             .foregroundStyle(lumaScoreColor(for: topSchool.valueLabel))
                             .lineLimit(1)
 
@@ -351,8 +375,12 @@ struct CompareView: View {
                             .font(.caption2.weight(.heavy))
                             .foregroundStyle(LumaTheme.slate)
                     }
-                    .frame(width: 74, height: 74)
+                    .frame(width: 86, height: 86)
                     .background(lumaScoreColor(for: topSchool.valueLabel).opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                            .stroke(lumaScoreColor(for: topSchool.valueLabel).opacity(0.28), lineWidth: 1.5)
+                    }
 
                     VStack(alignment: .leading, spacing: 6) {
                         Text(studentProfileStore.profile.isComplete ? "Recommended for your profile" : "Recommended School")
@@ -400,7 +428,12 @@ struct CompareView: View {
             }
         }
         .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke.opacity(0.72))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.42), radius: 14, y: 8)
         .accessibilityElement(children: .contain)
     }
 
@@ -461,10 +494,10 @@ struct CompareView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 104, alignment: .leading)
         .padding(14)
-        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(tint.opacity(0.22), lineWidth: 1)
+                .stroke(tint.opacity(0.28), lineWidth: 1.2)
         }
         .accessibilityElement(children: .combine)
     }

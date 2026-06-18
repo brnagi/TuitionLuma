@@ -17,7 +17,7 @@ struct StatPill: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(value)
-                    .font(.subheadline.weight(.heavy))
+                    .font(.headline.weight(.heavy))
                     .foregroundStyle(LumaTheme.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -28,13 +28,14 @@ struct StatPill: View {
                     .lineLimit(1)
             }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 10)
-        .background(tint.opacity(0.16), in: Capsule())
+        .padding(.vertical, 10)
+        .padding(.horizontal, 11)
+        .background(tint.opacity(0.12), in: Capsule())
         .overlay {
             Capsule()
-                .stroke(tint.opacity(0.22))
+                .stroke(tint.opacity(0.26), lineWidth: 1.2)
         }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.18), radius: 5, y: 3)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)

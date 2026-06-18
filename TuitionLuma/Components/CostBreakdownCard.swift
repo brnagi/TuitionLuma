@@ -34,7 +34,7 @@ struct CostBreakdownCard: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Estimated annual cost")
-                        .font(.headline.weight(.heavy))
+                        .font(.title3.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
                     Text("Before grants, scholarships, or family contributions.")
@@ -45,10 +45,16 @@ struct CostBreakdownCard: View {
                 Spacer()
 
                 Text(moneyText(cost.estimatedAnnualCost))
-                    .font(.title2.weight(.heavy))
-                    .foregroundStyle(LumaTheme.ink)
+                    .font(.system(size: 30, weight: .heavy))
+                    .foregroundStyle(LumaTheme.valueGreen)
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
+            }
+            .padding(14)
+            .background(LumaTheme.valueGreen.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.valueGreen.opacity(0.18))
             }
 
             VStack(spacing: 10) {
@@ -94,7 +100,7 @@ struct CostBreakdownCard: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.cardStroke)
         }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.65), radius: 16, y: 8)
+        .shadow(color: LumaTheme.cardShadow.opacity(0.78), radius: 18, y: 10)
     }
 
     private func costRow(_ row: CostRow) -> some View {
