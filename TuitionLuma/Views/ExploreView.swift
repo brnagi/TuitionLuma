@@ -492,7 +492,7 @@ private struct ExploreCoachMarkOverlay: View {
 
                 bubble
                     .frame(maxWidth: min(proxy.size.width - 40, 340))
-                    .position(x: proxy.size.width / 2, y: proxy.size.height * bubblePosition)
+                    .position(x: proxy.size.width / 2, y: bubbleY(in: proxy.size))
             }
             .ignoresSafeArea()
         }
@@ -567,12 +567,22 @@ private struct ExploreCoachMarkOverlay: View {
         .accessibilityElement(children: .contain)
     }
 
-    private var bubblePosition: CGFloat {
+    private func bubbleY(in size: CGSize) -> CGFloat {
+        let targetY = estimatedTargetY(in: size)
+        let shouldShowBelow = targetY < size.height * 0.48
+        let bubbleOffset: CGFloat = 220
+        let edgePadding: CGFloat = 150
+        let proposedY = shouldShowBelow ? targetY + bubbleOffset : targetY - bubbleOffset
+
+        return min(max(proposedY, edgePadding), size.height - edgePadding)
+    }
+
+    private func estimatedTargetY(in size: CGSize) -> CGFloat {
         switch step {
         case .save, .compare:
-            0.36
+            return size.height * 0.72
         case .profile:
-            0.50
+            return size.height * 0.28
         }
     }
 
