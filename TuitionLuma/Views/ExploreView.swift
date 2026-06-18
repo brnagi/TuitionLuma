@@ -39,12 +39,10 @@ struct ExploreView: View {
                         .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
-            .coordinateSpace(name: ExploreCoachMarkTargetKey.coordinateSpaceName)
-            .overlayPreferenceValue(ExploreCoachMarkTargetKey.self) { targets in
+            .overlay {
                 if let coachMarkStep, !hasCompletedExploreCoachMarks {
                     ExploreCoachMarkOverlay(
                         step: coachMarkStep,
-                        hasTarget: targets[coachMarkStep.target] != nil,
                         onSkip: completeCoachMarks,
                         onNext: advanceCoachMark
                     )
@@ -108,6 +106,7 @@ struct ExploreView: View {
 
             StudentProfileCard()
                 .padding(.top, 8)
+                .profileCoachMarkPulse(isActive: coachMarkStep == .profile && !hasCompletedExploreCoachMarks)
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -430,7 +429,7 @@ struct ExploreView: View {
         }
     }
 
-    private func coachMarkHighlight(forFirstCard isFirstCard: Bool) -> ExploreCoachMarkTarget? {
+    private func coachMarkHighlight(forFirstCard isFirstCard: Bool) -> ExploreCoachMarkStep? {
         guard isFirstCard, !hasCompletedExploreCoachMarks else { return nil }
 
         switch coachMarkStep {
@@ -444,39 +443,10 @@ struct ExploreView: View {
     }
 }
 
-enum ExploreCoachMarkTarget: Hashable {
-    case save
-    case compare
-    case profile
-}
-
-struct ExploreCoachMarkTargetKey: PreferenceKey {
-    static let coordinateSpaceName = "exploreCoachMarks"
-    static var defaultValue: [ExploreCoachMarkTarget: CGRect] = [:]
-
-    static func reduce(
-        value: inout [ExploreCoachMarkTarget: CGRect],
-        nextValue: () -> [ExploreCoachMarkTarget: CGRect]
-    ) {
-        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
-    }
-}
-
 enum ExploreCoachMarkStep: Int, CaseIterable {
     case save
     case compare
     case profile
-
-    var target: ExploreCoachMarkTarget {
-        switch self {
-        case .save:
-            return .save
-        case .compare:
-            return .compare
-        case .profile:
-            return .profile
-        }
-    }
 
     var title: String {
         switch self {
@@ -511,7 +481,6 @@ enum ExploreCoachMarkStep: Int, CaseIterable {
 
 private struct ExploreCoachMarkOverlay: View {
     var step: ExploreCoachMarkStep
-    var hasTarget: Bool
     var onSkip: () -> Void
     var onNext: () -> Void
 
@@ -523,7 +492,7 @@ private struct ExploreCoachMarkOverlay: View {
 
                 bubble
                     .frame(maxWidth: min(proxy.size.width - 40, 340))
-                    .position(x: proxy.size.width / 2, y: proxy.size.height * (hasTarget ? 0.36 : 0.42))
+                    .position(x: proxy.size.width / 2, y: proxy.size.height * bubblePosition)
             }
             .ignoresSafeArea()
         }
@@ -598,4 +567,46 @@ private struct ExploreCoachMarkOverlay: View {
         .accessibilityElement(children: .contain)
     }
 
+    private var bubblePosition: CGFloat {
+        switch step {
+        case .save, .compare:
+            0.36
+        case .profile:
+            0.50
+        }
+    }
+
+}
+
+private struct ProfileCoachMarkPulse: ViewModifier {
+    var isActive: Bool
+    @State private var isPulsing = false
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if isActive {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius + 4)
+                        .stroke(LumaTheme.coral, lineWidth: 3)
+                        .shadow(color: LumaTheme.coral.opacity(0.52), radius: isPulsing ? 18 : 8)
+                        .scaleEffect(isPulsing ? 1.025 : 0.995)
+                        .allowsHitTesting(false)
+                }
+            }
+            .animation(.easeInOut(duration: 0.82).repeatForever(autoreverses: true), value: isPulsing)
+            .onAppear {
+                if isActive {
+                    isPulsing = true
+                }
+            }
+            .onChange(of: isActive) { _, newValue in
+                isPulsing = newValue
+            }
+    }
+}
+
+private extension View {
+    func profileCoachMarkPulse(isActive: Bool) -> some View {
+        modifier(ProfileCoachMarkPulse(isActive: isActive))
+    }
 }

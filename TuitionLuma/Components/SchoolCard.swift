@@ -5,7 +5,7 @@ struct SchoolCard: View {
     var recommendation: ProfileRecommendation? = nil
     var isSaved: Bool
     var isCompared: Bool
-    var coachMarkHighlight: ExploreCoachMarkTarget? = nil
+    var coachMarkHighlight: ExploreCoachMarkStep? = nil
     var onSaveTapped: () -> Void
     var onCompareTapped: () -> Void
 
@@ -85,7 +85,6 @@ struct SchoolCard: View {
                 accessibilityLabel: isCompared ? "Remove school from compare" : "Compare school",
                 isActive: isCompared,
                 isHighlighted: coachMarkHighlight == .compare,
-                coachMarkTarget: coachMarkHighlight == .compare ? .compare : nil,
                 action: onCompareTapped
             )
 
@@ -96,7 +95,6 @@ struct SchoolCard: View {
                 accessibilityLabel: isSaved ? "Remove saved school" : "Save school",
                 isActive: isSaved,
                 isHighlighted: coachMarkHighlight == .save,
-                coachMarkTarget: coachMarkHighlight == .save ? .save : nil,
                 action: onSaveTapped
             )
         }
@@ -483,53 +481,44 @@ struct SchoolCard: View {
         accessibilityLabel: String,
         isActive: Bool = false,
         isHighlighted: Bool = false,
-        coachMarkTarget: ExploreCoachMarkTarget? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: systemImage)
-                    .font(.subheadline.weight(.semibold))
+            CoachMarkPulse(isActive: isHighlighted, cornerRadius: 24) {
+                HStack(spacing: 5) {
+                    Image(systemName: systemImage)
+                        .font(.subheadline.weight(.semibold))
 
-                Text(title)
-                    .font(.caption.weight(.heavy))
+                    Text(title)
+                        .font(.caption.weight(.heavy))
+                }
+                .foregroundStyle(isActive ? .white : tint)
+                .frame(minHeight: 44)
+                .padding(.vertical, 8)
+                .padding(.horizontal, isActive ? 12 : 10)
+                .background(actionButtonBackground(tint: tint, isActive: isActive, isHighlighted: isHighlighted), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(
+                            isHighlighted ? LumaTheme.coral : (isActive ? .white.opacity(0.36) : tint.opacity(0.42)),
+                            lineWidth: isHighlighted ? 3 : (isActive ? 2 : 1.5)
+                        )
+                }
+                .shadow(
+                    color: isHighlighted ? LumaTheme.coral.opacity(0.38) : (isActive ? tint.opacity(0.26) : .black.opacity(0.10)),
+                    radius: isHighlighted ? 14 : (isActive ? 10 : 6),
+                    y: isHighlighted ? 6 : (isActive ? 5 : 3)
+                )
+                .scaleEffect(isHighlighted ? 1.04 : 1)
+                .animation(.easeInOut(duration: 0.18), value: isHighlighted)
+                .animation(.easeInOut(duration: 0.18), value: isActive)
             }
-            .foregroundStyle(isActive ? .white : tint)
-            .frame(minHeight: 44)
-            .padding(.vertical, 8)
-            .padding(.horizontal, isActive ? 12 : 10)
-            .background(actionButtonBackground(tint: tint, isActive: isActive, isHighlighted: isHighlighted), in: Capsule())
-            .overlay {
-                Capsule()
-                    .stroke(
-                        isHighlighted ? LumaTheme.coral : (isActive ? .white.opacity(0.36) : tint.opacity(0.42)),
-                        lineWidth: isHighlighted ? 3 : (isActive ? 2 : 1.5)
-                    )
-            }
-            .shadow(
-                color: isHighlighted ? LumaTheme.coral.opacity(0.38) : (isActive ? tint.opacity(0.26) : .black.opacity(0.10)),
-                radius: isHighlighted ? 14 : (isActive ? 10 : 6),
-                y: isHighlighted ? 6 : (isActive ? 5 : 3)
-            )
-            .scaleEffect(isHighlighted ? 1.05 : 1)
-            .animation(.easeInOut(duration: 0.18), value: isHighlighted)
-            .animation(.easeInOut(duration: 0.18), value: isActive)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(title)
         .accessibilityHint(title == "Compared" || title == "Saved" ? "Double tap to remove." : "Double tap to add.")
         .accessibilityAddTraits(.isButton)
-        .background {
-            if let coachMarkTarget {
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: ExploreCoachMarkTargetKey.self,
-                        value: [coachMarkTarget: proxy.frame(in: .named(ExploreCoachMarkTargetKey.coordinateSpaceName))]
-                    )
-                }
-            }
-        }
     }
 
     private func actionButtonBackground(tint: Color, isActive: Bool, isHighlighted: Bool) -> AnyShapeStyle {
@@ -544,6 +533,35 @@ struct SchoolCard: View {
         return AnyShapeStyle(LumaTheme.card)
     }
 
+}
+
+private struct CoachMarkPulse<Content: View>: View {
+    var isActive: Bool
+    var cornerRadius: CGFloat
+    @ViewBuilder var content: () -> Content
+    @State private var isPulsing = false
+
+    var body: some View {
+        content()
+            .overlay {
+                if isActive {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(LumaTheme.coral.opacity(0.92), lineWidth: 3)
+                        .shadow(color: LumaTheme.coral.opacity(0.55), radius: isPulsing ? 18 : 8)
+                        .scaleEffect(isPulsing ? 1.08 : 1)
+                        .allowsHitTesting(false)
+                }
+            }
+            .animation(.easeInOut(duration: 0.82).repeatForever(autoreverses: true), value: isPulsing)
+            .onAppear {
+                if isActive {
+                    isPulsing = true
+                }
+            }
+            .onChange(of: isActive) { _, newValue in
+                isPulsing = newValue
+            }
+    }
 }
 
 private struct StateFlagBackdrop: View {
