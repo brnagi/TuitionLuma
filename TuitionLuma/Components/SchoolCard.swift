@@ -184,6 +184,11 @@ struct SchoolCard: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
+                    Text("Profile fit")
+                        .font(.caption2.weight(.heavy))
+                        .foregroundStyle(LumaTheme.slate)
+                        .textCase(.uppercase)
+
                     HStack(spacing: 7) {
                         Text(recommendation.fitLabel)
                             .font(.subheadline.weight(.heavy))
@@ -232,7 +237,7 @@ struct SchoolCard: View {
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(recommendation.affordability.rawValue)
+                Text("Cost risk: \(recommendation.affordability.rawValue)")
                     .font(.caption.weight(.heavy))
                     .foregroundStyle(affordabilityTint(for: recommendation.affordability))
 
@@ -314,7 +319,7 @@ struct SchoolCard: View {
 
     private var valueSignalTitle: String {
         if school.valueLabel == "Expensive" {
-            return "High Risk"
+            return "High Cost Risk"
         }
 
         return school.valueLabel
@@ -328,7 +333,7 @@ struct SchoolCard: View {
             "Worth a closer look"
         case "Fair Value":
             "Compare aid and debt carefully"
-        case "High Risk":
+        case "High Cost Risk":
             "Watch cost, debt, and payoff"
         default:
             "Compare value before deciding"
@@ -416,14 +421,14 @@ struct SchoolCard: View {
 
     private func confidenceLabel(for recommendation: ProfileRecommendation) -> String {
         if recommendation.roiGrade == "A", recommendation.affordability == .affordable {
-            return "High Confidence Match"
+            return "High Profile Confidence"
         }
 
         if recommendation.roiGrade == "A" || recommendation.roiGrade == "B+" || recommendation.affordability == .affordable {
-            return "Strong Match"
+            return "Strong Profile Fit"
         }
 
-        return "Good Match"
+        return "Possible Profile Fit"
     }
 
     private func recommendationReasons(for recommendation: ProfileRecommendation) -> [String] {
