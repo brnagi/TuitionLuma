@@ -79,6 +79,7 @@ struct SchoolDetailView: View {
                 .foregroundStyle(.white)
                 .lineLimit(3)
                 .minimumScaleFactor(0.72)
+                .shadow(color: .black.opacity(0.28), radius: 5, y: 2)
 
             Text(school.campusVibe)
                 .font(.headline)
@@ -116,9 +117,9 @@ struct SchoolDetailView: View {
 
                 LinearGradient(
                     colors: [
-                        .black.opacity(0.42),
-                        .black.opacity(0.18),
-                        .black.opacity(0.34)
+                        .black.opacity(0.50),
+                        .black.opacity(0.24),
+                        .black.opacity(0.40)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -153,6 +154,7 @@ struct SchoolDetailView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
+                    .shadow(color: .black.opacity(0.22), radius: 3, y: 1)
 
                 Text(title)
                     .font(.caption2.weight(.heavy))
@@ -216,17 +218,29 @@ struct SchoolDetailView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 Text("Avg aid")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.white.opacity(0.78))
+                    .foregroundStyle(.white.opacity(0.90))
 
                 Text(moneyText(school.costEstimate.averageGrantAid))
                     .font(.headline.weight(.heavy))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.74)
+                    .shadow(color: .black.opacity(0.20), radius: 3, y: 1)
             }
         }
         .padding(18)
-        .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background {
+            ZStack {
+                LumaTheme.heroGradient
+
+                LinearGradient(
+                    colors: [.black.opacity(0.20), .black.opacity(0.06)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(.white.opacity(0.18))

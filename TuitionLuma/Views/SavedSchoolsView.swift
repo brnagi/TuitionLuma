@@ -6,6 +6,7 @@ struct SavedSchoolsView: View {
     @EnvironmentObject private var studentProfileStore: StudentProfileStore
     @State private var isShowingPaywall = false
     @State private var compareLimitMessage: String?
+    @State private var programExplorerSchool: School?
 
     var body: some View {
         NavigationStack {
@@ -46,6 +47,9 @@ struct SavedSchoolsView: View {
                 PaywallView()
                     .environmentObject(proPurchaseManager)
             }
+            .navigationDestination(item: $programExplorerSchool) { school in
+                ProgramExplorerView(school: school, programs: school.programs)
+            }
         }
     }
 
@@ -60,7 +64,8 @@ struct SavedSchoolsView: View {
                 profile: studentProfileStore.profile,
                 isCompared: appViewModel.isCompared(school),
                 onRemoveTapped: { _ = appViewModel.toggleSaved(school) },
-                onCompareTapped: { compareTapped(school) }
+                onCompareTapped: { compareTapped(school) },
+                onSelectProgramTapped: { programExplorerSchool = school }
             )
         }
         .buttonStyle(.plain)
@@ -166,6 +171,7 @@ private struct SavedSchoolShortlistCard: View {
     var isCompared: Bool
     var onRemoveTapped: () -> Void
     var onCompareTapped: () -> Void
+    var onSelectProgramTapped: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -202,6 +208,13 @@ private struct SavedSchoolShortlistCard: View {
             programPlanSection
 
             HStack(spacing: 10) {
+                shortlistAction(
+                    title: displayedProgramChoice == nil ? "Select Course" : "Change Course",
+                    systemImage: "book.closed",
+                    tint: LumaTheme.coral,
+                    action: onSelectProgramTapped
+                )
+
                 shortlistAction(
                     title: isCompared ? "Compared" : "Compare",
                     systemImage: isCompared ? "checkmark.circle.fill" : "plus.circle",

@@ -8,18 +8,31 @@ struct ProgramExplorerView: View {
     @State private var searchText = ""
     @State private var selectedCategory = "All"
     @State private var selectedCredential = "All"
+    @State private var loadedPrograms: [AcademicProgram]
+    @State private var isLoadingPrograms = false
+    @State private var loadErrorMessage: String?
     @FocusState private var isSearchFocused: Bool
 
+    init(school: School, programs: [AcademicProgram]) {
+        self.school = school
+        self.programs = programs
+        _loadedPrograms = State(initialValue: programs)
+    }
+
+    private var availablePrograms: [AcademicProgram] {
+        loadedPrograms.isEmpty ? programs : loadedPrograms
+    }
+
     private var categories: [String] {
-        ["All"] + Array(Set(programs.compactMap(\.category))).sorted()
+        ["All"] + Array(Set(availablePrograms.compactMap(\.category))).sorted()
     }
 
     private var credentials: [String] {
-        ["All"] + Array(Set(programs.map(\.credential))).sorted()
+        ["All"] + Array(Set(availablePrograms.map(\.credential))).sorted()
     }
 
     private var filteredPrograms: [AcademicProgram] {
-        programs
+        availablePrograms
             .filter { program in
                 searchText.isEmpty || program.name.localizedCaseInsensitiveContains(searchText)
             }
@@ -50,10 +63,13 @@ struct ProgramExplorerView: View {
                 searchField
                 filters
 
-                if filteredPrograms.isEmpty {
+                if isLoadingPrograms {
+                    LoadingStateView(title: "Loading programs...")
+                        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                } else if filteredPrograms.isEmpty {
                     EmptyStateView(
                         title: "No matching programs",
-                        message: "Try a different search or filter.",
+                        message: loadErrorMessage ?? "Try a different search or filter.",
                         systemImage: "magnifyingglass"
                     )
                     .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
@@ -78,6 +94,9 @@ struct ProgramExplorerView: View {
         .scrollDismissesKeyboard(.interactively)
         .onTapGesture {
             isSearchFocused = false
+        }
+        .task {
+            await loadProgramsIfNeeded()
         }
         .navigationTitle("All Programs")
         .navigationBarTitleDisplayMode(.inline)
@@ -240,5 +259,32 @@ struct ProgramListRow: View {
         ]
         .compactMap { $0 }
         .joined(separator: " • ")
+    }
+}
+
+private extension ProgramExplorerView {
+    func loadProgramsIfNeeded() async {
+        guard loadedPrograms.isEmpty,
+              let scorecardID = school.scorecardID else {
+            return
+        }
+
+        await MainActor.run {
+            isLoadingPrograms = true
+            loadErrorMessage = nil
+        }
+
+        do {
+            let fetchedPrograms = try await CollegeScorecardService().fetchProgramsForSchool(schoolId: scorecardID)
+            await MainActor.run {
+                loadedPrograms = fetchedPrograms
+                isLoadingPrograms = false
+            }
+        } catch {
+            await MainActor.run {
+                loadErrorMessage = "Program data is not available for this school right now."
+                isLoadingPrograms = false
+            }
+        }
     }
 }
