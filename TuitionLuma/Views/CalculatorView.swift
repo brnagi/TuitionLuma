@@ -145,7 +145,13 @@ struct CalculatorView: View {
                     .font(.headline.weight(.heavy))
                     .foregroundStyle(.white)
                     .frame(width: 42, height: 42)
-                    .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: 14))
+                    .background {
+                        ZStack {
+                            LumaTheme.heroGradient
+                            LumaTheme.readableGradientOverlay.opacity(0.34)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -343,6 +349,7 @@ struct CalculatorView: View {
             Text("Your estimated price")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(.white)
+                .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -351,6 +358,7 @@ struct CalculatorView: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
+                        .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
                     Text("net annual cost")
                         .font(.subheadline.weight(.bold))
@@ -365,6 +373,7 @@ struct CalculatorView: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
+                        .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
                     Text("\(viewModel.aidInput.yearsInSchool)-year total")
                         .font(.caption.weight(.bold))
@@ -386,7 +395,13 @@ struct CalculatorView: View {
             }
         }
         .padding(20)
-        .background(LumaTheme.heroGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background {
+            ZStack {
+                LumaTheme.heroGradient
+                LumaTheme.readableGradientOverlay.opacity(0.50)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
         .shadow(color: LumaTheme.coral.opacity(0.18), radius: 16, y: 8)
     }
 
@@ -526,6 +541,7 @@ struct CalculatorView: View {
         VStack(alignment: .leading, spacing: 16) {
             ZStack(alignment: .topTrailing) {
                 LumaTheme.heroGradient
+                LumaTheme.readableGradientOverlay.opacity(0.46)
 
                 Circle()
                     .fill(.white.opacity(0.18))
@@ -543,6 +559,7 @@ struct CalculatorView: View {
                             Text("$4.99")
                                 .font(.title3.weight(.heavy))
                                 .foregroundStyle(.white)
+                                .shadow(color: LumaTheme.gradientTextShadow, radius: 3, y: 1)
 
                             Text("one-time unlock")
                                 .font(.caption2.weight(.bold))
@@ -558,6 +575,7 @@ struct CalculatorView: View {
                             .font(.title2.weight(.heavy))
                             .foregroundStyle(.white)
                             .fixedSize(horizontal: false, vertical: true)
+                            .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
                         Text("Unlock aid planning, repayment forecasts, scenarios, and a polished family report.")
                             .font(.subheadline.weight(.semibold))
@@ -602,7 +620,13 @@ struct CalculatorView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: 54)
-                    .background(LumaTheme.heroGradient, in: Capsule())
+                    .background {
+                        ZStack {
+                            LumaTheme.heroGradient
+                            LumaTheme.readableGradientOverlay.opacity(0.34)
+                        }
+                        .clipShape(Capsule())
+                    }
             }
             .buttonStyle(.plain)
             .accessibilityHint("Opens the TuitionLuma Pro unlock screen.")

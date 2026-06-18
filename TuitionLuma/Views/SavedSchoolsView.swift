@@ -209,13 +209,6 @@ private struct SavedSchoolShortlistCard: View {
 
             HStack(spacing: 10) {
                 shortlistAction(
-                    title: displayedProgramChoice == nil ? "Select Course" : "Change Course",
-                    systemImage: "book.closed",
-                    tint: LumaTheme.coral,
-                    action: onSelectProgramTapped
-                )
-
-                shortlistAction(
                     title: isCompared ? "Compared" : "Compare",
                     systemImage: isCompared ? "checkmark.circle.fill" : "plus.circle",
                     tint: isCompared ? LumaTheme.scorePurple : LumaTheme.ink,
@@ -323,7 +316,8 @@ private struct SavedSchoolShortlistCard: View {
 
     @ViewBuilder
     private var programPlanSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        Button(action: onSelectProgramTapped) {
+            VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: displayedProgramChoice == nil ? "book.closed" : "checkmark.seal.fill")
                     .font(.headline.weight(.heavy))
@@ -354,6 +348,11 @@ private struct SavedSchoolShortlistCard: View {
                 }
 
                 Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.slate)
+                    .accessibilityHidden(true)
             }
 
             if let displayedProgramChoice {
@@ -384,12 +383,16 @@ private struct SavedSchoolShortlistCard: View {
                 }
             }
         }
-        .padding(13)
-        .background(LumaTheme.canvas.opacity(0.74), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke((displayedProgramChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.20)))
+            .padding(13)
+            .background(LumaTheme.canvas.opacity(0.74), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke((displayedProgramChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.20)), lineWidth: displayedProgramChoice == nil ? 1 : 1.4)
+            }
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(displayedProgramChoice == nil ? "Select course" : "Change course")
+        .accessibilityHint("Opens this school's program list.")
     }
 
     private var displayedProgramChoice: SavedProgramChoice? {

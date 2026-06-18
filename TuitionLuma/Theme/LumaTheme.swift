@@ -37,6 +37,18 @@ enum LumaTheme {
         endPoint: .bottomTrailing
     )
 
+    static let readableGradientOverlay = LinearGradient(
+        colors: [
+            .black.opacity(0.30),
+            .black.opacity(0.12),
+            .black.opacity(0.24)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    static let gradientTextShadow = Color.black.opacity(0.26)
+
     static func color(hex: String?, fallback: Color) -> Color {
         guard let hex else { return fallback }
 

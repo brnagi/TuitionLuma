@@ -44,7 +44,7 @@ struct ExploreView: View {
                 if let coachMarkStep, !hasCompletedExploreCoachMarks {
                     ExploreCoachMarkOverlay(
                         step: coachMarkStep,
-                        targetRect: targets[coachMarkStep.target],
+                        hasTarget: targets[coachMarkStep.target] != nil,
                         onSkip: completeCoachMarks,
                         onNext: advanceCoachMark
                     )
@@ -94,21 +94,30 @@ struct ExploreView: View {
             Text("Explore")
                 .font(.largeTitle.weight(.heavy))
                 .foregroundStyle(.white)
+                .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
             Text("Find a college that fits your future and your wallet.")
                 .font(.title2.weight(.heavy))
                 .foregroundStyle(.white)
+                .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
             Text("Search by school name or state abbreviation.")
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.white.opacity(0.94))
+                .shadow(color: LumaTheme.gradientTextShadow, radius: 3, y: 1)
 
             StudentProfileCard()
                 .padding(.top, 8)
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(LumaTheme.coolGradient, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background {
+            ZStack {
+                LumaTheme.coolGradient
+                LumaTheme.readableGradientOverlay.opacity(0.58)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        }
         .foregroundStyle(.white)
         .shadow(color: LumaTheme.cardShadow.opacity(0.36), radius: 16, y: 8)
     }
@@ -502,10 +511,9 @@ enum ExploreCoachMarkStep: Int, CaseIterable {
 
 private struct ExploreCoachMarkOverlay: View {
     var step: ExploreCoachMarkStep
-    var targetRect: CGRect?
+    var hasTarget: Bool
     var onSkip: () -> Void
     var onNext: () -> Void
-    @State private var isPulsing = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -513,64 +521,14 @@ private struct ExploreCoachMarkOverlay: View {
                 Color.black.opacity(0.46)
                     .ignoresSafeArea()
 
-                if let targetRect, !targetRect.isEmpty {
-                    let bubbleIsBelow = targetRect.midY < proxy.size.height * 0.58
-
-                    targetEmphasis(targetRect: targetRect, isBelow: bubbleIsBelow)
-
-                    bubble
-                        .frame(maxWidth: min(proxy.size.width - 40, 340))
-                        .position(
-                            x: min(max(targetRect.midX, 190), proxy.size.width - 190),
-                            y: bubbleY(targetRect: targetRect, in: proxy.size, isBelow: bubbleIsBelow)
-                        )
-                } else {
-                    bubble
-                        .frame(maxWidth: min(proxy.size.width - 40, 340))
-                        .position(x: proxy.size.width / 2, y: proxy.size.height * 0.42)
-                }
+                bubble
+                    .frame(maxWidth: min(proxy.size.width - 40, 340))
+                    .position(x: proxy.size.width / 2, y: proxy.size.height * (hasTarget ? 0.36 : 0.42))
             }
             .ignoresSafeArea()
         }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
-                isPulsing = true
-            }
-        }
         .transition(.opacity.combined(with: .scale(scale: 0.98)))
         .zIndex(20)
-    }
-
-    private func targetEmphasis(targetRect: CGRect, isBelow: Bool) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 22)
-                .fill(.white.opacity(0.12))
-                .frame(
-                    width: max(96, targetRect.width + 24),
-                    height: max(54, targetRect.height + 22)
-                )
-                .position(x: targetRect.midX, y: targetRect.midY)
-
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(LumaTheme.coral, lineWidth: 3)
-                .frame(
-                    width: max(96, targetRect.width + 24),
-                    height: max(54, targetRect.height + 22)
-                )
-                .shadow(color: LumaTheme.coral.opacity(0.55), radius: isPulsing ? 18 : 8, y: 0)
-                .scaleEffect(isPulsing ? 1.05 : 0.98)
-                .position(x: targetRect.midX, y: targetRect.midY)
-
-            Image(systemName: isBelow ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
-                .font(.system(size: 30, weight: .heavy))
-                .foregroundStyle(.white, LumaTheme.coral)
-                .shadow(color: .black.opacity(0.20), radius: 8, y: 4)
-                .position(
-                    x: targetRect.midX,
-                    y: isBelow ? targetRect.minY - 28 : targetRect.maxY + 28
-                )
-        }
-        .allowsHitTesting(false)
     }
 
     private var bubble: some View {
@@ -616,7 +574,13 @@ private struct ExploreCoachMarkOverlay: View {
                     .foregroundStyle(.white)
                     .frame(minHeight: 44)
                     .padding(.horizontal, 16)
-                    .background(LumaTheme.heroGradient, in: Capsule())
+                    .background {
+                        ZStack {
+                            LumaTheme.heroGradient
+                            LumaTheme.readableGradientOverlay.opacity(0.34)
+                        }
+                        .clipShape(Capsule())
+                    }
                     .overlay {
                         Capsule()
                             .stroke(.white.opacity(0.28), lineWidth: 1)
@@ -634,12 +598,4 @@ private struct ExploreCoachMarkOverlay: View {
         .accessibilityElement(children: .contain)
     }
 
-    private func bubbleY(targetRect: CGRect, in size: CGSize, isBelow: Bool) -> CGFloat {
-        let spacing: CGFloat = 112
-        if isBelow {
-            return min(targetRect.maxY + spacing, size.height - 158)
-        }
-
-        return max(targetRect.minY - spacing, 156)
-    }
 }

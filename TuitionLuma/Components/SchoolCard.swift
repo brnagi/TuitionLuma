@@ -271,6 +271,9 @@ struct SchoolCard: View {
                 endRadius: 220
             )
 
+            LumaTheme.readableGradientOverlay
+                .opacity(0.72)
+
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 7) {
                     Text(valueSignalTitle)
@@ -278,11 +281,13 @@ struct SchoolCard: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
+                        .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
                     Text(valueSignalSubtitle)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(.white.opacity(0.84))
+                        .foregroundStyle(.white.opacity(0.92))
                         .lineLimit(2)
+                        .shadow(color: LumaTheme.gradientTextShadow, radius: 3, y: 1)
                 }
 
                 Spacer()
@@ -292,16 +297,17 @@ struct SchoolCard: View {
                         .font(.system(size: 38, weight: .heavy))
                         .foregroundStyle(.white)
                         .lineLimit(1)
+                        .shadow(color: LumaTheme.gradientTextShadow, radius: 4, y: 2)
 
                     Text("LumaScore")
                         .font(.caption2.weight(.heavy))
-                        .foregroundStyle(.white.opacity(0.82))
+                        .foregroundStyle(.white.opacity(0.92))
                 }
                 .frame(width: 74, height: 74)
-                .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                        .stroke(.white.opacity(0.20))
+                        .stroke(.white.opacity(0.28))
                 }
             }
             .padding(18)

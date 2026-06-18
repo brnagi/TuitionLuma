@@ -233,11 +233,7 @@ struct SchoolDetailView: View {
             ZStack {
                 LumaTheme.heroGradient
 
-                LinearGradient(
-                    colors: [.black.opacity(0.20), .black.opacity(0.06)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
+                LumaTheme.readableGradientOverlay.opacity(0.46)
             }
             .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
