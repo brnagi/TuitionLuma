@@ -186,9 +186,18 @@ struct SchoolCard: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(recommendation.fitLabel)
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
+                    HStack(spacing: 7) {
+                        Text(recommendation.fitLabel)
+                            .font(.subheadline.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+
+                        Text(confidenceLabel(for: recommendation))
+                            .font(.caption2.weight(.heavy))
+                            .foregroundStyle(recommendationTint(for: recommendation))
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 7)
+                            .background(recommendationTint(for: recommendation).opacity(0.12), in: Capsule())
+                    }
 
                     Text(recommendation.summary)
                         .font(.caption)
@@ -209,6 +218,19 @@ struct SchoolCard: View {
                     value: recommendation.roiGrade,
                     tint: recommendationTint(for: recommendation)
                 )
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Why this school?")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(LumaTheme.ink)
+
+                ForEach(recommendationReasons(for: recommendation), id: \.self) { reason in
+                    Label(reason, systemImage: "checkmark.circle.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LumaTheme.slate)
+                        .labelStyle(.titleAndIcon)
+                }
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -386,6 +408,55 @@ struct SchoolCard: View {
         default:
             LumaTheme.warningOrange
         }
+    }
+
+    private func confidenceLabel(for recommendation: ProfileRecommendation) -> String {
+        if recommendation.roiGrade == "A", recommendation.affordability == .affordable {
+            return "High Confidence Match"
+        }
+
+        if recommendation.roiGrade == "A" || recommendation.roiGrade == "B+" || recommendation.affordability == .affordable {
+            return "Strong Match"
+        }
+
+        return "Good Match"
+    }
+
+    private func recommendationReasons(for recommendation: ProfileRecommendation) -> [String] {
+        var reasons: [String] = []
+
+        if recommendation.roiGrade == "A" || recommendation.roiGrade == "B+" {
+            reasons.append("Strong ROI for your profile")
+        }
+
+        switch recommendation.affordability {
+        case .affordable:
+            reasons.append("Affordable for your income range")
+        case .stretch:
+            reasons.append("May fit with careful aid planning")
+        case .highRisk:
+            reasons.append("Higher cost risk to review")
+        }
+
+        if school.medianEarnings >= 65_000 {
+            reasons.append("Strong earnings outcomes")
+        } else if school.medianEarnings > 0 {
+            reasons.append("Earnings outcomes are reported")
+        }
+
+        if school.graduationRate >= 0.65 {
+            reasons.append("Above-average graduation rate")
+        }
+
+        if school.lumaScore >= 70 {
+            reasons.append("Strong overall value")
+        }
+
+        if reasons.isEmpty {
+            reasons.append("Uses your profile and available school outcomes")
+        }
+
+        return Array(reasons.prefix(4))
     }
 
     private func affordabilityTint(for affordability: AffordabilityClassification) -> Color {

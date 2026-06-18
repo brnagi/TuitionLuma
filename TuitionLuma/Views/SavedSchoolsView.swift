@@ -198,6 +198,7 @@ private struct SavedSchoolShortlistCard: View {
             }
 
             metricRow
+            shortlistInsightRow
             programPlanSection
 
             HStack(spacing: 10) {
@@ -279,6 +280,32 @@ private struct SavedSchoolShortlistCard: View {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(LumaTheme.cardStroke.opacity(0.55))
         }
+    }
+
+    private var shortlistInsightRow: some View {
+        HStack(spacing: 8) {
+            shortlistInsight(
+                title: "Value",
+                value: isStrongestValue ? "Strongest" : school.valueLabel,
+                systemImage: "sparkles",
+                tint: scoreTint
+            )
+
+            shortlistInsight(
+                title: "Debt",
+                value: isLowestDebt ? "Lowest" : debtSummary,
+                systemImage: "creditcard.fill",
+                tint: LumaTheme.sun
+            )
+
+            shortlistInsight(
+                title: "Earnings",
+                value: isHighestEarnings ? "Highest" : earningsSummary,
+                systemImage: "chart.line.uptrend.xyaxis",
+                tint: LumaTheme.outcomeTeal
+            )
+        }
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder
@@ -391,6 +418,44 @@ private struct SavedSchoolShortlistCard: View {
         }
     }
 
+    private var isStrongestValue: Bool {
+        guard let best = savedSchools.max(by: { $0.lumaScore < $1.lumaScore }) else {
+            return false
+        }
+
+        return best.id == school.id
+    }
+
+    private var isLowestDebt: Bool {
+        guard school.averageDebt > 0,
+              let lowest = savedSchools
+                .filter({ $0.averageDebt > 0 })
+                .min(by: { $0.averageDebt < $1.averageDebt }) else {
+            return false
+        }
+
+        return lowest.id == school.id
+    }
+
+    private var isHighestEarnings: Bool {
+        guard school.medianEarnings > 0,
+              let highest = savedSchools
+                .filter({ $0.medianEarnings > 0 })
+                .max(by: { $0.medianEarnings < $1.medianEarnings }) else {
+            return false
+        }
+
+        return highest.id == school.id
+    }
+
+    private var debtSummary: String {
+        school.averageDebt > 0 ? LumaFormat.compactCurrency(school.averageDebt) : "N/A"
+    }
+
+    private var earningsSummary: String {
+        school.medianEarnings > 0 ? LumaFormat.compactCurrency(school.medianEarnings) : "N/A"
+    }
+
     private func programMetric(title: String, value: String, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(value)
@@ -407,6 +472,31 @@ private struct SavedSchoolShortlistCard: View {
         .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
         .padding(.horizontal, 10)
         .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
+    }
+
+    private func shortlistInsight(title: String, value: String, systemImage: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(title, systemImage: systemImage)
+                .font(.caption2.weight(.heavy))
+                .foregroundStyle(LumaTheme.slate)
+                .labelStyle(.titleAndIcon)
+
+            Text(value)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+        .padding(.horizontal, 10)
+        .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.14))
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)

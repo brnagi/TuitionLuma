@@ -66,12 +66,29 @@ struct LumaScoreCard: View {
             .accessibilityHint(isExpanded ? "Hides score details." : "Shows score details.")
 
             if isExpanded {
-                VStack(alignment: .leading, spacing: 9) {
-                    ForEach(explanationBullets, id: \.self) { bullet in
-                        Label(bullet, systemImage: "checkmark.circle.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(LumaTheme.slate)
-                            .labelStyle(.titleAndIcon)
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(scoreFactorGroups) { group in
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: group.systemImage)
+                                .font(.subheadline.weight(.heavy))
+                                .foregroundStyle(group.tint)
+                                .frame(width: 28, height: 28)
+                                .background(group.tint.opacity(0.12), in: Circle())
+                                .accessibilityHidden(true)
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(group.title)
+                                    .font(.subheadline.weight(.heavy))
+                                    .foregroundStyle(LumaTheme.ink)
+
+                                Text(group.explanation)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(LumaTheme.slate)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(10)
+                        .background(group.tint.opacity(0.07), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -98,37 +115,74 @@ struct LumaScoreCard: View {
         "A quick read on cost, earnings, debt, and completion outcomes."
     }
 
-    private var explanationBullets: [String] {
-        var bullets: [String] = []
-
-        if school.medianEarnings >= 65_000 {
-            bullets.append("Strong earnings outcomes")
-        } else if school.medianEarnings > 0 {
-            bullets.append("Earnings outcomes are available")
-        }
-
-        if school.averageDebt > 0, school.averageDebt <= 24_000 {
-            bullets.append("Manageable student debt")
-        } else if school.averageDebt > 0 {
-            bullets.append("Student debt is part of the value picture")
-        }
-
-        if school.graduationRate >= 0.65 {
-            bullets.append("Above-average graduation rate")
-        } else if school.graduationRate > 0 {
-            bullets.append("Graduation outcomes are included")
-        }
-
-        if school.costEstimate.averageNetPrice > 0, school.costEstimate.averageNetPrice <= 18_000 {
-            bullets.append("Competitive net price")
-        } else if school.costEstimate.averageNetPrice > 0 {
-            bullets.append("Net price is included in the score")
-        }
-
-        if bullets.isEmpty {
-            bullets.append("Uses the best available cost and outcome data")
-        }
-
-        return Array(bullets.prefix(4))
+    private var scoreFactorGroups: [ScoreFactorGroup] {
+        [
+            ScoreFactorGroup(
+                title: "Cost",
+                explanation: costExplanation,
+                systemImage: "dollarsign.circle.fill",
+                tint: LumaTheme.valueGreen
+            ),
+            ScoreFactorGroup(
+                title: "Outcomes",
+                explanation: outcomesExplanation,
+                systemImage: "chart.line.uptrend.xyaxis.circle.fill",
+                tint: LumaTheme.outcomeTeal
+            ),
+            ScoreFactorGroup(
+                title: "Debt",
+                explanation: debtExplanation,
+                systemImage: "creditcard.fill",
+                tint: LumaTheme.sun
+            )
+        ]
     }
+
+    private var costExplanation: String {
+        if school.costEstimate.averageNetPrice > 0, school.costEstimate.averageNetPrice <= 18_000 {
+            return "Competitive net price strengthens the value signal."
+        }
+
+        if school.costEstimate.averageNetPrice > 0 {
+            return "Net price is part of the score and should be compared with aid."
+        }
+
+        return "Cost is based on the best reported school data available."
+    }
+
+    private var outcomesExplanation: String {
+        if school.medianEarnings >= 65_000, school.graduationRate >= 0.65 {
+            return "Strong earnings and completion outcomes support this score."
+        }
+
+        if school.medianEarnings > 0 {
+            return "Reported earnings help estimate long-term payoff."
+        }
+
+        if school.graduationRate > 0 {
+            return "Graduation outcomes are included in the value picture."
+        }
+
+        return "Outcome data is limited, so compare carefully."
+    }
+
+    private var debtExplanation: String {
+        if school.averageDebt > 0, school.averageDebt <= 24_000 {
+            return "Reported student debt appears manageable compared with many schools."
+        }
+
+        if school.averageDebt > 0 {
+            return "Debt is included so lower cost does not hide borrowing risk."
+        }
+
+        return "Debt information is limited for this school."
+    }
+}
+
+private struct ScoreFactorGroup: Identifiable {
+    let id = UUID()
+    var title: String
+    var explanation: String
+    var systemImage: String
+    var tint: Color
 }
