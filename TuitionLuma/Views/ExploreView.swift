@@ -490,9 +490,21 @@ private struct ExploreCoachMarkOverlay: View {
                 Color.black.opacity(0.46)
                     .ignoresSafeArea()
 
-                bubble
-                    .frame(maxWidth: min(proxy.size.width - 40, 340))
-                    .position(x: proxy.size.width / 2, y: bubbleY(in: proxy.size))
+                if step == .profile {
+                    VStack {
+                        Spacer()
+
+                        bubble
+                            .frame(maxWidth: min(proxy.size.width - 40, 360))
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 28)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    bubble
+                        .frame(maxWidth: min(proxy.size.width - 40, 340))
+                        .position(x: proxy.size.width / 2, y: bubbleY(in: proxy.size))
+                }
             }
             .ignoresSafeArea()
         }
