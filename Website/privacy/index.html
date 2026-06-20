@@ -32,17 +32,20 @@
       <section>
         <h2>Information stored on your device</h2>
         <p>
-          TuitionLuma may store saved schools, compared schools, student profile details, calculator settings, preferred programs, and saved repayment plans locally on your device. Student profile fields may include nickname, GPA, optional SAT or ACT information, state residency, intended major, family income range, debt tolerance, public/private preference, distance from home preference, campus size preference, and learning format preference.
+          TuitionLuma may store saved schools, compared schools, student profile details, calculator settings, preferred programs, personalized aid plans, and saved repayment plans locally on your device. Student profile fields may include nickname, GPA, optional SAT or ACT information, state residency, intended major or program interest, family income range, debt tolerance, public/private preference, distance from home preference, campus size preference, and learning format preference.
         </p>
         <p>
-          Saved repayment plans are stored locally on your device so you can revisit loan term, monthly payment, total repayment, and scenario details in the app.
+          Saved aid and repayment plans are stored locally on your device so you can revisit scholarship, grant, family contribution, loan term, monthly payment, total repayment, and scenario details in the app. TuitionLuma does not create user accounts, and these planning details are not uploaded to Incisive Labs servers.
         </p>
       </section>
 
       <section>
-        <h2>College data sources</h2>
+        <h2>College data and Cloudflare proxy</h2>
         <p>
-          TuitionLuma uses College Scorecard data from the U.S. Department of Education where available. School searches and college detail requests may send school names, state filters, or selected school identifiers to the College Scorecard API.
+          TuitionLuma uses College Scorecard data from the U.S. Department of Education where available. The app requests college and program data through a Cloudflare Worker proxy operated for TuitionLuma. The proxy forwards school searches, state filters, selected school identifiers, pagination fields, and requested College Scorecard fields to College Scorecard while keeping the College Scorecard API key out of the app.
+        </p>
+        <p>
+          Cloudflare may receive standard technical information associated with these requests, such as IP address, request time, user agent, requested route, cache status, and query parameters needed to return college data. The proxy includes basic rate limiting and caching. Student profile details such as GPA, SAT or ACT information, income range, debt tolerance, saved aid plans, and saved repayment plans are not sent to Cloudflare.
         </p>
       </section>
 
@@ -56,7 +59,14 @@
       <section>
         <h2>Purchases</h2>
         <p>
-          TuitionLuma Pro is planned as a one-time purchase. In-app purchases are handled by Apple, and purchase management is subject to Apple&apos;s payment and refund policies.
+          TuitionLuma Pro is offered as a one-time in-app purchase. Purchases, restore purchases, and entitlement checks are handled by Apple StoreKit and are subject to Apple&apos;s payment, privacy, and refund policies. TuitionLuma stores a local entitlement cache only to help the app display Pro status between StoreKit checks; StoreKit verification remains the source of truth.
+        </p>
+      </section>
+
+      <section>
+        <h2>Analytics and crash reporting</h2>
+        <p>
+          TuitionLuma does not include third-party analytics SDKs, advertising trackers, or third-party crash reporting SDKs. We may review operational information from Cloudflare related to the college data proxy, but TuitionLuma does not use that information to build advertising profiles.
         </p>
       </section>
 
