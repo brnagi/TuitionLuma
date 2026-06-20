@@ -368,14 +368,16 @@ struct SchoolCard: View {
             Text(value)
                 .font(.headline.weight(.heavy))
                 .foregroundStyle(tint)
-                .lineLimit(2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
 
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
                 .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
         .padding(.horizontal, 10)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
@@ -387,14 +389,16 @@ struct SchoolCard: View {
             Text(value)
                 .font(.headline.weight(.heavy))
                 .foregroundStyle(tint)
-                .lineLimit(2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
 
             Text(title)
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
                 .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
         .padding(10)
         .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {

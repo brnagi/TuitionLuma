@@ -1218,10 +1218,10 @@ struct CalculatorView: View {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 70, alignment: .leading)
         .padding(12)
         .lumaInsetCard(tint: tint, opacity: 0.08)
     }
@@ -1493,8 +1493,10 @@ private struct SavedRepaymentPlanDetailView: View {
             Text(title)
                 .font(.caption.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 82, alignment: .leading)
         .padding(14)
         .background(tint.opacity(0.11), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }

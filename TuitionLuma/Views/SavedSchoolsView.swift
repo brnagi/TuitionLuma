@@ -549,9 +549,10 @@ private struct SavedSchoolShortlistCard: View {
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
         .padding(.horizontal, 10)
         .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .accessibilityElement(children: .combine)
@@ -632,6 +633,7 @@ private struct SavedSchoolShortlistCard: View {
                 .font(.subheadline.weight(.heavy))
                 .foregroundStyle(tint)
                 .lineLimit(1)
+                .minimumScaleFactor(0.82)
 
             Text(title)
                 .font(.caption2.weight(.semibold))

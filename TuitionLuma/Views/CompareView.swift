@@ -512,9 +512,10 @@ struct CompareView: View {
             Text(title)
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
         .padding(.horizontal, 10)
         .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 12))
     }

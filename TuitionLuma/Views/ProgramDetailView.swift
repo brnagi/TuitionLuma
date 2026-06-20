@@ -164,8 +164,10 @@ struct ProgramDetailView: View {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
         .padding(14)
         .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }

@@ -25,14 +25,16 @@ struct StatPill: View {
                 Text(title)
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(LumaTheme.slate)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
         .padding(.vertical, 10)
         .padding(.horizontal, 11)
-        .background(tint.opacity(0.12), in: Capsule())
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
-            Capsule()
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(tint.opacity(0.26), lineWidth: 1.2)
         }
         .shadow(color: LumaTheme.cardShadow.opacity(0.18), radius: 5, y: 3)
