@@ -9,7 +9,6 @@ struct OnboardingView: View {
     private enum OnboardingField: Hashable {
         case nickname
         case testScore
-        case intendedMajor
     }
 
     init(profile: Binding<StudentProfile>, onContinue: @escaping () -> Void) {
@@ -165,7 +164,7 @@ struct OnboardingView: View {
     private var academicSection: some View {
         onboardingSection(
             title: "Academic profile",
-            subtitle: "GPA, test scores, and major help tune fit and outcome estimates.",
+            subtitle: "GPA and test scores help tune fit and outcome estimates.",
             systemImage: "graduationcap.fill",
             tint: LumaTheme.coral
         ) {
@@ -197,31 +196,14 @@ struct OnboardingView: View {
                 .focused($focusedField, equals: .testScore)
                 .keyboardType(.numbersAndPunctuation)
                 .textInputAutocapitalization(.never)
-                .submitLabel(.next)
+                .submitLabel(.done)
                 .onSubmit {
-                    focusedField = .intendedMajor
+                    focusedField = nil
                 }
                 .lumaTextField(isFocused: focusedField == .testScore)
                 .id(OnboardingField.testScore)
                 .accessibilityLabel("SAT or ACT score")
                 .accessibilityHint("Optional.")
-
-                TextField(
-                    text: $draft.intendedMajor,
-                    prompt: Text("Intended major, for example Computer Science")
-                        .foregroundStyle(LumaTheme.slate)
-                ) {
-                    Text("Intended major")
-                }
-                .focused($focusedField, equals: .intendedMajor)
-                .textInputAutocapitalization(.words)
-                .submitLabel(.done)
-                .onSubmit {
-                    focusedField = nil
-                }
-                .lumaTextField(isFocused: focusedField == .intendedMajor)
-                .id(OnboardingField.intendedMajor)
-                .accessibilityLabel("Intended major")
             }
         }
     }
