@@ -21,7 +21,7 @@ struct StudentProfileCard: View {
     }
 
     private var incompleteProfilePrompt: some View {
-        HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(promptTitle)
                     .font(.headline.weight(.heavy))
@@ -38,17 +38,15 @@ struct StudentProfileCard: View {
             Button(promptCTA) {
                 isShowingEditor = true
             }
-            .font(.subheadline.weight(.heavy))
+            .font(.headline.weight(.heavy))
             .foregroundStyle(.white)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 48)
             .background(LumaTheme.outcomeTeal, in: Capsule())
             .shadow(color: LumaTheme.outcomeTeal.opacity(0.18), radius: 12, y: 6)
             .buttonStyle(.plain)
-            .frame(minHeight: 44)
             .accessibilityHint("Opens the student profile form.")
         }
-        .padding(14)
+        .padding(16)
         .background(profileCardBackground, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
