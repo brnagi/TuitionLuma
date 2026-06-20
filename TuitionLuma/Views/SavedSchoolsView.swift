@@ -223,13 +223,7 @@ private struct SavedSchoolShortlistCard: View {
                 )
             }
         }
-        .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke)
-        }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.8), radius: 14, y: 8)
+        .lumaCard(padding: 16, shadowOpacity: 0.48)
     }
 
     private var lumaScoreBlock: some View {
@@ -281,11 +275,7 @@ private struct SavedSchoolShortlistCard: View {
             )
         }
         .padding(.vertical, 11)
-        .background(LumaTheme.canvas.opacity(0.85), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke.opacity(0.55))
-        }
+        .lumaInsetCard(tint: LumaTheme.slate, opacity: 0.07)
     }
 
     private var shortlistInsightRow: some View {
@@ -384,10 +374,10 @@ private struct SavedSchoolShortlistCard: View {
             }
         }
             .padding(13)
-            .background(LumaTheme.canvas.opacity(0.74), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .background((displayedProgramChoice == nil ? LumaTheme.slate : LumaTheme.coral).opacity(displayedProgramChoice == nil ? 0.06 : 0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    .stroke((displayedProgramChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.20)), lineWidth: displayedProgramChoice == nil ? 1 : 1.4)
+                    .stroke((displayedProgramChoice == nil ? LumaTheme.cardStroke : LumaTheme.coral.opacity(0.24)), lineWidth: displayedProgramChoice == nil ? 1 : 1.4)
             }
         }
         .buttonStyle(.plain)
@@ -508,11 +498,7 @@ private struct SavedSchoolShortlistCard: View {
         }
         .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
         .padding(.horizontal, 10)
-        .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(tint.opacity(0.14))
-        }
+        .lumaInsetCard(tint: tint, opacity: 0.08)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)

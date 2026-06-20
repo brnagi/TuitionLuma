@@ -95,7 +95,7 @@ struct LumaScoreCard: View {
             }
         }
         .padding(20)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
                 .stroke(scoreTint.opacity(0.34), lineWidth: 1.5)

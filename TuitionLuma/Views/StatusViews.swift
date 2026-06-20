@@ -81,14 +81,8 @@ struct EmptyStateCard<CTA: View>: View {
 
             cta()
         }
-        .padding(24)
         .frame(maxWidth: .infinity)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke)
-        }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.55), radius: 14, x: 0, y: 8)
+        .lumaCard(padding: 24, shadowOpacity: 0.42)
         .accessibilityElement(children: .contain)
     }
 }

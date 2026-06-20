@@ -18,6 +18,9 @@ enum LumaTheme {
     static let cardShadow = Color(red: 0.06, green: 0.08, blue: 0.16).opacity(0.16)
 
     static let cardRadius: CGFloat = 8
+    static let cardPadding: CGFloat = 18
+    static let sectionSpacing: CGFloat = 18
+    static let itemSpacing: CGFloat = 12
 
     static let heroGradient = LinearGradient(
         colors: [coral, sun, aqua],
@@ -81,8 +84,47 @@ struct LumaTextFieldModifier: ViewModifier {
     }
 }
 
+private struct LumaCardModifier: ViewModifier {
+    var padding: CGFloat = LumaTheme.cardPadding
+    var shadowOpacity: Double = 0.34
+    var strokeOpacity: Double = 1
+
+    func body(content: Content) -> some View {
+        content
+            .padding(padding)
+            .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.cardStroke.opacity(strokeOpacity))
+            }
+            .shadow(color: LumaTheme.cardShadow.opacity(shadowOpacity), radius: 14, y: 8)
+    }
+}
+
+private struct LumaInsetCardModifier: ViewModifier {
+    var tint: Color = LumaTheme.aqua
+    var opacity: Double = 0.10
+
+    func body(content: Content) -> some View {
+        content
+            .background(tint.opacity(opacity), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(tint.opacity(0.16))
+            }
+    }
+}
+
 extension View {
     func lumaTextField(isFocused: Bool = false) -> some View {
         modifier(LumaTextFieldModifier(isFocused: isFocused))
+    }
+
+    func lumaCard(padding: CGFloat = LumaTheme.cardPadding, shadowOpacity: Double = 0.34, strokeOpacity: Double = 1) -> some View {
+        modifier(LumaCardModifier(padding: padding, shadowOpacity: shadowOpacity, strokeOpacity: strokeOpacity))
+    }
+
+    func lumaInsetCard(tint: Color = LumaTheme.aqua, opacity: Double = 0.10) -> some View {
+        modifier(LumaInsetCardModifier(tint: tint, opacity: opacity))
     }
 }

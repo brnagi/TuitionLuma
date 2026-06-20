@@ -186,7 +186,7 @@ struct CalculatorView: View {
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LumaTheme.canvas, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .lumaInsetCard(tint: LumaTheme.slate, opacity: 0.07)
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top, spacing: 12) {
@@ -254,13 +254,7 @@ struct CalculatorView: View {
                     .foregroundStyle(LumaTheme.slate)
             }
         }
-        .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.coral.opacity(0.12))
-        }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.60), radius: 16, x: 0, y: 9)
+        .lumaCard(shadowOpacity: 0.46, strokeOpacity: 0.9)
     }
 
     private var selectedProgramTitle: String {
@@ -454,13 +448,7 @@ struct CalculatorView: View {
                     .foregroundStyle(LumaTheme.slate)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(18)
-            .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-            .overlay {
-                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                    .stroke(LumaTheme.cardStroke.opacity(0.70))
-            }
-            .shadow(color: LumaTheme.cardShadow.opacity(0.34), radius: 12, y: 6)
+            .lumaCard(shadowOpacity: 0.34, strokeOpacity: 0.8)
         }
     }
 
@@ -528,13 +516,7 @@ struct CalculatorView: View {
                 }
             }
         }
-        .padding(18)
-        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke.opacity(0.70))
-        }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.28), radius: 10, y: 5)
+        .lumaCard(shadowOpacity: 0.32, strokeOpacity: 0.8)
     }
 
     private var proPlanningUnlockCard: some View {
@@ -631,13 +613,7 @@ struct CalculatorView: View {
             .buttonStyle(.plain)
             .accessibilityHint("Opens the TuitionLuma Pro unlock screen.")
         }
-        .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.coral.opacity(0.14))
-        }
-        .shadow(color: LumaTheme.coral.opacity(0.08), radius: 16, y: 8)
+        .lumaCard(shadowOpacity: 0.34, strokeOpacity: 0.9)
     }
 
     private func proSignalTile(title: String, value: String, systemImage: String) -> some View {
@@ -826,8 +802,7 @@ struct CalculatorView: View {
 
                 planningModeMetrics
             }
-            .padding(16)
-            .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .lumaCard(padding: 16, shadowOpacity: 0.28, strokeOpacity: 0.8)
         } else {
             FeatureLock(
                 title: "Unlock planning mode",
@@ -982,8 +957,7 @@ struct CalculatorView: View {
 
             savedRepaymentPlansSection
         }
-        .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .lumaCard(shadowOpacity: 0.32, strokeOpacity: 0.8)
     }
 
     @ViewBuilder
@@ -1089,8 +1063,7 @@ struct CalculatorView: View {
                 }
             }
         }
-        .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .lumaCard(shadowOpacity: 0.32, strokeOpacity: 0.8)
     }
 
     private var reportExportCard: some View {
@@ -1119,8 +1092,7 @@ struct CalculatorView: View {
                     .foregroundStyle(LumaTheme.warningOrange)
             }
         }
-        .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .lumaCard(shadowOpacity: 0.32, strokeOpacity: 0.8)
     }
 
     private func generateAndShareReport() {
@@ -1201,7 +1173,7 @@ struct CalculatorView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .lumaInsetCard(tint: tint, opacity: 0.08)
     }
 
     private func programMetric(title: String, value: String, tint: Color) -> some View {

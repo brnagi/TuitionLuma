@@ -189,13 +189,7 @@ struct SchoolDetailView: View {
                 quickStats
             }
         }
-        .padding(12)
-        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke)
-        }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.72), radius: 18, y: 10)
+        .lumaCard(padding: 12, shadowOpacity: 0.48)
     }
 
     private var annualCostSummary: some View {
@@ -277,6 +271,11 @@ struct SchoolDetailView: View {
                     systemImage: "list.bullet.clipboard"
                 )
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.cardStroke.opacity(0.65))
+                }
+                .shadow(color: LumaTheme.cardShadow.opacity(0.28), radius: 10, y: 5)
             } else if viewModel.topPrograms.isEmpty {
                 EmptyStateView(
                     title: "Program salary data unavailable",
@@ -284,6 +283,11 @@ struct SchoolDetailView: View {
                     systemImage: "chart.line.uptrend.xyaxis"
                 )
                 .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                        .stroke(LumaTheme.cardStroke.opacity(0.65))
+                }
+                .shadow(color: LumaTheme.cardShadow.opacity(0.28), radius: 10, y: 5)
 
                 viewAllProgramsLink
             } else {
@@ -327,6 +331,11 @@ struct SchoolDetailView: View {
             .foregroundStyle(LumaTheme.coral)
             .padding(14)
             .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.cardStroke.opacity(0.65))
+            }
+            .shadow(color: LumaTheme.cardShadow.opacity(0.26), radius: 9, y: 5)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("View all programs")
@@ -475,13 +484,7 @@ struct SchoolDetailView: View {
                 .gridCellColumns(2)
             }
         }
-        .padding(16)
-        .background(LumaTheme.card, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(LumaTheme.cardStroke)
-        }
-        .shadow(color: LumaTheme.cardShadow.opacity(0.68), radius: 15, y: 8)
+        .lumaCard(padding: 16, shadowOpacity: 0.42)
     }
 
     private var roiScore: String {
@@ -544,11 +547,7 @@ struct SchoolDetailView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
-        .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
-                .stroke(tint.opacity(0.14))
-        }
+        .lumaInsetCard(tint: tint, opacity: 0.08)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityValue(value)
