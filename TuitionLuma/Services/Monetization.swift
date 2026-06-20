@@ -24,7 +24,7 @@ enum ProFeature: String, CaseIterable, Identifiable {
     case aidBorrowing = "Aid and borrowing tools"
     case repaymentCalculator = "Repayment calculator"
     case scholarshipPlanning = "Scholarship and grant planning"
-    case pdfExport = "Export/share cost report as PDF"
+    case pdfExport = "Family Report"
     case planningMode = "Parent/student planning mode"
     case scenarioModeling = "Scenario modeling"
 
@@ -400,7 +400,7 @@ struct PaywallView: View {
         ),
         (
             "Family report",
-            "Share a polished PDF with cost, debt, and outcomes.",
+            "Share a polished Family Report with cost, debt, and outcomes.",
             "doc.richtext.fill",
             LumaTheme.outcomeTeal
         ),
@@ -522,7 +522,7 @@ struct PaywallView: View {
             VStack(spacing: 10) {
                 previewRow("Can we afford this school?", detail: "See aid, scholarships, cash gap, and likely borrowing.")
                 previewRow("What will debt feel like?", detail: "Forecast repayment terms and monthly payments before you commit.")
-                previewRow("How do we explain the choice?", detail: "Save repayment plans and export a clear family report.")
+                previewRow("How do we explain the choice?", detail: "Save repayment plans and share a clear Family Report.")
             }
         }
         .padding(16)

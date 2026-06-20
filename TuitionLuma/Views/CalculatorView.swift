@@ -590,7 +590,7 @@ struct CalculatorView: View {
                 VStack(spacing: 9) {
                     proPlanningBenefit("Aid, borrowing, scholarships", subtitle: "See the real gap after grants, family help, and loans.", systemImage: "dollarsign.circle.fill", tint: LumaTheme.mint)
                     proPlanningBenefit("Repayment and scenarios", subtitle: "Compare campus, residency, path, and 5-20 year loan terms.", systemImage: "slider.horizontal.3", tint: LumaTheme.coral)
-                    proPlanningBenefit("Family-ready report", subtitle: "Export a polished PDF that explains cost, debt, and outcomes.", systemImage: "square.and.arrow.up.fill", tint: LumaTheme.outcomeTeal)
+                    proPlanningBenefit("Family Report", subtitle: "Share a polished planning summary that explains cost, debt, and outcomes.", systemImage: "square.and.arrow.up.fill", tint: LumaTheme.outcomeTeal)
                 }
             }
 
@@ -764,7 +764,7 @@ struct CalculatorView: View {
 
             FeatureLock(
                 title: "Unlock family reports",
-                message: "Share a polished PDF report with cost, aid, debt, and planning details.",
+                message: "Share a polished Family Report with cost, aid, debt, and planning details.",
                 feature: .pdfExport,
                 action: { isShowingPaywall = true }
             )
@@ -1074,12 +1074,12 @@ struct CalculatorView: View {
                     .foregroundStyle(LumaTheme.ink)
             }
 
-            Text("Create a polished PDF with cost breakdowns, aid planning, repayment estimates, and scenario details to review with family.")
+            Text("Create a polished Family Report with cost breakdowns, aid planning, repayment estimates, and scenario details to review with family.")
                 .font(.subheadline)
                 .foregroundStyle(LumaTheme.slate)
 
             LumaButton(
-                title: isGeneratingReport ? "Building Report..." : "Share Cost Report",
+                title: isGeneratingReport ? "Building Report..." : "Share Family Report",
                 systemImage: isGeneratingReport ? "hourglass" : "doc.richtext"
             ) {
                 generateAndShareReport()
@@ -1134,7 +1134,7 @@ struct CalculatorView: View {
             let url = try CostReportPDFGenerator.generate(payload: payload)
             shareableReport = ShareableReport(url: url)
         } catch {
-            reportErrorMessage = "TuitionLuma could not create the PDF report."
+            reportErrorMessage = "TuitionLuma could not create the Family Report."
         }
 
         isGeneratingReport = false
