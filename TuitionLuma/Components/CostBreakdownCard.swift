@@ -33,11 +33,11 @@ struct CostBreakdownCard: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Estimated annual cost")
+                    Text("School cost estimate")
                         .font(.title3.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
 
-                    Text("Before grants, scholarships, or family contributions.")
+                    Text("School-wide estimate before your personal aid or planning inputs.")
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
                 }

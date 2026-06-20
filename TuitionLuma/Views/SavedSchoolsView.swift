@@ -205,10 +205,14 @@ private struct SavedSchoolShortlistCard: View {
                 }
             }
 
-            metricRow
+            if aidPlan != nil {
+                aidPlanSection
+                metricRow
+            } else {
+                metricRow
+            }
             shortlistInsightRow
             programPlanSection
-            aidPlanSection
 
             HStack(spacing: 10) {
                 shortlistAction(
@@ -242,11 +246,11 @@ private struct SavedSchoolShortlistCard: View {
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Saved aid plan")
+                        Text("Your Estimated Cost")
                             .font(.subheadline.weight(.heavy))
                             .foregroundStyle(LumaTheme.ink)
 
-                        Text(aidPlan.scenarioSummary)
+                        Text("Personalized estimate based on your planning inputs. \(aidPlan.scenarioSummary)")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(LumaTheme.slate)
                             .lineLimit(2)
@@ -264,7 +268,7 @@ private struct SavedSchoolShortlistCard: View {
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                     programMetric(
-                        title: "Net annual cost",
+                        title: "Your cost / year",
                         value: aidPlan.netAnnualCost.formatted(LumaFormat.currency),
                         tint: LumaTheme.valueGreen
                     )
@@ -323,7 +327,7 @@ private struct SavedSchoolShortlistCard: View {
     private var metricRow: some View {
         HStack(spacing: 0) {
             shortlistMetric(
-                title: "Net Price",
+                title: "Average Net Price",
                 value: school.costEstimate.averageNetPrice > 0 ? LumaFormat.compactCurrency(school.costEstimate.averageNetPrice) : "N/A",
                 tint: school.costEstimate.averageNetPrice > 45_000 ? LumaTheme.warningOrange : LumaTheme.valueGreen
             )
@@ -632,9 +636,10 @@ private struct SavedSchoolShortlistCard: View {
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(LumaTheme.slate)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .padding(.horizontal, 10)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)

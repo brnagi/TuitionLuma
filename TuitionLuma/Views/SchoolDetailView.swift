@@ -88,7 +88,7 @@ struct SchoolDetailView: View {
 
             HStack(spacing: 10) {
                 heroMetricChip(
-                    title: "Avg net price",
+                    title: "Average net price",
                     value: school.costEstimate.averageNetPrice > 0 ? school.costEstimate.averageNetPrice.formatted(LumaFormat.currency) : "N/A",
                     systemImage: "dollarsign.circle.fill",
                     tint: LumaTheme.valueGreen
@@ -178,10 +178,11 @@ struct SchoolDetailView: View {
     private var decisionSnapshot: some View {
         VStack(alignment: .leading, spacing: 16) {
             LumaScoreCard(school: school)
+            personalizedCostSummary
             annualCostSummary
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Key outcomes")
+                Text("School averages")
                     .font(.caption.weight(.heavy))
                     .foregroundStyle(LumaTheme.slate)
                     .textCase(.uppercase)
@@ -192,10 +193,65 @@ struct SchoolDetailView: View {
         .lumaCard(padding: 12, shadowOpacity: 0.48)
     }
 
+    @ViewBuilder
+    private var personalizedCostSummary: some View {
+        if let savedAidPlan {
+            HStack(alignment: .center, spacing: 14) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Your Estimated Cost")
+                        .font(.caption.weight(.heavy))
+                        .foregroundStyle(.white.opacity(0.88))
+                        .textCase(.uppercase)
+
+                    Text(savedAidPlan.netAnnualCost.formatted(LumaFormat.currency))
+                        .font(.system(size: 38, weight: .heavy))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+
+                    Text("Based on your saved aid, borrowing, and scholarship inputs.")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.86))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Loans / year")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.90))
+
+                    Text(savedAidPlan.aidInput.annualLoanAmount.formatted(LumaFormat.currency))
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                        .shadow(color: .black.opacity(0.20), radius: 3, y: 1)
+                }
+            }
+            .padding(18)
+            .background {
+                ZStack {
+                    LumaTheme.coolGradient
+                    LumaTheme.readableGradientOverlay.opacity(0.42)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(.white.opacity(0.18))
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Your estimated cost")
+            .accessibilityValue("\(savedAidPlan.netAnnualCost.formatted(LumaFormat.currency)) per year. Loans \(savedAidPlan.aidInput.annualLoanAmount.formatted(LumaFormat.currency)) per year.")
+        }
+    }
+
     private var annualCostSummary: some View {
         HStack(alignment: .center, spacing: 14) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("Estimated Annual Cost")
+                Text("School Cost Estimate")
                     .font(.caption.weight(.heavy))
                     .foregroundStyle(.white.opacity(0.86))
                     .textCase(.uppercase)
@@ -205,6 +261,11 @@ struct SchoolDetailView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.70)
+
+                Text("Sticker-style estimate before personal aid or planning inputs.")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.84))
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer()
@@ -236,13 +297,13 @@ struct SchoolDetailView: View {
                 .stroke(.white.opacity(0.18))
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Estimated annual cost")
+        .accessibilityLabel("School cost estimate")
         .accessibilityValue("\(moneyText(school.costEstimate.estimatedAnnualCost)). Average aid \(moneyText(school.costEstimate.averageGrantAid)).")
     }
 
     private var quickStats: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            StatPill(title: "Net price", value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice), systemImage: "dollarsign", tint: LumaTheme.valueGreen)
+            StatPill(title: "Average net price", value: LumaFormat.compactCurrency(school.costEstimate.averageNetPrice), systemImage: "dollarsign", tint: LumaTheme.valueGreen)
             StatPill(title: "Earnings", value: LumaFormat.compactCurrency(school.medianEarnings), systemImage: "chart.line.uptrend.xyaxis", tint: LumaTheme.outcomeTeal)
             StatPill(title: "Grad rate", value: school.graduationRate.formatted(LumaFormat.percent), systemImage: "graduationcap.fill", tint: LumaTheme.coral)
             StatPill(title: "Avg debt", value: LumaFormat.compactCurrency(school.averageDebt), systemImage: "creditcard.fill", tint: LumaTheme.sun)
@@ -500,6 +561,10 @@ struct SchoolDetailView: View {
         }
 
         return ROIOutcomeCalculator.result(for: school, program: viewModel.selectedProgram)
+    }
+
+    private var savedAidPlan: SavedAidPlan? {
+        appViewModel.savedAidPlan(for: school)
     }
 
     private func moneyText(_ value: Double) -> String {
