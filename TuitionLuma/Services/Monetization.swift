@@ -179,11 +179,6 @@ final class ProPurchaseManager: ObservableObject {
         }
     }
 
-    func resetToFreeForTesting() {
-        state = .free
-        UserDefaults.standard.removeObject(forKey: StoreKitConfig.entitlementCacheKey)
-    }
-
     private func refreshEntitlements() async {
         isLoading = true
         defer { isLoading = false }

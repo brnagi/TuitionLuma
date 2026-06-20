@@ -195,11 +195,6 @@ struct ExploreView: View {
         switch viewModel.loadState {
         case .idle, .loading:
             LoadingStateView()
-        case .missingAPIKey:
-            MissingAPIKeyStateView {
-                viewModel.useSampleFallback()
-                appViewModel.remember(viewModel.schools)
-            }
         case .empty:
             EmptyStateView(
                 title: "No colleges found",

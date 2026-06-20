@@ -5,7 +5,6 @@ enum LoadState: Equatable {
     case loading
     case loaded
     case empty
-    case missingAPIKey
     case failed(String)
 }
 
@@ -48,9 +47,6 @@ final class ExploreViewModel: ObservableObject {
             schools = rankedSchools(page.schools, query: trimmedQuery)
             hasMoreResults = page.hasMore
             loadState = schools.isEmpty ? .empty : .loaded
-        } catch CollegeScorecardError.missingAPIKey {
-            schools = []
-            loadState = .missingAPIKey
         } catch {
             schools = []
             loadState = .failed(userFacingMessage(for: error))

@@ -237,10 +237,6 @@ final class CalculatorViewModel: ObservableObject {
             let programs = try await provider.fetchProgramsForSchool(schoolId: scorecardID)
             availablePrograms = programs
             selectedProgram = nil
-        } catch CollegeScorecardError.missingAPIKey {
-            availablePrograms = selectedSchool.programs
-            selectedProgram = nil
-            programErrorMessage = "Set COLLEGE_SCORECARD_API_KEY to load program outcomes."
         } catch let error as CollegeScorecardError {
             availablePrograms = selectedSchool.programs
             selectedProgram = nil

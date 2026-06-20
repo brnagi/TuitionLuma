@@ -1,7 +1,6 @@
 import Foundation
 
 enum CollegeScorecardError: LocalizedError, Equatable {
-    case missingAPIKey
     case invalidURL
     case requestFailed(Int)
     case noResults
@@ -13,8 +12,6 @@ enum CollegeScorecardError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .missingAPIKey:
-            "Add COLLEGE_SCORECARD_API_KEY to use live College Scorecard data."
         case .invalidURL:
             "TuitionLuma could not build a College Scorecard request."
         case .requestFailed(let statusCode):
@@ -54,24 +51,6 @@ protocol SchoolDataProviding {
     func fetchFeaturedSchools(page: Int, perPage: Int) async throws -> PaginatedSchools
 }
 
-enum APIConfig {
-    static var collegeScorecardAPIKey: String? {
-        if let value = ProcessInfo.processInfo.environment["COLLEGE_SCORECARD_API_KEY"], !value.isEmpty {
-            return value
-        }
-
-        for key in ["CollegeScorecardAPIKey", "COLLEGE_SCORECARD_API_KEY"] {
-            if let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
-               !value.isEmpty,
-               !value.hasPrefix("$(") {
-                return value
-            }
-        }
-
-        return nil
-    }
-}
-
 struct CollegeScorecardService: SchoolDataProviding {
     private let baseURL = URL(string: "https://tuitionluma-scorecard-proxy.caseluma.workers.dev")!
     private let session: URLSession
@@ -101,7 +80,7 @@ struct CollegeScorecardService: SchoolDataProviding {
         "latest.student.size"
     ]
 
-    init(session: URLSession = .shared, apiKey: String? = nil) {
+    init(session: URLSession = .shared) {
         self.session = session
     }
 

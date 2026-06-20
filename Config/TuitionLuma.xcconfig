@@ -1,3 +1,2 @@
-COLLEGE_SCORECARD_API_KEY =
-
-#include? "LocalSecrets.xcconfig"
+// TuitionLuma uses the Cloudflare College Scorecard proxy in production.
+// Do not inject College Scorecard credentials into the iOS app bundle.
