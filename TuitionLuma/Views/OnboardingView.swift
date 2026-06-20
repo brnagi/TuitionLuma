@@ -8,21 +8,23 @@ struct OnboardingView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let isCompact = proxy.size.height < 740
+
             LumaTheme.canvas
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                hero
-                    .frame(maxWidth: .infinity, minHeight: min(max(proxy.size.height * 0.38, 270), 330), alignment: .leading)
+                hero(isCompact: isCompact)
+                    .frame(maxWidth: .infinity, minHeight: min(max(proxy.size.height * 0.34, 240), 310), alignment: .leading)
 
-                VStack(spacing: 12) {
+                VStack(spacing: isCompact ? 9 : 12) {
                     decisionExample
                     nicknamePrompt
                     actionRow
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 16)
-                .padding(.bottom, 18)
+                .padding(.horizontal, isCompact ? 16 : 18)
+                .padding(.top, isCompact ? 12 : 16)
+                .padding(.bottom, isCompact ? 12 : 18)
                 .frame(maxWidth: .infinity)
                 .background(LumaTheme.canvas)
             }
@@ -31,8 +33,8 @@ struct OnboardingView: View {
         }
     }
 
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 16) {
+    private func hero(isCompact: Bool) -> some View {
+        VStack(alignment: .leading, spacing: isCompact ? 12 : 16) {
             HStack {
                 Image(systemName: "sun.max.fill")
                     .font(.title3)
@@ -45,25 +47,25 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("See what college will really cost.")
-                    .font(.system(size: 34, weight: .heavy))
+                    .font(.system(size: isCompact ? 30 : 34, weight: .heavy))
                     .foregroundStyle(.white)
                     .fixedSize(horizontal: false, vertical: true)
                     .minimumScaleFactor(0.92)
 
                 Text("Compare tuition, aid, debt, earnings, and outcomes before making one of the biggest financial decisions of your life.")
-                    .font(.body.weight(.medium))
+                    .font((isCompact ? Font.subheadline : Font.body).weight(.medium))
                     .foregroundStyle(.white.opacity(0.92))
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 StatPill(title: "Affordability", value: "Clear", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
                 StatPill(title: "Outcomes", value: "Compared", systemImage: "chart.line.uptrend.xyaxis", tint: .white.opacity(0.24))
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 22)
-        .padding(.bottom, 20)
+        .padding(.horizontal, isCompact ? 20 : 24)
+        .padding(.top, isCompact ? 18 : 22)
+        .padding(.bottom, isCompact ? 16 : 20)
         .background(LumaTheme.heroGradient)
     }
 

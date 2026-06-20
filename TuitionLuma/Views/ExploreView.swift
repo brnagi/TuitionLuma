@@ -489,27 +489,27 @@ private struct ExploreCoachMarkOverlay: View {
             ZStack {
                 Color.black.opacity(0.46)
                     .ignoresSafeArea()
+                    .allowsHitTesting(false)
 
-                if step == .profile {
-                    VStack {
-                        Spacer()
-
-                        bubble
-                            .frame(maxWidth: min(proxy.size.width - 40, 360))
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 28)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    bubble
-                        .frame(maxWidth: min(proxy.size.width - 40, 340))
-                        .position(x: proxy.size.width / 2, y: bubbleY(in: proxy.size))
-                }
+                bubble
+                    .frame(maxWidth: min(proxy.size.width - 40, step == .profile ? 360 : 340))
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: bubbleAlignment)
+                    .padding(.top, proxy.safeAreaInsets.top + 14)
+                    .padding(.bottom, proxy.safeAreaInsets.bottom + 104)
             }
-            .ignoresSafeArea()
         }
         .transition(.opacity.combined(with: .scale(scale: 0.98)))
         .zIndex(20)
+    }
+
+    private var bubbleAlignment: Alignment {
+        switch step {
+        case .save, .compare:
+            return .top
+        case .profile:
+            return .bottom
+        }
     }
 
     private var bubble: some View {
@@ -577,25 +577,6 @@ private struct ExploreCoachMarkOverlay: View {
         }
         .shadow(color: .black.opacity(0.22), radius: 24, y: 14)
         .accessibilityElement(children: .contain)
-    }
-
-    private func bubbleY(in size: CGSize) -> CGFloat {
-        let targetY = estimatedTargetY(in: size)
-        let shouldShowBelow = targetY < size.height * 0.48
-        let bubbleOffset: CGFloat = 220
-        let edgePadding: CGFloat = 150
-        let proposedY = shouldShowBelow ? targetY + bubbleOffset : targetY - bubbleOffset
-
-        return min(max(proposedY, edgePadding), size.height - edgePadding)
-    }
-
-    private func estimatedTargetY(in size: CGSize) -> CGFloat {
-        switch step {
-        case .save, .compare:
-            return size.height * 0.72
-        case .profile:
-            return size.height * 0.28
-        }
     }
 
 }

@@ -21,7 +21,7 @@ struct StudentProfileCard: View {
     }
 
     private var incompleteProfilePrompt: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(promptTitle)
                     .font(.headline.weight(.heavy))
@@ -40,7 +40,6 @@ struct StudentProfileCard: View {
             }
             .font(.subheadline.weight(.heavy))
             .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
             .background(LumaTheme.outcomeTeal, in: Capsule())
@@ -152,14 +151,14 @@ struct StudentProfileCard: View {
     private var promptTitle: String {
         let nickname = studentProfileStore.profile.displayNickname
         if !nickname.isEmpty {
-            return "Hi \(nickname) 👋"
+            return "Complete your profile"
         }
 
-        return "Get personalized recommendations"
+        return "Complete your profile"
     }
 
     private var promptSubtitle: String {
-        "Add GPA, major, residency, income, and preferences to see affordability, major-specific outcomes, and schools that fit your goals."
+        "Improve recommendations with your major, residency, income, and preferences."
     }
 
     private var promptCTA: String {
