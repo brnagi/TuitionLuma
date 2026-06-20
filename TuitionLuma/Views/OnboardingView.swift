@@ -50,6 +50,24 @@ struct OnboardingView: View {
                 .padding(.trailing, 16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button {
+                    focusedField = nil
+                } label: {
+                    Text("Done")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 14)
+                        .background(LumaTheme.coral, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss keyboard")
+            }
+        }
     }
 
     private var hero: some View {
