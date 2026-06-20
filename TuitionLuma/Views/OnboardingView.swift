@@ -7,66 +7,78 @@ struct OnboardingView: View {
     var onContinue: () -> Void
 
     var body: some View {
-        ZStack {
+        GeometryReader { proxy in
             LumaTheme.canvas
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            Image(systemName: "sun.max.fill")
-                                .font(.title2)
-                            Text("TuitionLuma")
-                                .font(.title3.weight(.heavy))
-                        }
-                        .foregroundStyle(.white)
+            VStack(spacing: 0) {
+                hero
+                    .frame(maxWidth: .infinity, minHeight: min(max(proxy.size.height * 0.38, 270), 330), alignment: .leading)
 
-                        Spacer(minLength: 18)
-
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text("See what college will really cost.")
-                                .font(.system(size: 38, weight: .heavy))
-                                .foregroundStyle(.white)
-                                .fixedSize(horizontal: false, vertical: true)
-
-                            Text("Compare tuition, aid, debt, earnings, and outcomes before making one of the biggest financial decisions of your life.")
-                                .font(.title3.weight(.medium))
-                                .foregroundStyle(.white.opacity(0.9))
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        HStack(spacing: 10) {
-                            StatPill(title: "Affordability", value: "Clear", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
-                            StatPill(title: "Outcomes", value: "Compared", systemImage: "chart.line.uptrend.xyaxis", tint: .white.opacity(0.24))
-                        }
-                    }
-                    .padding(26)
-                    .frame(maxWidth: .infinity, minHeight: 360, alignment: .leading)
-                    .background(LumaTheme.heroGradient)
-
-                    VStack(spacing: 14) {
-                        decisionExample
-                        nicknamePrompt
-
-                        HStack(spacing: 10) {
-                            Button("Skip") {
-                                finishOnboarding()
-                            }
-                            .font(.headline.weight(.heavy))
-                            .foregroundStyle(LumaTheme.slate)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(.white, in: Capsule())
-
-                            LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
-                        }
-                    }
-                    .padding(22)
-                    .background(LumaTheme.canvas)
+                VStack(spacing: 12) {
+                    decisionExample
+                    nicknamePrompt
+                    actionRow
                 }
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
+                .padding(.bottom, 18)
+                .frame(maxWidth: .infinity)
+                .background(LumaTheme.canvas)
             }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
             .scrollDismissesKeyboard(.interactively)
+        }
+    }
+
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "sun.max.fill")
+                    .font(.title3)
+                Text("TuitionLuma")
+                    .font(.title3.weight(.heavy))
+            }
+            .foregroundStyle(.white)
+
+            Spacer(minLength: 6)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("See what college will really cost.")
+                    .font(.system(size: 34, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .minimumScaleFactor(0.92)
+
+                Text("Compare tuition, aid, debt, earnings, and outcomes before making one of the biggest financial decisions of your life.")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            HStack(spacing: 10) {
+                StatPill(title: "Affordability", value: "Clear", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
+                StatPill(title: "Outcomes", value: "Compared", systemImage: "chart.line.uptrend.xyaxis", tint: .white.opacity(0.24))
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 22)
+        .padding(.bottom, 20)
+        .background(LumaTheme.heroGradient)
+    }
+
+    private var actionRow: some View {
+        HStack(spacing: 10) {
+            Button("Skip") {
+                finishOnboarding()
+            }
+            .font(.headline.weight(.heavy))
+            .foregroundStyle(LumaTheme.slate)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(.white, in: Capsule())
+
+            LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
         }
     }
 
@@ -96,7 +108,7 @@ struct OnboardingView: View {
             .lumaTextField(isFocused: isNicknameFocused)
             .accessibilityLabel("Optional nickname")
         }
-        .padding(16)
+        .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .onAppear {
             nickname = profile.displayNickname
@@ -109,7 +121,7 @@ struct OnboardingView: View {
     }
 
     private var decisionExample: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Which school is the best value?")
                     .font(.headline.weight(.heavy))
@@ -141,7 +153,7 @@ struct OnboardingView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(16)
+        .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
     }
 
