@@ -23,26 +23,29 @@ struct OnboardingView: View {
             LumaTheme.canvas
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    hero
-                    basicsSection
-                    academicSection
-                    residencyAndIncomeSection
-                    preferencesSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        hero
+                        basicsSection
+                        academicSection
+                        residencyAndIncomeSection
+                        preferencesSection
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 18)
+                    .padding(.bottom, focusedField == nil ? 24 : 32)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 18)
-                .padding(.bottom, 104)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .onTapGesture {
-                focusedField = nil
-            }
-
-            VStack {
-                Spacer()
-                actionBar
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    focusedField = nil
+                }
+                .onChange(of: focusedField) { _, field in
+                    guard let field else { return }
+                    withAnimation(.easeOut(duration: 0.22)) {
+                        proxy.scrollTo(field, anchor: .center)
+                    }
+                }
             }
 
             skipButton
@@ -50,6 +53,13 @@ struct OnboardingView: View {
                 .padding(.trailing, 16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
+        .safeAreaInset(edge: .bottom) {
+            if focusedField == nil {
+                actionBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.18), value: focusedField)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -147,6 +157,7 @@ struct OnboardingView: View {
                 focusedField = .testScore
             }
             .lumaTextField(isFocused: focusedField == .nickname)
+            .id(OnboardingField.nickname)
             .accessibilityLabel("Optional nickname")
         }
     }
@@ -191,6 +202,7 @@ struct OnboardingView: View {
                     focusedField = .intendedMajor
                 }
                 .lumaTextField(isFocused: focusedField == .testScore)
+                .id(OnboardingField.testScore)
                 .accessibilityLabel("SAT or ACT score")
                 .accessibilityHint("Optional.")
 
@@ -208,6 +220,7 @@ struct OnboardingView: View {
                     focusedField = nil
                 }
                 .lumaTextField(isFocused: focusedField == .intendedMajor)
+                .id(OnboardingField.intendedMajor)
                 .accessibilityLabel("Intended major")
             }
         }
@@ -318,8 +331,8 @@ struct OnboardingView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
                 .padding(.bottom, 12)
-                .background(.ultraThinMaterial)
         }
+        .background(.ultraThinMaterial)
     }
 
     private func finishOnboarding() {
