@@ -202,6 +202,7 @@ struct SchoolDetailView: View {
                         .font(.caption.weight(.heavy))
                         .foregroundStyle(.white.opacity(0.88))
                         .textCase(.uppercase)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text(savedAidPlan.netAnnualCost.formatted(LumaFormat.currency))
                         .font(.system(size: 38, weight: .heavy))
@@ -214,6 +215,7 @@ struct SchoolDetailView: View {
                         .foregroundStyle(.white.opacity(0.86))
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                .layoutPriority(1)
 
                 Spacer()
 
@@ -255,6 +257,7 @@ struct SchoolDetailView: View {
                     .font(.caption.weight(.heavy))
                     .foregroundStyle(.white.opacity(0.86))
                     .textCase(.uppercase)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(moneyText(school.costEstimate.estimatedAnnualCost))
                     .font(.system(size: 38, weight: .heavy))
@@ -267,6 +270,7 @@ struct SchoolDetailView: View {
                     .foregroundStyle(.white.opacity(0.84))
                     .fixedSize(horizontal: false, vertical: true)
             }
+            .layoutPriority(1)
 
             Spacer()
 

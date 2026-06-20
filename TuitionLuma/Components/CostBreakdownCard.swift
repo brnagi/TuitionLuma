@@ -31,24 +31,25 @@ struct CostBreakdownCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("School cost estimate")
                         .font(.title3.weight(.heavy))
                         .foregroundStyle(LumaTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text("School-wide estimate before your personal aid or planning inputs.")
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer()
 
                 Text(moneyText(cost.estimatedAnnualCost))
                     .font(.system(size: 30, weight: .heavy))
                     .foregroundStyle(LumaTheme.valueGreen)
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(14)
             .background(LumaTheme.valueGreen.opacity(0.08), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
