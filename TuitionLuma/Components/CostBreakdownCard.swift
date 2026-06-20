@@ -64,11 +64,13 @@ struct CostBreakdownCard: View {
                 }
             }
 
-            HStack {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Label("Avg aid", systemImage: "sparkles")
                     .foregroundStyle(LumaTheme.slate)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
 
-                Spacer()
+                Spacer(minLength: 12)
 
                 HStack(spacing: 6) {
                     if cost.isEstimated(.averageGrantAid) {

@@ -196,7 +196,7 @@ struct SchoolDetailView: View {
     @ViewBuilder
     private var personalizedCostSummary: some View {
         if let savedAidPlan {
-            HStack(alignment: .center, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Your Estimated Cost")
                         .font(.caption.weight(.heavy))
@@ -217,20 +217,10 @@ struct SchoolDetailView: View {
                 }
                 .layoutPriority(1)
 
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Loans / year")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white.opacity(0.90))
-
-                    Text(savedAidPlan.aidInput.annualLoanAmount.formatted(LumaFormat.currency))
-                        .font(.headline.weight(.heavy))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.74)
-                        .shadow(color: .black.opacity(0.20), radius: 3, y: 1)
-                }
+                costSupportMetric(
+                    title: "Loans / year",
+                    value: savedAidPlan.aidInput.annualLoanAmount.formatted(LumaFormat.currency)
+                )
             }
             .padding(18)
             .background {
@@ -251,7 +241,7 @@ struct SchoolDetailView: View {
     }
 
     private var annualCostSummary: some View {
-        HStack(alignment: .center, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 5) {
                 Text("School Cost Estimate")
                     .font(.caption.weight(.heavy))
@@ -272,20 +262,10 @@ struct SchoolDetailView: View {
             }
             .layoutPriority(1)
 
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 4) {
-                Text("Avg aid")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.white.opacity(0.90))
-
-                Text(moneyText(school.costEstimate.averageGrantAid))
-                    .font(.headline.weight(.heavy))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.74)
-                    .shadow(color: .black.opacity(0.20), radius: 3, y: 1)
-            }
+            costSupportMetric(
+                title: "Average aid",
+                value: moneyText(school.costEstimate.averageGrantAid)
+            )
         }
         .padding(18)
         .background {
@@ -311,6 +291,32 @@ struct SchoolDetailView: View {
             StatPill(title: "Earnings", value: LumaFormat.compactCurrency(school.medianEarnings), systemImage: "chart.line.uptrend.xyaxis", tint: LumaTheme.outcomeTeal)
             StatPill(title: "Grad rate", value: school.graduationRate.formatted(LumaFormat.percent), systemImage: "graduationcap.fill", tint: LumaTheme.coral)
             StatPill(title: "Avg debt", value: LumaFormat.compactCurrency(school.averageDebt), systemImage: "creditcard.fill", tint: LumaTheme.sun)
+        }
+    }
+
+    private func costSupportMetric(title: String, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.white.opacity(0.90))
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+
+            Spacer(minLength: 12)
+
+            Text(value)
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.74)
+                .shadow(color: .black.opacity(0.20), radius: 3, y: 1)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(.white.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.white.opacity(0.16))
         }
     }
 
