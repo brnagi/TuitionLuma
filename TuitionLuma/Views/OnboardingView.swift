@@ -13,7 +13,9 @@ struct OnboardingView: View {
 
     init(profile: Binding<StudentProfile>, onContinue: @escaping () -> Void) {
         self._profile = profile
-        self._draft = State(initialValue: profile.wrappedValue)
+        var onboardingDraft = profile.wrappedValue
+        onboardingDraft.intendedMajor = ""
+        self._draft = State(initialValue: onboardingDraft)
         self.onContinue = onContinue
     }
 
@@ -322,7 +324,7 @@ struct OnboardingView: View {
         draft.nickname = draft.nickname.trimmingCharacters(in: .whitespacesAndNewlines)
         draft.testScore = draft.testScore.trimmingCharacters(in: .whitespacesAndNewlines)
         draft.stateResidency = draft.normalizedStateResidency
-        draft.intendedMajor = draft.intendedMajor.trimmingCharacters(in: .whitespacesAndNewlines)
+        draft.intendedMajor = ""
         profile = draft
         onContinue()
     }
