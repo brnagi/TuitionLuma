@@ -1,6 +1,6 @@
 import Foundation
 
-struct AidInput: Hashable {
+struct AidInput: Hashable, Codable {
     var grantsAndScholarships: Double
     var familyContribution: Double
     var workStudy: Double

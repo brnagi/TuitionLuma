@@ -74,6 +74,18 @@ struct CalculatorView: View {
                     viewModel.applySchoolDefaults(for: nil)
                 }
             }
+            .onChange(of: viewModel.livingScenario) { _, _ in
+                persistAidPlanForSavedSchool()
+            }
+            .onChange(of: viewModel.residencyScenario) { _, _ in
+                persistAidPlanForSavedSchool()
+            }
+            .onChange(of: viewModel.degreePathScenario) { _, _ in
+                persistAidPlanForSavedSchool()
+            }
+            .onChange(of: viewModel.repaymentTerm) { _, _ in
+                persistAidPlanForSavedSchool()
+            }
         }
     }
 
@@ -111,6 +123,7 @@ struct CalculatorView: View {
                 .onChange(of: viewModel.selectedSchool) { _, newSchool in
                     isShowingProgramDetails = false
                     viewModel.applySchoolDefaults(for: newSchool)
+                    applySavedAidPlan()
                     applySavedProgramChoice()
                     Task {
                         await viewModel.loadProgramsForSelectedSchool()
@@ -280,6 +293,40 @@ struct CalculatorView: View {
         } else {
             viewModel.selectedProgram = nil
         }
+    }
+
+    private func applySavedAidPlan() {
+        guard hasProAccess,
+              let selectedSchool = viewModel.selectedSchool,
+              let savedAidPlan = appViewModel.savedAidPlan(for: selectedSchool) else {
+            return
+        }
+
+        viewModel.aidInput = savedAidPlan.aidInput
+    }
+
+    private func persistAidPlanForSavedSchool() {
+        guard hasProAccess,
+              let selectedSchool = viewModel.selectedSchool,
+              appViewModel.isSaved(selectedSchool) else {
+            return
+        }
+
+        appViewModel.saveAidPlan(
+            SavedAidPlan(
+                aidInput: viewModel.aidInput,
+                annualCost: viewModel.annualCost,
+                netAnnualCost: viewModel.netAnnualCost,
+                netTotalCost: viewModel.netTotalCost,
+                annualAidTotal: viewModel.annualAidTotal,
+                loanPrincipal: viewModel.loanPrincipal,
+                monthlyPayment: viewModel.monthlyPayment,
+                totalRepayment: viewModel.totalRepayment,
+                scenarioSummary: viewModel.scenarioSummary,
+                updatedAt: Date()
+            ),
+            for: selectedSchool
+        )
     }
 
     private func programOutcomePreview(_ program: AcademicProgram) -> some View {
@@ -517,6 +564,9 @@ struct CalculatorView: View {
             }
         }
         .lumaCard(shadowOpacity: 0.32, strokeOpacity: 0.8)
+        .onChange(of: viewModel.aidInput) { _, _ in
+            persistAidPlanForSavedSchool()
+        }
     }
 
     private var proPlanningUnlockCard: some View {

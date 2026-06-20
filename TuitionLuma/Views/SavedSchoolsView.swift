@@ -61,6 +61,7 @@ struct SavedSchoolsView: View {
                 school: school,
                 savedSchools: appViewModel.savedSchools,
                 programChoice: appViewModel.preferredProgramChoice(for: school),
+                aidPlan: appViewModel.savedAidPlan(for: school),
                 profile: studentProfileStore.profile,
                 isCompared: appViewModel.isCompared(school),
                 onRemoveTapped: { _ = appViewModel.toggleSaved(school) },
@@ -167,6 +168,7 @@ private struct SavedSchoolShortlistCard: View {
     var school: School
     var savedSchools: [School]
     var programChoice: SavedProgramChoice?
+    var aidPlan: SavedAidPlan?
     var profile: StudentProfile
     var isCompared: Bool
     var onRemoveTapped: () -> Void
@@ -206,6 +208,7 @@ private struct SavedSchoolShortlistCard: View {
             metricRow
             shortlistInsightRow
             programPlanSection
+            aidPlanSection
 
             HStack(spacing: 10) {
                 shortlistAction(
@@ -224,6 +227,75 @@ private struct SavedSchoolShortlistCard: View {
             }
         }
         .lumaCard(padding: 16, shadowOpacity: 0.48)
+    }
+
+    @ViewBuilder
+    private var aidPlanSection: some View {
+        if let aidPlan {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "dollarsign.circle.fill")
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.mint)
+                        .frame(width: 28, height: 28)
+                        .background(LumaTheme.mint.opacity(0.13), in: Circle())
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Saved aid plan")
+                            .font(.subheadline.weight(.heavy))
+                            .foregroundStyle(LumaTheme.ink)
+
+                        Text(aidPlan.scenarioSummary)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(LumaTheme.slate)
+                            .lineLimit(2)
+                    }
+
+                    Spacer()
+
+                    Text("Updated")
+                        .font(.caption2.weight(.heavy))
+                        .foregroundStyle(LumaTheme.valueGreen)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 8)
+                        .background(LumaTheme.valueGreen.opacity(0.12), in: Capsule())
+                }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    programMetric(
+                        title: "Net annual cost",
+                        value: aidPlan.netAnnualCost.formatted(LumaFormat.currency),
+                        tint: LumaTheme.valueGreen
+                    )
+
+                    programMetric(
+                        title: "Loans / year",
+                        value: aidPlan.aidInput.annualLoanAmount.formatted(LumaFormat.currency),
+                        tint: LumaTheme.coral
+                    )
+
+                    programMetric(
+                        title: "Grants + scholarships",
+                        value: aidPlan.aidInput.grantsAndScholarships.formatted(LumaFormat.currency),
+                        tint: LumaTheme.mint
+                    )
+
+                    programMetric(
+                        title: "Family help",
+                        value: aidPlan.aidInput.familyContribution.formatted(LumaFormat.currency),
+                        tint: LumaTheme.sun
+                    )
+                }
+            }
+            .padding(13)
+            .background(LumaTheme.mint.opacity(0.07), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                    .stroke(LumaTheme.mint.opacity(0.22), lineWidth: 1.2)
+            }
+            .accessibilityElement(children: .contain)
+        }
     }
 
     private var lumaScoreBlock: some View {
