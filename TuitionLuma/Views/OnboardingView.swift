@@ -2,177 +2,431 @@ import SwiftUI
 
 struct OnboardingView: View {
     @Binding var profile: StudentProfile
-    @State private var nickname = ""
-    @FocusState private var isNicknameFocused: Bool
+    @State private var draft: StudentProfile
+    @FocusState private var focusedField: OnboardingField?
     var onContinue: () -> Void
 
-    var body: some View {
-        GeometryReader { proxy in
-            let isCompact = proxy.size.height < 740
+    private enum OnboardingField: Hashable {
+        case nickname
+        case testScore
+        case intendedMajor
+    }
 
+    init(profile: Binding<StudentProfile>, onContinue: @escaping () -> Void) {
+        self._profile = profile
+        self._draft = State(initialValue: profile.wrappedValue)
+        self.onContinue = onContinue
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
             LumaTheme.canvas
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                hero(isCompact: isCompact)
-                    .frame(maxWidth: .infinity, minHeight: min(max(proxy.size.height * 0.34, 240), 310), alignment: .leading)
-
-                VStack(spacing: isCompact ? 9 : 12) {
-                    decisionExample
-                    nicknamePrompt
-                    actionRow
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    hero
+                    basicsSection
+                    academicSection
+                    residencyAndIncomeSection
+                    preferencesSection
                 }
-                .padding(.horizontal, isCompact ? 16 : 18)
-                .padding(.top, isCompact ? 12 : 16)
-                .padding(.bottom, isCompact ? 12 : 18)
-                .frame(maxWidth: .infinity)
-                .background(LumaTheme.canvas)
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
+                .padding(.bottom, 104)
             }
-            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
             .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                focusedField = nil
+            }
+
+            actionBar
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button("Done") {
+                    focusedField = nil
+                }
+                .fontWeight(.bold)
+            }
         }
     }
 
-    private func hero(isCompact: Bool) -> some View {
-        VStack(alignment: .leading, spacing: isCompact ? 12 : 16) {
-            HStack {
-                Image(systemName: "sun.max.fill")
-                    .font(.title3)
-                Text("TuitionLuma")
-                    .font(.title3.weight(.heavy))
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center) {
+                HStack(spacing: 8) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.title3)
+                    Text("TuitionLuma")
+                        .font(.title3.weight(.heavy))
+                }
+                .foregroundStyle(.white)
+
+                Spacer()
+
+                Button("Skip") {
+                    finishOnboarding()
+                }
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(.white)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+                .background(.white.opacity(0.18), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(.white.opacity(0.22))
+                }
+                .accessibilityHint("Skips profile setup and opens Explore.")
             }
-            .foregroundStyle(.white)
 
-            Spacer(minLength: 6)
-
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("See what college will really cost.")
-                    .font(.system(size: isCompact ? 30 : 34, weight: .heavy))
+                    .font(.system(size: 32, weight: .heavy))
                     .foregroundStyle(.white)
                     .fixedSize(horizontal: false, vertical: true)
-                    .minimumScaleFactor(0.92)
 
-                Text("Compare tuition, aid, debt, earnings, and outcomes before making one of the biggest financial decisions of your life.")
-                    .font((isCompact ? Font.subheadline : Font.body).weight(.medium))
+                Text("Add a few details now, or skip and explore. Your profile helps personalize affordability, debt, earnings, and value signals.")
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.92))
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             HStack(spacing: 8) {
-                StatPill(title: "Affordability", value: "Clear", systemImage: "dollarsign.circle.fill", tint: .white.opacity(0.24))
-                StatPill(title: "Outcomes", value: "Compared", systemImage: "chart.line.uptrend.xyaxis", tint: .white.opacity(0.24))
+                onboardingPill("Affordability", systemImage: "dollarsign.circle.fill")
+                onboardingPill("Debt", systemImage: "creditcard.fill")
+                onboardingPill("Outcomes", systemImage: "chart.line.uptrend.xyaxis")
             }
         }
-        .padding(.horizontal, isCompact ? 20 : 24)
-        .padding(.top, isCompact ? 18 : 22)
-        .padding(.bottom, isCompact ? 16 : 20)
-        .background(LumaTheme.heroGradient)
-    }
-
-    private var actionRow: some View {
-        HStack(spacing: 10) {
-            Button("Skip") {
-                finishOnboarding()
+        .padding(20)
+        .background {
+            ZStack {
+                LumaTheme.heroGradient
+                LumaTheme.readableGradientOverlay.opacity(0.32)
             }
-            .font(.headline.weight(.heavy))
-            .foregroundStyle(LumaTheme.slate)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(.white, in: Capsule())
-
-            LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
+            .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
+        .shadow(color: LumaTheme.coral.opacity(0.18), radius: 18, y: 9)
     }
 
-    private var nicknamePrompt: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("What should we call you?")
-                .font(.headline.weight(.heavy))
-                .foregroundStyle(LumaTheme.ink)
-
-            Text("Optional. Add a friendly name for personalized recommendations.")
-                .font(.caption)
-                .foregroundStyle(LumaTheme.slate)
-
+    private var basicsSection: some View {
+        onboardingSection(
+            title: "About you",
+            subtitle: "Optional, but it makes recommendations feel more personal.",
+            systemImage: "person.crop.circle.fill",
+            tint: LumaTheme.aqua
+        ) {
             TextField(
-                text: $nickname,
-                prompt: Text("Alex, Sam, or Taylor")
+                text: $draft.nickname,
+                prompt: Text("Nickname, for example Alex")
                     .foregroundStyle(LumaTheme.slate)
             ) {
                 Text("Nickname")
             }
-            .focused($isNicknameFocused)
-            .submitLabel(.done)
+            .focused($focusedField, equals: .nickname)
             .textInputAutocapitalization(.words)
+            .submitLabel(.next)
             .onSubmit {
-                finishOnboarding()
+                focusedField = .testScore
             }
-            .lumaTextField(isFocused: isNicknameFocused)
+            .lumaTextField(isFocused: focusedField == .nickname)
             .accessibilityLabel("Optional nickname")
         }
-        .padding(14)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-        .onAppear {
-            nickname = profile.displayNickname
+    }
+
+    private var academicSection: some View {
+        onboardingSection(
+            title: "Academic profile",
+            subtitle: "GPA, test scores, and major help tune fit and outcome estimates.",
+            systemImage: "graduationcap.fill",
+            tint: LumaTheme.coral
+        ) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("GPA")
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Spacer()
+
+                    Text(draft.gpa.formatted(.number.precision(.fractionLength(1))))
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(LumaTheme.coral)
+                }
+
+                Slider(value: $draft.gpa, in: 0...4, step: 0.1)
+                    .tint(LumaTheme.coral)
+                    .accessibilityLabel("GPA")
+                    .accessibilityValue(draft.gpa.formatted(.number.precision(.fractionLength(1))))
+
+                TextField(
+                    text: $draft.testScore,
+                    prompt: Text("SAT/ACT optional, for example 1320 or 29")
+                        .foregroundStyle(LumaTheme.slate)
+                ) {
+                    Text("SAT or ACT score")
+                }
+                .focused($focusedField, equals: .testScore)
+                .keyboardType(.numbersAndPunctuation)
+                .textInputAutocapitalization(.never)
+                .submitLabel(.next)
+                .onSubmit {
+                    focusedField = .intendedMajor
+                }
+                .lumaTextField(isFocused: focusedField == .testScore)
+                .accessibilityLabel("SAT or ACT score")
+                .accessibilityHint("Optional.")
+
+                TextField(
+                    text: $draft.intendedMajor,
+                    prompt: Text("Intended major, for example Computer Science")
+                        .foregroundStyle(LumaTheme.slate)
+                ) {
+                    Text("Intended major")
+                }
+                .focused($focusedField, equals: .intendedMajor)
+                .textInputAutocapitalization(.words)
+                .submitLabel(.done)
+                .onSubmit {
+                    focusedField = nil
+                }
+                .lumaTextField(isFocused: focusedField == .intendedMajor)
+                .accessibilityLabel("Intended major")
+            }
+        }
+    }
+
+    private var residencyAndIncomeSection: some View {
+        onboardingSection(
+            title: "Cost profile",
+            subtitle: "Residency and income improve net-price and aid estimates.",
+            systemImage: "map.fill",
+            tint: LumaTheme.outcomeTeal
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                menuPicker("State Residency", selection: $draft.stateResidency) {
+                    Text("Select a state").tag("")
+
+                    ForEach(USState.all) { state in
+                        Text(state.name).tag(state.abbreviation)
+                    }
+                }
+                .onAppear {
+                    draft.stateResidency = draft.normalizedStateResidency
+                }
+                .accessibilityValue(draft.stateResidency.isEmpty ? "No state selected" : draft.stateResidencyDisplayName)
+
+                menuPicker("Family Income Range", selection: $draft.familyIncomeRange) {
+                    ForEach(FamilyIncomeRange.allCases) { range in
+                        Text(range.rawValue).tag(range)
+                    }
+                }
+                .accessibilityValue(draft.familyIncomeRange.rawValue)
+            }
+        }
+    }
+
+    private var preferencesSection: some View {
+        onboardingSection(
+            title: "Optional preferences",
+            subtitle: "Fine-tune results for school type, location, format, size, and debt comfort.",
+            systemImage: "slider.horizontal.3",
+            tint: LumaTheme.scoreGold
+        ) {
+            VStack(alignment: .leading, spacing: 14) {
+                preferenceGroup(title: "Public / Private Preference") {
+                    ForEach(SchoolOwnershipPreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.ownershipPreference == preference
+                        ) {
+                            draft.ownershipPreference = preference
+                        }
+                    }
+                }
+
+                preferenceGroup(title: "Distance From Home") {
+                    ForEach(DistanceFromHomePreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.distanceFromHomePreference == preference
+                        ) {
+                            draft.distanceFromHomePreference = preference
+                        }
+                    }
+                }
+
+                preferenceGroup(title: "Campus Size") {
+                    ForEach(CampusSizePreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.campusSizePreference == preference
+                        ) {
+                            draft.campusSizePreference = preference
+                        }
+                    }
+                }
+
+                preferenceGroup(title: "Learning Format") {
+                    ForEach(LearningFormatPreference.allCases) { preference in
+                        preferenceButton(
+                            title: preference.rawValue,
+                            isSelected: draft.learningFormatPreference == preference
+                        ) {
+                            draft.learningFormatPreference = preference
+                        }
+                    }
+                }
+
+                preferenceGroup(title: "Debt Tolerance") {
+                    ForEach(DebtTolerance.allCases) { tolerance in
+                        preferenceButton(
+                            title: tolerance.rawValue,
+                            isSelected: draft.debtTolerance == tolerance
+                        ) {
+                            draft.debtTolerance = tolerance
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var actionBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .overlay(LumaTheme.cardStroke)
+
+            LumaButton(title: "Continue", systemImage: "arrow.right", action: finishOnboarding)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
+                .background(.ultraThinMaterial)
         }
     }
 
     private func finishOnboarding() {
-        profile.nickname = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        focusedField = nil
+        draft.nickname = draft.nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        draft.testScore = draft.testScore.trimmingCharacters(in: .whitespacesAndNewlines)
+        draft.stateResidency = draft.normalizedStateResidency
+        draft.intendedMajor = draft.intendedMajor.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile = draft
         onContinue()
     }
 
-    private var decisionExample: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Which school is the best value?")
-                    .font(.headline.weight(.heavy))
-                    .foregroundStyle(LumaTheme.ink)
-
-                Text("TuitionLuma turns cost and outcome data into a simple decision signal.")
-                    .font(.caption)
-                    .foregroundStyle(LumaTheme.slate)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            HStack(spacing: 8) {
-                exampleMetric(title: "Net Price", value: "$14K", tint: LumaTheme.valueGreen)
-                exampleMetric(title: "Earnings", value: "$62K", tint: LumaTheme.outcomeTeal)
-                exampleMetric(title: "Luma Score", value: "69", tint: LumaTheme.scoreGold)
-            }
-
-            HStack(spacing: 8) {
-                Label("Fair Value", systemImage: "star.fill")
-                    .font(.caption.weight(.heavy))
-                    .foregroundStyle(LumaTheme.scoreGold)
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 10)
-                    .background(LumaTheme.scoreGold.opacity(0.12), in: Capsule())
-
-                Text("Good earnings, but watch total debt.")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(LumaTheme.slate)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(14)
-        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
-    }
-
-    private func exampleMetric(title: String, value: String, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(value)
-                .font(.headline.weight(.heavy))
-                .foregroundStyle(tint)
-                .lineLimit(1)
+    private func onboardingPill(_ title: String, systemImage: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.heavy))
+                .accessibilityHidden(true)
 
             Text(title)
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(LumaTheme.slate)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.caption.weight(.heavy))
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
         }
-            .frame(maxWidth: .infinity)
-            .padding(10)
-            .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+        .foregroundStyle(.white)
+        .padding(.vertical, 7)
+        .padding(.horizontal, 9)
+        .background(.white.opacity(0.18), in: Capsule())
+    }
+
+    private func onboardingSection<Content: View>(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        tint: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(tint)
+                    .frame(width: 28, height: 28)
+                    .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.headline.weight(.heavy))
+                        .foregroundStyle(LumaTheme.ink)
+
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(LumaTheme.slate)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            content()
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(tint.opacity(0.18))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.22), radius: 10, y: 5)
+    }
+
+    private func menuPicker<SelectionValue: Hashable, Content: View>(
+        _ title: String,
+        selection: Binding<SelectionValue>,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        Picker(title, selection: selection) {
+            content()
+        }
+        .pickerStyle(.menu)
+        .tint(LumaTheme.coral)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(13)
+        .background(.white, in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: LumaTheme.cardRadius)
+                .stroke(LumaTheme.cardStroke)
+        }
+        .accessibilityLabel(title)
+    }
+
+    private func preferenceGroup<Content: View>(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 118), spacing: 8)], alignment: .leading, spacing: 8) {
+                content()
+            }
+        }
+    }
+
+    private func preferenceButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(isSelected ? .white : LumaTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 42)
+                .background(isSelected ? AnyShapeStyle(LumaTheme.heroGradient) : AnyShapeStyle(.white), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(isSelected ? LumaTheme.coral : LumaTheme.ink.opacity(0.22), lineWidth: isSelected ? 2 : 1)
+                }
+                .shadow(color: isSelected ? LumaTheme.coral.opacity(0.20) : .black.opacity(0.04), radius: isSelected ? 10 : 4, y: isSelected ? 5 : 2)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
