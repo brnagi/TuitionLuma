@@ -19,7 +19,7 @@ struct OnboardingView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             LumaTheme.canvas
                 .ignoresSafeArea()
 
@@ -40,47 +40,27 @@ struct OnboardingView: View {
                 focusedField = nil
             }
 
-            actionBar
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
+            VStack {
                 Spacer()
-
-                Button("Done") {
-                    focusedField = nil
-                }
-                .fontWeight(.bold)
+                actionBar
             }
+
+            skipButton
+                .padding(.top, 14)
+                .padding(.trailing, 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
     }
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center) {
-                HStack(spacing: 8) {
-                    Image(systemName: "sun.max.fill")
-                        .font(.title3)
-                    Text("TuitionLuma")
-                        .font(.title3.weight(.heavy))
-                }
-                .foregroundStyle(.white)
-
-                Spacer()
-
-                Button("Skip") {
-                    finishOnboarding()
-                }
-                .font(.subheadline.weight(.heavy))
-                .foregroundStyle(.white)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 14)
-                .background(.white.opacity(0.18), in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(.white.opacity(0.22))
-                }
-                .accessibilityHint("Skips profile setup and opens Explore.")
+            HStack(spacing: 8) {
+                Image(systemName: "sun.max.fill")
+                    .font(.title3)
+                Text("TuitionLuma")
+                    .font(.title3.weight(.heavy))
             }
+            .foregroundStyle(.white)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("See what college will really cost.")
@@ -109,6 +89,23 @@ struct OnboardingView: View {
             .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         }
         .shadow(color: LumaTheme.coral.opacity(0.18), radius: 18, y: 9)
+    }
+
+    private var skipButton: some View {
+        Button("Skip") {
+            finishOnboarding()
+        }
+        .font(.subheadline.weight(.heavy))
+        .foregroundStyle(LumaTheme.coral)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .background(.white, in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(LumaTheme.coral.opacity(0.24))
+        }
+        .shadow(color: LumaTheme.cardShadow.opacity(0.18), radius: 12, y: 6)
+        .accessibilityHint("Skips profile setup and opens Explore.")
     }
 
     private var basicsSection: some View {
