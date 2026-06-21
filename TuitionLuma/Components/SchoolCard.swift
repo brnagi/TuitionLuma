@@ -189,14 +189,17 @@ struct SchoolCard: View {
                         .foregroundStyle(LumaTheme.slate)
                         .textCase(.uppercase)
 
-                    HStack(spacing: 7) {
+                    VStack(alignment: .leading, spacing: 7) {
                         Text(recommendation.fitLabel)
                             .font(.subheadline.weight(.heavy))
                             .foregroundStyle(LumaTheme.ink)
+                            .fixedSize(horizontal: false, vertical: true)
 
                         Text(confidenceLabel(for: recommendation))
                             .font(.caption2.weight(.heavy))
                             .foregroundStyle(recommendationTint(for: recommendation))
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
                             .padding(.vertical, 4)
                             .padding(.horizontal, 7)
                             .background(recommendationTint(for: recommendation).opacity(0.12), in: Capsule())
@@ -205,7 +208,7 @@ struct SchoolCard: View {
                     Text(recommendation.summary)
                         .font(.caption)
                         .foregroundStyle(LumaTheme.slate)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -233,18 +236,20 @@ struct SchoolCard: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(LumaTheme.slate)
                         .labelStyle(.titleAndIcon)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text("Cost risk: \(recommendation.affordability.rawValue)")
                     .font(.caption.weight(.heavy))
                     .foregroundStyle(affordabilityTint(for: recommendation.affordability))
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(recommendation.affordability.explanation)
                     .font(.caption)
                     .foregroundStyle(LumaTheme.slate)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(14)
