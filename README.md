@@ -2,16 +2,16 @@
 
 TuitionLuma is a SwiftUI app that helps students and families compare the true cost of college, including tuition, fees, housing, aid, debt, and expected outcomes.
 
-The main app experience is real-data-first. Explore, school details, and program outcomes load from the U.S. Department of Education College Scorecard API by default. Sample data is kept only for SwiftUI previews, local development fallback, and missing-key demo states.
+The main app experience is real-data-first. Explore, school details, and program outcomes load through the TuitionLuma Cloudflare College Scorecard proxy by default. Sample data is kept only for SwiftUI previews and local development fallback states.
 
 ## What is included
 
 - Swift + SwiftUI iOS app
 - MVVM-style view models
-- Live College Scorecard API-backed Explore, Detail, Compare, Calculator, and Saved flows
+- Live College Scorecard-backed Explore, Detail, Compare, Calculator, and Saved flows through the Cloudflare proxy
 - Institution-level mapping for tuition, net price, attendance cost, graduation rate, admissions, earnings, debt, ownership, and student size
 - Field-of-study/program mapping where College Scorecard program data is available
-- Paginated search, featured colleges, state browsing, loading states, empty states, missing-key state, and API error handling
+- Paginated search, featured colleges, state browsing, loading states, empty states, and API error handling
 - Reusable components: `SchoolCard`, `CostBreakdownCard`, `StatPill`, `ComparisonRow`, and `LumaButton`
 - Calculator logic for annual cost, total degree cost, net cost after aid, monthly loan payment, and 10-year repayment
 - Freemium model with TuitionLuma Pro one-time purchase state
@@ -25,20 +25,17 @@ Free users can:
 - Search colleges
 - View basic school cost data
 - Save up to 3 schools
-- Compare up to 2 schools
-- Use the basic cost calculator
-- Estimate total degree cost
+- View basic recommendations
+- View basic Luma Score information
 
 TuitionLuma Pro unlocks:
 
 - Unlimited saved schools
-- Compare up to 5 schools
-- Advanced debt repayment calculator
+- Compare schools
+- Aid and borrowing tools
 - Scholarship and grant planning
-- ROI score by school
-- Monthly loan payment projections
-- Export/share cost report as PDF
-- Personalized affordability score
+- Repayment calculator
+- Family Report
 - Parent/student planning mode
 - Scenario modeling for on-campus, off-campus, in-state, out-of-state, 2-year, and 4-year paths
 
@@ -48,50 +45,25 @@ TuitionLuma Pro is presented as a one-time `$4.99` purchase.
 
 - Xcode 15 or newer
 - iOS 17 or newer simulator/device
-- College Scorecard API key from `api.data.gov`
 
-## College Scorecard API setup
+## College Scorecard data setup
 
-TuitionLuma reads the API key from `COLLEGE_SCORECARD_API_KEY`. Do not hardcode API keys in source files or commit them to git.
+The iOS app does not require a College Scorecard API key. Production builds call the TuitionLuma Cloudflare proxy, which injects the College Scorecard API key from a Cloudflare secret.
 
-Recommended local setup:
+For the proxy:
 
-1. Copy `Config/LocalSecrets.xcconfig.example` to `Config/LocalSecrets.xcconfig`.
-2. Replace the placeholder value with your College Scorecard API key.
-3. Build and run the app from Xcode.
+1. Deploy `Cloudflare/tuitionluma-scorecard-proxy`.
+2. Set the `COLLEGE_SCORECARD_API_KEY` secret in Cloudflare.
+3. Keep College Scorecard credentials out of the iOS app, Xcode schemes, and git.
 
-`Config/LocalSecrets.xcconfig` is ignored by git. Xcode injects the value into the generated app Info.plist through `Config/TuitionLuma.xcconfig`, so the simulator can still use live data if you relaunch the installed app directly.
-
-Alternative Run scheme setup in Xcode:
-
-1. Open `TuitionLuma.xcodeproj`.
-2. Select Product > Scheme > Edit Scheme.
-3. Choose Run > Arguments.
-4. Add an environment variable named `COLLEGE_SCORECARD_API_KEY`.
-5. Paste your local key as the value.
-6. Keep the key out of git.
-
-Command-line build/run tools can also pass the key as an environment variable:
-
-```sh
-COLLEGE_SCORECARD_API_KEY=your_key_here \
-xcodebuild -project TuitionLuma.xcodeproj \
-  -scheme TuitionLuma \
-  -destination 'generic/platform=iOS Simulator' \
-  build
-```
-
-The Xcode project exposes `COLLEGE_SCORECARD_API_KEY` as a build setting and maps it to the generated Info.plist key `CollegeScorecardAPIKey`. The checked-in `Config/TuitionLuma.xcconfig` keeps the default empty and optionally includes the ignored local secrets file.
-
-When the key is missing, Explore shows a polished missing-key state with an explicit “Use Sample Data” fallback. That sample fallback is not the default production flow.
+`Config/LocalSecrets.xcconfig.example` is intentionally unused by the iOS app and is kept only as a reminder that College Scorecard credentials belong in Cloudflare, not in the app bundle.
 
 ## Run the app
 
 1. Open `TuitionLuma.xcodeproj` in Xcode.
-2. Add `COLLEGE_SCORECARD_API_KEY` to the Run scheme environment.
-3. Select the `TuitionLuma` scheme.
-4. Choose an iPhone simulator.
-5. Press Run.
+2. Select the `TuitionLuma` scheme.
+3. Choose an iPhone simulator.
+4. Press Run.
 
 ## Command-line checks
 
@@ -102,7 +74,6 @@ swiftc -typecheck $(find TuitionLuma -name '*.swift' | sort)
 ```
 
 ```sh
-COLLEGE_SCORECARD_API_KEY=your_key_here \
 xcodebuild -project TuitionLuma.xcodeproj \
   -scheme TuitionLuma \
   -destination 'generic/platform=iOS Simulator' \

@@ -76,13 +76,6 @@
             ReferencedContainer = "container:TuitionLuma.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "COLLEGE_SCORECARD_API_KEY"
-            value = "i7OWORo1PSi5NrBRmHPCvhoH6MQLKIRLBNJUHJ8i"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
