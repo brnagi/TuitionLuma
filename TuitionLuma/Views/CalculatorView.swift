@@ -23,69 +23,75 @@ struct CalculatorView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    schoolPicker
-                    if viewModel.selectedSchool == nil {
-                        calculatorEmptyState
-                    } else {
-                        programPicker
-                        headlineNumbers
-                        tuitionInfoCard
-                        if hasProAccess {
-                            aidInputs
-                            planningModeCard
-                            advancedCalculatorSection
+            GeometryReader { proxy in
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        schoolPicker
+                        if viewModel.selectedSchool == nil {
+                            calculatorEmptyState
                         } else {
-                            proPlanningUnlockCard
+                            programPicker
+                            headlineNumbers
+                            tuitionInfoCard
+                            if hasProAccess {
+                                aidInputs
+                                planningModeCard
+                                advancedCalculatorSection
+                            } else {
+                                proPlanningUnlockCard
+                            }
                         }
                     }
+                    .padding()
+                    .frame(width: proxy.size.width, alignment: .topLeading)
                 }
-                .padding()
+                .scrollBounceBehavior(.basedOnSize, axes: .vertical)
+                .clipped()
+                .background(LumaTheme.canvas)
+                .sheet(isPresented: $isShowingPaywall) {
+                    PaywallView()
+                        .environmentObject(proPurchaseManager)
+                }
+                .sheet(item: $shareableReport) { report in
+                    ShareSheet(items: [report.url])
+                }
+                .sheet(isPresented: $isShowingProgramBrowser) {
+                    ProgramBrowserSheet(
+                        programs: viewModel.availablePrograms,
+                        selectedProgram: viewModel.selectedProgram,
+                        onSelect: { program in
+                            viewModel.selectedProgram = program
+                            if let selectedSchool = viewModel.selectedSchool {
+                                appViewModel.savePreferredProgram(program, for: selectedSchool)
+                            }
+                            isShowingProgramDetails = false
+                            isShowingProgramBrowser = false
+                        }
+                    )
+                }
+                .sheet(item: $selectedRepaymentPlan) { plan in
+                    SavedRepaymentPlanDetailView(plan: plan)
+                }
+                .onChange(of: calculatorSchools.map(\.id)) { _, savedIDs in
+                    guard let selectedSchool = viewModel.selectedSchool else { return }
+                    if !savedIDs.contains(selectedSchool.id) {
+                        viewModel.applySchoolDefaults(for: nil)
+                    }
+                }
+                .onChange(of: viewModel.livingScenario) { _, _ in
+                    persistAidPlanForSavedSchool()
+                }
+                .onChange(of: viewModel.residencyScenario) { _, _ in
+                    persistAidPlanForSavedSchool()
+                }
+                .onChange(of: viewModel.degreePathScenario) { _, _ in
+                    persistAidPlanForSavedSchool()
+                }
+                .onChange(of: viewModel.repaymentTerm) { _, _ in
+                    persistAidPlanForSavedSchool()
+                }
             }
             .background(LumaTheme.canvas)
-            .sheet(isPresented: $isShowingPaywall) {
-                PaywallView()
-                    .environmentObject(proPurchaseManager)
-            }
-            .sheet(item: $shareableReport) { report in
-                ShareSheet(items: [report.url])
-            }
-            .sheet(isPresented: $isShowingProgramBrowser) {
-                ProgramBrowserSheet(
-                    programs: viewModel.availablePrograms,
-                    selectedProgram: viewModel.selectedProgram,
-                    onSelect: { program in
-                        viewModel.selectedProgram = program
-                        if let selectedSchool = viewModel.selectedSchool {
-                            appViewModel.savePreferredProgram(program, for: selectedSchool)
-                        }
-                        isShowingProgramDetails = false
-                        isShowingProgramBrowser = false
-                    }
-                )
-            }
-            .sheet(item: $selectedRepaymentPlan) { plan in
-                SavedRepaymentPlanDetailView(plan: plan)
-            }
-            .onChange(of: calculatorSchools.map(\.id)) { _, savedIDs in
-                guard let selectedSchool = viewModel.selectedSchool else { return }
-                if !savedIDs.contains(selectedSchool.id) {
-                    viewModel.applySchoolDefaults(for: nil)
-                }
-            }
-            .onChange(of: viewModel.livingScenario) { _, _ in
-                persistAidPlanForSavedSchool()
-            }
-            .onChange(of: viewModel.residencyScenario) { _, _ in
-                persistAidPlanForSavedSchool()
-            }
-            .onChange(of: viewModel.degreePathScenario) { _, _ in
-                persistAidPlanForSavedSchool()
-            }
-            .onChange(of: viewModel.repaymentTerm) { _, _ in
-                persistAidPlanForSavedSchool()
-            }
         }
     }
 
@@ -1429,7 +1435,7 @@ private struct SavedRepaymentPlanDetailView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(plan.schoolName)
@@ -1577,7 +1583,7 @@ private struct ProgramBrowserSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 18) {
                     searchField
                     filterRow
