@@ -443,22 +443,24 @@ struct CollegeScorecardService: SchoolDataProviding {
             ?? object.string("credential.level")
             ?? object.string("credlev")
             ?? "Credential"
-        let earnings = object.double(at: ["earnings", "highest", "1_yr", "overall_median_earnings"])
+        let nestedEarnings = object.double(at: ["earnings", "highest", "1_yr", "overall_median_earnings"])
             ?? object.double(at: ["earnings", "1_yr", "overall_median_earnings"])
             ?? object.double(at: ["earnings", "4_yr", "overall_median_earnings"])
             ?? object.double(at: ["earnings", "4_yr", "overall_median_earnings_national"])
-            ?? object.double("earnings.median_earnings")
+        let flattenedEarnings = object.double("earnings.median_earnings")
             ?? object.double("earnings.highest.1_yr.overall_median_earnings")
             ?? object.double("earnings.1_yr.overall_median_earnings")
             ?? object.double("earn_mdn_1yr")
-            ?? 0
-        let debt = object.double(at: ["debt", "staff_grad_plus", "all", "all_inst", "median"])
+        let earnings = nestedEarnings ?? flattenedEarnings ?? 0
+
+        let federalDebt = object.double(at: ["debt", "staff_grad_plus", "all", "all_inst", "median"])
             ?? object.double(at: ["debt", "staff_grad_plus", "all", "eval_inst", "median"])
             ?? object.double(at: ["debt", "parent_plus", "all", "all_inst", "median"])
             ?? object.double(at: ["debt", "parent_plus", "all", "eval_inst", "median"])
-            ?? object.double("debt.median_debt")
+        let flattenedDebt = object.double("debt.median_debt")
             ?? object.double("debt.all.median_debt")
             ?? object.double("debt_mdn")
+        let debt = federalDebt ?? flattenedDebt
         let completionCount = object.int(at: ["counts", "ipeds_awards2"])
             ?? object.int(at: ["counts", "ipeds_awards1"])
             ?? object.int("counts.ipeds_awards2")
