@@ -159,12 +159,13 @@ struct SchoolDetailView: View {
                 Text(title)
                     .font(.caption2.weight(.heavy))
                     .foregroundStyle(.white.opacity(0.78))
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 11)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
         .background(.black.opacity(0.22), in: RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
         .overlay {
             RoundedRectangle(cornerRadius: LumaTheme.cardRadius)

@@ -100,7 +100,7 @@ struct CompareView: View {
             }
             .listStyle(.plain)
             .scrollDisabled(true)
-            .frame(height: CGFloat(viewModel.selectedSchools.count) * 74)
+            .frame(height: CGFloat(viewModel.selectedSchools.count) * 86)
             .background(Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: LumaTheme.cardRadius))
 

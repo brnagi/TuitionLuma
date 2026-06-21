@@ -233,6 +233,30 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
         XCTAssertEqual(match?.name, "Computer and Information Sciences")
     }
 
+    func testProfileWithoutIntendedMajorStillRanksByResidency() {
+        let homeStateSchool = makeSchool(
+            name: "Texas Value University",
+            state: "TX",
+            medianEarnings: 62_000,
+            averageDebt: 18_000
+        )
+        let outOfStateSchool = makeSchool(
+            name: "Out of State University",
+            state: "CA",
+            medianEarnings: 62_000,
+            averageDebt: 18_000
+        )
+        let profile = makeProfile(intendedMajor: "")
+
+        let rankedSchools = StudentProfileRecommendationEngine.rankedSchools(
+            [outOfStateSchool, homeStateSchool],
+            profile: profile
+        )
+
+        XCTAssertTrue(profile.isComplete)
+        XCTAssertEqual(rankedSchools.first?.name, "Texas Value University")
+    }
+
     func testBusinessMajorMatchesBusinessProgramBeforeHigherROINursingProgram() {
         let school = makeSchool(
             medianEarnings: 58_000,
@@ -352,6 +376,7 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
 
     private func makeSchool(
         name: String = "Test University",
+        state: String = "TX",
         medianEarnings: Double,
         averageDebt: Double,
         netPrice: Double = 13_500,
@@ -363,7 +388,7 @@ final class ROIOutcomeCalculatorTests: XCTestCase {
             scorecardID: 123,
             name: name,
             city: "Austin",
-            state: "TX",
+            state: state,
             type: .publicUniversity,
             acceptanceRate: 0.72,
             graduationRate: graduationRate,

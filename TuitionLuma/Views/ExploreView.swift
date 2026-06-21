@@ -289,6 +289,9 @@ struct ExploreView: View {
             studentProfileStore.profile.normalizedMajor,
             studentProfileStore.profile.debtTolerance.rawValue,
             studentProfileStore.profile.ownershipPreference.rawValue,
+            studentProfileStore.profile.distanceFromHomePreference.rawValue,
+            studentProfileStore.profile.campusSizePreference.rawValue,
+            studentProfileStore.profile.learningFormatPreference.rawValue,
             String(viewModel.schools.count)
         ].joined(separator: "|")
     }
@@ -461,7 +464,7 @@ enum ExploreCoachMarkStep: Int, CaseIterable {
         case .compare:
             return "Compare up to 3 schools side-by-side and see which one looks strongest for your profile."
         case .profile:
-            return "Add your major, residency, and income to improve recommendations, affordability, and ROI estimates."
+            return "Add your residency, income, and preferences to improve recommendations, affordability, and ROI estimates."
         }
     }
 

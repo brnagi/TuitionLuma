@@ -299,7 +299,7 @@ struct StudentProfile: Codable, Equatable {
     }
 
     var isComplete: Bool {
-        !normalizedStateResidency.isEmpty && !normalizedMajor.isEmpty && gpa > 0
+        !normalizedStateResidency.isEmpty && gpa > 0
     }
 }
 
@@ -607,7 +607,77 @@ enum StudentProfileRecommendationEngine {
             debtScore = normalizedInverseScore(value: debt, low: low, high: high)
         }
 
-        return ownershipScore * 0.45 + debtScore * 0.55
+        let distanceScore = distancePreferenceScore(for: school, profile: profile)
+        let campusSizeScore = campusSizePreferenceScore(for: school, profile: profile)
+        let learningFormatScore = learningFormatPreferenceScore(for: school, profile: profile)
+
+        return ownershipScore * 0.32
+            + debtScore * 0.38
+            + campusSizeScore * 0.12
+            + learningFormatScore * 0.10
+            + distanceScore * 0.08
+    }
+
+    private static func distancePreferenceScore(for school: School, profile: StudentProfile) -> Double {
+        let isHomeState = profile.normalizedStateResidency == school.state.uppercased()
+
+        switch profile.distanceFromHomePreference {
+        case .noPreference:
+            return 70
+        case .anywhere:
+            return 78
+        case .withinFewHours:
+            return isHomeState ? 92 : 58
+        case .closeToHome:
+            return isHomeState ? 100 : 42
+        }
+    }
+
+    private static func campusSizePreferenceScore(for school: School, profile: StudentProfile) -> Double {
+        guard school.studentCount > 0 else { return 70 }
+
+        let campusSize: CampusSizePreference
+        if school.studentCount < 5_000 {
+            campusSize = .small
+        } else if school.studentCount < 15_000 {
+            campusSize = .medium
+        } else {
+            campusSize = .large
+        }
+
+        switch profile.campusSizePreference {
+        case .noPreference:
+            return 70
+        case .small, .medium, .large:
+            return profile.campusSizePreference == campusSize ? 100 : 45
+        }
+    }
+
+    private static func learningFormatPreferenceScore(for school: School, profile: StudentProfile) -> Double {
+        let searchableText = ([school.name, school.campusVibe] + school.highlights)
+            .joined(separator: " ")
+            .lowercased()
+        let isOnlineFriendly = [
+            "online",
+            "global campus",
+            "virtual",
+            "distance",
+            "flexible",
+            "western governors",
+            "southern new hampshire",
+            "university of phoenix"
+        ].contains { searchableText.contains($0) }
+
+        switch profile.learningFormatPreference {
+        case .noPreference:
+            return 70
+        case .online:
+            return isOnlineFriendly ? 100 : 38
+        case .hybrid:
+            return isOnlineFriendly ? 86 : 72
+        case .inPerson:
+            return isOnlineFriendly ? 46 : 90
+        }
     }
 
     private static func residencyRankingScore(
@@ -720,11 +790,13 @@ enum StudentProfileRecommendationEngine {
             return "Uses \(matchedProgram.name) outcomes, your residency, and income range."
         }
 
+        let interestSummary = profile.normalizedMajor.isEmpty ? "preferences" : "\(profile.intendedMajor) interest"
+
         if profile.normalizedStateResidency == school.state.uppercased() {
-            return "Uses your in-state residency, income range, and \(profile.intendedMajor) interest."
+            return "Uses your in-state residency, income range, and \(interestSummary)."
         }
 
-        return "Uses your residency, income range, and \(profile.intendedMajor) interest."
+        return "Uses your residency, income range, and \(interestSummary)."
     }
 
     private static func numericTestScore(from text: String) -> Int? {

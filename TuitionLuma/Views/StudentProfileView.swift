@@ -57,34 +57,19 @@ struct StudentProfileCard: View {
 
     private var completeProfileSummary: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(profileGreeting)
-                        .font(.title3.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink)
-                        .fixedSize(horizontal: false, vertical: true)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: 12) {
+                    profileSummaryHeader
 
-                    Text("\(studentProfileStore.profile.intendedMajor) • \(studentProfileStore.profile.stateResidencyDisplayName)")
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(LumaTheme.ink.opacity(0.84))
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+
+                    editProfileButton
                 }
 
-                Spacer(minLength: 8)
-
-                Button("Edit Profile") {
-                    isShowingEditor = true
+                VStack(alignment: .leading, spacing: 10) {
+                    profileSummaryHeader
+                    editProfileButton
                 }
-                .font(.subheadline.weight(.heavy))
-                .foregroundStyle(.white)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 16)
-                .background(LumaTheme.coral, in: Capsule())
-                .shadow(color: LumaTheme.coral.opacity(0.18), radius: 10, y: 5)
-                .buttonStyle(.plain)
-                .frame(minHeight: 44)
-                .accessibilityHint("Opens the student profile form.")
             }
 
             Divider()
@@ -123,7 +108,37 @@ struct StudentProfileCard: View {
         }
         .shadow(color: LumaTheme.cardShadow.opacity(0.22), radius: 14, y: 7)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(profileGreeting). \(studentProfileStore.profile.intendedMajor). \(studentProfileStore.profile.stateResidencyDisplayName) resident. Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Distance preference \(studentProfileStore.profile.distanceFromHomePreference.rawValue). Campus size \(studentProfileStore.profile.campusSizePreference.rawValue). Learning format \(studentProfileStore.profile.learningFormatPreference.rawValue). Recommendations are personalized using your profile.")
+        .accessibilityLabel("\(profileGreeting). \(profileSummaryLine). Income \(studentProfileStore.profile.familyIncomeRange.rawValue). Debt tolerance \(studentProfileStore.profile.debtTolerance.rawValue). School type preference \(studentProfileStore.profile.ownershipPreference.rawValue). Distance preference \(studentProfileStore.profile.distanceFromHomePreference.rawValue). Campus size \(studentProfileStore.profile.campusSizePreference.rawValue). Learning format \(studentProfileStore.profile.learningFormatPreference.rawValue). Recommendations are personalized using your profile.")
+    }
+
+    private var profileSummaryHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(profileGreeting)
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(profileSummaryLine)
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(LumaTheme.ink.opacity(0.84))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var editProfileButton: some View {
+        Button("Edit Profile") {
+            isShowingEditor = true
+        }
+        .font(.subheadline.weight(.heavy))
+        .foregroundStyle(.white)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .background(LumaTheme.coral, in: Capsule())
+        .shadow(color: LumaTheme.coral.opacity(0.18), radius: 10, y: 5)
+        .buttonStyle(.plain)
+        .frame(minHeight: 44)
+        .accessibilityHint("Opens the student profile form.")
     }
 
     private var profileGreeting: String {
@@ -133,6 +148,17 @@ struct StudentProfileCard: View {
         }
 
         return "Hi \(nickname) 👋"
+    }
+
+    private var profileSummaryLine: String {
+        let major = studentProfileStore.profile.intendedMajor.trimmingCharacters(in: .whitespacesAndNewlines)
+        let state = studentProfileStore.profile.stateResidencyDisplayName
+
+        guard !major.isEmpty else {
+            return "\(state) Resident"
+        }
+
+        return "\(major) • \(state)"
     }
 
     private var profileCardBackground: some ShapeStyle {
@@ -156,7 +182,7 @@ struct StudentProfileCard: View {
     }
 
     private var promptSubtitle: String {
-        "Improve recommendations with your major, residency, income, and preferences."
+        "Improve recommendations with residency, income, and preferences."
     }
 
     private var promptCTA: String {
