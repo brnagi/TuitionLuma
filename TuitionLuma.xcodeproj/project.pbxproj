@@ -46,6 +46,7 @@
 		B00000000000000000000040 /* LumaScoreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000040 /* LumaScoreCard.swift */; };
 		B00000000000000000000041 /* ProgramDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000041 /* ProgramDetailView.swift */; };
 		B00000000000000000000042 /* ProgramExplorerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000042 /* ProgramExplorerView.swift */; };
+		B00000000000000000000043 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000043 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +102,7 @@
 		F00000000000000000000040 /* LumaScoreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LumaScoreCard.swift; sourceTree = "<group>"; };
 		F00000000000000000000041 /* ProgramDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDetailView.swift; sourceTree = "<group>"; };
 		F00000000000000000000042 /* ProgramExplorerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramExplorerView.swift; sourceTree = "<group>"; };
+		F00000000000000000000043 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		P00000000000000000000001 /* TuitionLuma.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TuitionLuma.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		P00000000000000000000002 /* TuitionLumaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TuitionLumaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -132,6 +134,7 @@
 				F00000000000000000000001 /* TuitionLumaApp.swift */,
 				F00000000000000000000002 /* AppRootView.swift */,
 				F00000000000000000000032 /* Info.plist */,
+				F00000000000000000000043 /* PrivacyInfo.xcprivacy */,
 				F00000000000000000000033 /* Assets.xcassets */,
 				G00000000000000000000003 /* Models */,
 				G00000000000000000000004 /* Data */,
@@ -342,6 +345,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B00000000000000000000033 /* Assets.xcassets in Resources */,
+				B00000000000000000000043 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
