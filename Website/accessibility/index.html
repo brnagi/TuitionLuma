@@ -26,25 +26,69 @@
       </nav>
     </header>
 
-    <main class="page">
-      <p class="eyebrow">Accessibility</p>
-      <h1>Accessibility at TuitionLuma</h1>
-      <p class="lead">
-        TuitionLuma is built to help students and families make college decisions with clearer, more readable information. We aim to make the app usable with standard iOS accessibility features and continue improving accessibility as the product evolves.
-      </p>
-
-      <section>
-        <h2>Supported app accessibility features</h2>
-        <p>
-          TuitionLuma uses native iOS and SwiftUI patterns for navigation, forms, buttons, lists, and controls. The app includes VoiceOver-friendly labels, values, hints, grouped summaries, and selected-state indicators across key areas such as Explore, School Detail, Compare, Calculator, Aid, Saved Schools, Profile, and Pro purchase screens.
-        </p>
-        <p>
-          The app also supports Dynamic Type through system text styles in most views, readable contrast improvements, keyboard-friendly forms, tappable controls with visible states, and screen reader summaries for school metrics, LumaScore, cost estimates, calculator results, and program cards.
-        </p>
+    <main>
+      <section class="accessibility-hero">
+        <div class="accessibility-hero-content">
+          <p class="eyebrow">Accessibility</p>
+          <h1>College planning should be clear for more families.</h1>
+          <p class="lead">
+            TuitionLuma is built to help students and parents compare costs, aid, debt, and outcomes with readable layouts, clear controls, and standard iOS accessibility support.
+          </p>
+        </div>
+        <div class="accessibility-preview" aria-label="Accessibility feature highlights">
+          <div class="accessibility-preview-card strong">
+            <span>VoiceOver</span>
+            <strong>Clear labels</strong>
+            <p>Save, Compare, Profile, Calculator, and Pro actions include screen reader context.</p>
+          </div>
+          <div class="accessibility-preview-grid">
+            <div>
+              <span>Aa</span>
+              <strong>Dynamic Type</strong>
+            </div>
+            <div>
+              <span>✓</span>
+              <strong>Selected states</strong>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section>
-        <h2>What we focus on</h2>
+      <section class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Supported features</p>
+          <h2>Designed around readable decisions.</h2>
+          <p>
+            TuitionLuma uses native iOS and SwiftUI patterns for navigation, forms, buttons, lists, and controls. Accessibility support is focused on making the most important college planning information easier to understand.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="feature-icon score">VO</span>
+            <h3>VoiceOver support</h3>
+            <p>Key screens include labels, values, hints, grouped summaries, and selected-state indicators.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon cost">Aa</span>
+            <h3>Dynamic text</h3>
+            <p>The app uses system text styles in most views and allows important guidance to wrap where practical.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon roi">✓</span>
+            <h3>Clear controls</h3>
+            <p>Actions, forms, profile choices, planning modes, and scenario selections are built with visible states.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section split">
+        <div>
+          <p class="eyebrow">What we focus on</p>
+          <h2>Less guessing. More clarity.</h2>
+          <p>
+            College planning can be dense, so TuitionLuma emphasizes clear cost labels, readable summaries, and controls that communicate what is selected.
+          </p>
+        </div>
         <ul class="check-list">
           <li>Clear VoiceOver labels for important actions like Save, Compare, Edit Profile, Change Program, Restore Purchase, and Apply Estimate.</li>
           <li>Readable cost, aid, debt, earnings, and outcome summaries that do not rely only on color.</li>
@@ -54,21 +98,26 @@
         </ul>
       </section>
 
-      <section>
-        <h2>Known limitations</h2>
-        <p>
-          TuitionLuma is still improving. Some data-dense views, charts, exported reports, or third-party college data may need continued accessibility refinement. We do not currently claim custom support for every accessibility setting, such as Reduce Motion, color filters, captions, or audio descriptions.
-        </p>
+      <section class="section compact">
+        <div class="notice">
+          <h2>Known limitations</h2>
+          <p>
+            TuitionLuma is still improving. Some data-dense views, charts, exported reports, or third-party college data may need continued accessibility refinement. We do not currently claim custom support for every accessibility setting, such as Reduce Motion, color filters, captions, or audio descriptions.
+          </p>
+        </div>
       </section>
 
-      <section>
-        <h2>Feedback and support</h2>
-        <p>
-          If you experience an accessibility issue, please contact us and include your device, iOS version, assistive technology used, and the screen where the issue occurred.
-        </p>
-        <p>
-          Email: <a href="mailto:support@caseluma.com?subject=TuitionLuma%20Accessibility%20Feedback">support@caseluma.com</a>
-        </p>
+      <section class="section compact">
+        <div class="accessibility-callout">
+          <div>
+            <p class="eyebrow">Feedback</p>
+            <h2>Help us improve accessibility.</h2>
+            <p>
+              If you experience an accessibility issue, include your device, iOS version, assistive technology used, and the screen where the issue occurred.
+            </p>
+          </div>
+          <a class="button primary" href="mailto:support@caseluma.com?subject=TuitionLuma%20Accessibility%20Feedback">Email feedback</a>
+        </div>
       </section>
     </main>
 
@@ -81,7 +130,7 @@
         <a href="/">Home</a>
         <a href="/support/">Support</a>
         <a href="/accessibility/">Accessibility</a>
-          <a href="/privacy/">Privacy</a>
+        <a href="/privacy/">Privacy</a>
         <a href="/terms/">Terms</a>
       </div>
     </footer>
