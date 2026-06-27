@@ -98,7 +98,7 @@ App Store Connect:
 - `SEOAnalyzer`
 - `AIAdvisor`
 
-The SEO Analyzer auto-detects the current request origin, Cloudflare Pages URL, `sitemap.xml`, `robots.txt`, and generated page locations. External providers display guided `Connect` states until their official API credentials are added.
+The SEO Analyzer auto-detects the Cloudflare Pages URL, `sitemap.xml`, `robots.txt`, and generated page locations. It uses `SITE_ORIGIN` only when an explicit production override is set. External providers display guided `Connect` states until their official API credentials are added.
 
 The settings wizard at `/admin/settings/` shows:
 

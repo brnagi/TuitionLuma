@@ -130,9 +130,6 @@ function toDate(date) {
 function resolveSiteOrigin(request, env) {
   if (env.SITE_ORIGIN) return env.SITE_ORIGIN.replace(/\/$/, "");
   const requestUrl = new URL(request.url);
-  if (requestUrl.hostname === "localhost" || requestUrl.hostname === "127.0.0.1") {
-    return requestUrl.origin;
-  }
   if (env.CF_PAGES_URL) return env.CF_PAGES_URL.replace(/\/$/, "");
   return requestUrl.origin;
 }

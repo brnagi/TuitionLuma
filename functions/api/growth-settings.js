@@ -178,7 +178,7 @@ const PROVIDERS = [
 export async function onRequestGet(context) {
   const { request, env } = context;
   const requestUrl = new URL(request.url);
-  const origin = env.SITE_ORIGIN || ((requestUrl.hostname === "localhost" || requestUrl.hostname === "127.0.0.1") ? requestUrl.origin : env.CF_PAGES_URL) || requestUrl.origin;
+  const origin = env.SITE_ORIGIN || env.CF_PAGES_URL || requestUrl.origin;
   const providers = PROVIDERS.map(provider => {
     const credentials = (provider.credentials || []).map(credential => ({
       ...credential,
