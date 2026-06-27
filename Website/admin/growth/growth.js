@@ -1,10 +1,10 @@
 const formatNumber = value => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not configured";
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Configuration Required";
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Number(value));
 };
 
 const formatPercent = value => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not configured";
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Configuration Required";
   return `${(Number(value) * 100).toFixed(1)}%`;
 };
 
@@ -39,6 +39,7 @@ function setStatus(label, title, description) {
 function renderDashboard(data) {
   const updated = data.generatedAt ? new Date(data.generatedAt).toLocaleString() : "just now";
   setStatus("Live", "Growth dashboard ready", `Updated ${updated}. ${data.providerStatus.configured}/${data.providerStatus.total} providers configured.`);
+  renderProviderStatus(data.providerStatus.providers || []);
   renderOverview(data);
   renderAdvisor(data.advisor);
   renderSEO(data);
@@ -65,6 +66,25 @@ function renderOverview(data) {
       <p>${note}</p>
     </article>
   `).join("");
+}
+
+function renderProviderStatus(providers) {
+  document.getElementById("provider-status-panel").innerHTML = providers.map(provider => {
+    const connected = provider.status === "Connected";
+    const refresh = provider.lastSuccessfulRefresh
+      ? new Date(provider.lastSuccessfulRefresh).toLocaleString()
+      : "Awaiting first successful refresh";
+    return `
+      <article class="provider-card ${connected ? "connected" : "required"}">
+        <div>
+          <span class="tag ${connected ? "connected-tag" : "required-tag"}">${escapeHtml(provider.status || provider.message || "Configuration Required")}</span>
+          <h3>${escapeHtml(provider.name)}</h3>
+          <p>Refresh interval: every ${escapeHtml(provider.refreshIntervalMinutes || 60)} minutes</p>
+        </div>
+        <p><strong>Last successful refresh:</strong> ${escapeHtml(refresh)}</p>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderAdvisor(advisor = {}) {
@@ -115,10 +135,10 @@ function renderBusiness(data) {
     tableCard("Territory breakdown", app.territories, row => [row.territory || row.label, `${formatNumber(row.downloads)} downloads`]),
     tableCard("Recent reviews", reviews.recentReviews, row => [row.title || "Review", `${row.rating || "-"} stars`]),
     tableCard("Future revenue", [
-      { label: "Revenue", value: "Placeholder" },
-      { label: "MRR", value: "Placeholder" },
-      { label: "Subscribers", value: "Placeholder" },
-      { label: "Pro conversion", value: "Placeholder" }
+      { label: "Revenue", value: "Configuration Required" },
+      { label: "MRR", value: "Configuration Required" },
+      { label: "Subscribers", value: "Configuration Required" },
+      { label: "Pro conversion", value: "Configuration Required" }
     ], row => [row.label, row.value])
   ];
   document.getElementById("business-panel").innerHTML = cards.join("");
@@ -138,7 +158,7 @@ function renderPerformance(data) {
 
 function tableCard(title, rows = [], mapper) {
   if (!rows || !rows.length) {
-    return `<article class="data-card"><h3>${title}</h3>${emptyCard("No data yet", "Configure the related provider or wait for enough data to accumulate.")}</article>`;
+    return `<article class="data-card"><h3>${title}</h3>${emptyCard("Configuration Required", "Connect the related provider or wait for enough production data to accumulate.")}</article>`;
   }
   return `<article class="data-card"><h3>${title}</h3><div class="table-list">${
     rows.slice(0, 8).map(row => {
@@ -154,6 +174,7 @@ function emptyCard(title, description) {
 
 function renderEmptyDashboard(message) {
   document.getElementById("overview-grid").innerHTML = emptyCard("Dashboard could not load", message);
+  document.getElementById("provider-status-panel").innerHTML = emptyCard("Provider status unavailable", message);
   document.getElementById("advisor-summary").textContent = "No executive summary available.";
   document.getElementById("advisor-recommendations").innerHTML = "";
   ["seo-panel", "content-panel", "business-panel", "performance-panel"].forEach(id => {

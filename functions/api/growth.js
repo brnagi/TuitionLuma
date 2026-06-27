@@ -1,7 +1,14 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
+const CACHE_TTL_SECONDS = 15 * 60;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
+  const now = new Date().toISOString();
+
+  if (request.url && !new URL(request.url).searchParams.has("refresh")) {
+    const cached = await readCache(request);
+    if (cached) return cached;
+  }
 
   const dateRange = buildDateRange();
   const siteOrigin = env.SITE_ORIGIN || new URL(request.url).origin;
@@ -18,14 +25,18 @@ export async function onRequestGet(context) {
   const statuses = [];
 
   await Promise.all(providers.map(async provider => {
-    const result = await provider.safeFetch();
+    const result = await provider.safeFetch(now);
     results[provider.key] = result.data;
     statuses.push({
       key: provider.key,
       name: provider.name,
       configured: provider.isConfigured(),
       ok: result.ok,
-      message: result.message
+      status: result.status,
+      message: result.message,
+      lastSuccessfulRefresh: result.lastSuccessfulRefresh,
+      refreshIntervalMinutes: provider.refreshIntervalMinutes,
+      requiredEnvironment: provider.requiredEnvironment()
     });
   }));
 
@@ -33,7 +44,7 @@ export async function onRequestGet(context) {
   const advisor = new AIAdvisor({ ...results, content }, statuses).build();
   const configured = statuses.filter(status => status.configured).length;
 
-  return json({
+  const response = json({
     generatedAt: new Date().toISOString(),
     providerStatus: {
       configured,
@@ -49,14 +60,44 @@ export async function onRequestGet(context) {
     performance: results.performance,
     advisor
   });
+
+  await writeCache(request, response.clone());
+  return response;
 }
 
-function json(payload, status = 200) {
+async function readCache(request) {
+  if (!globalThis.caches) return null;
+  const cache = caches.default;
+  const cacheKey = cacheRequest(request);
+  const response = await cache.match(cacheKey);
+  if (!response) return null;
+  return new Response(response.body, {
+    status: response.status,
+    headers: {
+      ...Object.fromEntries(response.headers.entries()),
+      "x-growth-cache": "HIT"
+    }
+  });
+}
+
+async function writeCache(request, response) {
+  if (!globalThis.caches) return;
+  const cache = caches.default;
+  await cache.put(cacheRequest(request), response);
+}
+
+function cacheRequest(request) {
+  const url = new URL(request.url);
+  url.search = "";
+  return new Request(url.toString(), { method: "GET" });
+}
+
+function json(payload, status = 200, cacheSeconds = CACHE_TTL_SECONDS) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
+      "cache-control": `private, max-age=${cacheSeconds}`,
       "x-robots-tag": "noindex, nofollow, noarchive"
     }
   });
@@ -80,9 +121,11 @@ function toDate(date) {
 }
 
 class Provider {
-  constructor(key, name) {
+  constructor(key, name, options = {}) {
     this.key = key;
     this.name = name;
+    this.refreshIntervalMinutes = options.refreshIntervalMinutes || 60;
+    this.requiredEnv = options.requiredEnv || [];
   }
 
   isConfigured() {
@@ -97,21 +140,49 @@ class Provider {
     return this.emptyData();
   }
 
-  async safeFetch() {
+  requiredEnvironment() {
+    return this.requiredEnv.map(name => ({
+      name,
+      configured: Boolean(this.env?.[name])
+    }));
+  }
+
+  async safeFetch(now) {
     if (!this.isConfigured()) {
-      return { ok: true, message: "Not configured", data: this.emptyData() };
+      return {
+        ok: false,
+        status: "Configuration Required",
+        message: "Configuration Required",
+        lastSuccessfulRefresh: null,
+        data: this.emptyData("Configuration Required")
+      };
     }
     try {
-      return { ok: true, message: "Connected", data: await this.fetchData() };
+      return {
+        ok: true,
+        status: "Connected",
+        message: "Connected",
+        lastSuccessfulRefresh: now,
+        data: await this.fetchData()
+      };
     } catch (error) {
-      return { ok: false, message: error.message, data: this.emptyData(error.message) };
+      return {
+        ok: false,
+        status: "Connection Error",
+        message: error.message,
+        lastSuccessfulRefresh: null,
+        data: this.emptyData(error.message)
+      };
     }
   }
 }
 
 class GoogleOAuthProvider extends Provider {
-  constructor(key, name, env, dateRange) {
-    super(key, name);
+  constructor(key, name, env, dateRange, options = {}) {
+    super(key, name, {
+      refreshIntervalMinutes: options.refreshIntervalMinutes || 60,
+      requiredEnv: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", ...(options.requiredEnv || [])]
+    });
     this.env = env;
     this.dateRange = dateRange;
   }
@@ -140,7 +211,10 @@ class GoogleOAuthProvider extends Provider {
 
 class GoogleSearchConsoleProvider extends GoogleOAuthProvider {
   constructor(env, dateRange) {
-    super("searchConsole", "Google Search Console", env, dateRange);
+    super("searchConsole", "Google Search Console", env, dateRange, {
+      refreshIntervalMinutes: 60,
+      requiredEnv: ["GOOGLE_SEARCH_CONSOLE_SITE_URL"]
+    });
   }
 
   isConfigured() {
@@ -219,7 +293,10 @@ class GoogleSearchConsoleProvider extends GoogleOAuthProvider {
 
 class GoogleAnalyticsProvider extends GoogleOAuthProvider {
   constructor(env, dateRange) {
-    super("analytics", "Google Analytics Data API", env, dateRange);
+    super("analytics", "Google Analytics Data API", env, dateRange, {
+      refreshIntervalMinutes: 30,
+      requiredEnv: ["GA4_PROPERTY_ID"]
+    });
   }
 
   isConfigured() {
@@ -306,7 +383,10 @@ class GoogleAnalyticsProvider extends GoogleOAuthProvider {
 
 class CloudflareAnalyticsProvider extends Provider {
   constructor(env, dateRange) {
-    super("cloudflare", "Cloudflare Analytics", env, dateRange);
+    super("cloudflare", "Cloudflare Analytics", {
+      refreshIntervalMinutes: 15,
+      requiredEnv: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_TAG"]
+    });
     this.env = env;
     this.dateRange = dateRange;
   }
@@ -382,13 +462,28 @@ class CloudflareAnalyticsProvider extends Provider {
 
 class AppStoreConnectProvider extends Provider {
   constructor(env, dateRange) {
-    super("appStore", "App Store Connect", env, dateRange);
+    super("appStore", "App Store Connect", {
+      refreshIntervalMinutes: 360,
+      requiredEnv: [
+        "APP_STORE_CONNECT_KEY_ID",
+        "APP_STORE_CONNECT_ISSUER_ID",
+        "APP_STORE_CONNECT_PRIVATE_KEY",
+        "APP_STORE_APP_ID",
+        "APP_STORE_VENDOR_NUMBER"
+      ]
+    });
     this.env = env;
     this.dateRange = dateRange;
   }
 
   isConfigured() {
-    return Boolean(this.env.APP_STORE_CONNECT_KEY_ID && this.env.APP_STORE_CONNECT_ISSUER_ID && this.env.APP_STORE_CONNECT_PRIVATE_KEY && this.env.APP_STORE_APP_ID);
+    return Boolean(
+      this.env.APP_STORE_CONNECT_KEY_ID &&
+      this.env.APP_STORE_CONNECT_ISSUER_ID &&
+      this.env.APP_STORE_CONNECT_PRIVATE_KEY &&
+      this.env.APP_STORE_APP_ID &&
+      this.env.APP_STORE_VENDOR_NUMBER
+    );
   }
 
   emptyData(error) {
@@ -451,7 +546,15 @@ class AppStoreConnectProvider extends Provider {
 
 class ReviewProvider extends Provider {
   constructor(env) {
-    super("reviews", "App Reviews", env);
+    super("reviews", "App Reviews", {
+      refreshIntervalMinutes: 360,
+      requiredEnv: [
+        "APP_STORE_CONNECT_KEY_ID",
+        "APP_STORE_CONNECT_ISSUER_ID",
+        "APP_STORE_CONNECT_PRIVATE_KEY",
+        "APP_STORE_APP_ID"
+      ]
+    });
     this.env = env;
   }
 
@@ -492,7 +595,7 @@ class ReviewProvider extends Provider {
 
 class SEOAnalyzer extends Provider {
   constructor(siteOrigin) {
-    super("performance", "SEO Analyzer");
+    super("performance", "SEO Analyzer", { refreshIntervalMinutes: 60 });
     this.siteOrigin = siteOrigin;
   }
 
@@ -651,7 +754,7 @@ class AIAdvisor {
     const configured = this.statuses.filter(status => status.configured).length;
     const summary = configured
       ? `Growth intelligence is using ${configured} configured provider${configured === 1 ? "" : "s"}. SEO clicks are ${formatSafe(sc.clicks)}, organic users are ${formatSafe(analytics.organicUsers)}, and ${recommendations.length} prioritized recommendations are ready.`
-      : "No live providers are configured yet. The dashboard is rendering site-health checks and setup placeholders until API credentials are added.";
+      : "External providers require configuration. The dashboard is rendering live site-health checks until API credentials are added.";
 
     return { summary, recommendations };
   }
@@ -781,6 +884,6 @@ function shortPath(url) {
 }
 
 function formatSafe(value) {
-  if (value === null || value === undefined) return "not configured";
+  if (value === null || value === undefined) return "Configuration Required";
   return new Intl.NumberFormat("en-US").format(value);
 }

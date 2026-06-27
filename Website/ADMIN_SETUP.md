@@ -3,6 +3,7 @@
 Private dashboard route:
 
 - `/admin/growth/`
+- `/admin/settings/`
 
 The route is not linked from public pages, is not included in `sitemap.xml`, and includes `noindex,nofollow,noarchive`.
 
@@ -26,7 +27,7 @@ npx wrangler pages dev Website --compatibility-date=2026-06-10
 Recommended production setup:
 
 - Set `GROWTH_ADMIN_USERNAME` and `GROWTH_ADMIN_PASSWORD` as Cloudflare Pages environment variables.
-- The dashboard uses browser Basic Auth for `/admin/*` and `/api/growth`.
+- The dashboard uses browser Basic Auth for `/admin/*`, `/api/growth`, and `/api/growth-settings`.
 - Cloudflare Access can still be added later for stronger identity-based access.
 
 ## Required Environment Variables
@@ -97,7 +98,7 @@ App Store Connect:
 - `SEOAnalyzer`
 - `AIAdvisor`
 
-Each provider returns an empty state when credentials are missing or a provider has no data yet.
+Each provider displays `Connected` when its Cloudflare Pages environment bindings are present and authentication succeeds. Missing credentials display `Configuration Required`.
 
 ## Deployment
 
@@ -114,7 +115,7 @@ Deploy after setting environment variables:
 git push origin main
 ```
 
-Cloudflare Pages will serve static files and the `/api/growth` Pages Function.
+Cloudflare Pages will serve static files and the `/api/growth` and `/api/growth-settings` Pages Functions.
 
 ## Scheduled Jobs
 

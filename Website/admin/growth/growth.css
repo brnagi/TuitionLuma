@@ -88,12 +88,36 @@ h1 {
 .metric-card,
 .data-card,
 .empty-card,
+.provider-card,
+.settings-card,
 .token-panel,
 .advisor-summary {
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 18px 44px rgba(23, 23, 44, 0.10);
+}
+
+.admin-link,
+.secondary-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 22px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.82);
+  font-weight: 950;
+  text-decoration: none;
+  box-shadow: 0 12px 30px rgba(23, 23, 44, 0.10);
+}
+
+.secondary-link {
+  margin-top: 0;
+  border: 1px solid var(--line);
+  background: white;
 }
 
 .status-card {
@@ -134,6 +158,13 @@ h1 {
   margin-bottom: 16px;
 }
 
+.inline-heading {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+}
+
 .section-heading h2 {
   margin-bottom: 0;
   font-size: clamp(1.75rem, 3.2vw, 2.7rem);
@@ -144,6 +175,38 @@ h1 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+.provider-grid,
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.provider-card,
+.settings-card {
+  padding: 22px;
+}
+
+.provider-card h3,
+.settings-card h3 {
+  margin: 12px 0 8px;
+  font-size: 1.22rem;
+}
+
+.provider-card.connected {
+  border-color: rgba(50, 200, 121, 0.36);
+}
+
+.provider-card.required {
+  border-color: rgba(255, 91, 105, 0.30);
+}
+
+.provider-card p,
+.settings-card p {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .metric-card {
@@ -232,6 +295,70 @@ h1 {
   font-weight: 950;
 }
 
+.connected-tag {
+  color: #087f5d;
+  background: #ddf8ed;
+}
+
+.required-tag {
+  color: #a72335;
+  background: #ffe8eb;
+}
+
+.settings-hero h1 {
+  max-width: 760px;
+}
+
+.settings-card-header {
+  display: flex;
+  gap: 16px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.settings-card-header > strong {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border-radius: 999px;
+  color: #087fa2;
+  background: #e2f7fc;
+}
+
+.env-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.env-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.env-row span {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.env-set {
+  color: #087f5d;
+}
+
+.env-missing {
+  color: #a72335;
+}
+
+.setup-list {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
 .recommendation-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -307,7 +434,17 @@ h1 {
   .growth-hero,
   .two-column,
   .metric-grid,
-  .recommendation-list {
+  .recommendation-list,
+  .provider-grid,
+  .settings-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .inline-heading,
+  .settings-card-header {
+    align-items: start;
+    flex-direction: column;
   }
 }

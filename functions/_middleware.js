@@ -1,7 +1,7 @@
 export async function onRequest(context) {
   const { request, env, next } = context;
   const path = new URL(request.url).pathname;
-  const isProtected = path.startsWith("/admin/") || path === "/api/growth";
+  const isProtected = path.startsWith("/admin/") || path === "/api/growth" || path === "/api/growth-settings";
 
   if (!isProtected) {
     return next();

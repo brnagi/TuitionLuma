@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <title>Provider Settings | TuitionLuma Admin</title>
+    <link rel="icon" href="/assets/tuitionluma-cap-icon.png">
+    <link rel="apple-touch-icon" href="/assets/tuitionluma-cap-icon.png">
+    <link rel="stylesheet" href="/admin/growth/growth.css">
+  </head>
+  <body>
+    <main class="growth-shell">
+      <header class="growth-hero settings-hero">
+        <div>
+          <p class="eyebrow">Private Settings</p>
+          <h1>Production provider setup</h1>
+          <p class="lead">Credentials are read from Cloudflare Pages environment variables. Secret values are never shown in this interface.</p>
+          <a class="admin-link" href="/admin/growth/">Back to dashboard</a>
+        </div>
+        <div class="status-card" id="settings-status">
+          <span>Loading</span>
+          <strong>Checking environment</strong>
+          <p>Provider status appears after the settings endpoint responds.</p>
+        </div>
+      </header>
+
+      <section class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Environment</p>
+          <h2>Provider requirements</h2>
+        </div>
+        <div class="settings-grid" id="settings-grid"></div>
+      </section>
+    </main>
+
+    <script src="/admin/settings/settings.js" defer></script>
+  </body>
+</html>
