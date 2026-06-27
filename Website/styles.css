@@ -698,6 +698,224 @@ h1 {
   line-height: 1.5;
 }
 
+.seo-page {
+  width: min(1120px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 54px 0 96px;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.breadcrumbs a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  color: var(--coral);
+}
+
+.seo-hero-card,
+.seo-cta {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 34px;
+  padding: clamp(26px, 5vw, 46px);
+  background:
+    radial-gradient(circle at 14% 16%, rgba(255, 255, 255, 0.58), transparent 24%),
+    linear-gradient(135deg, rgba(59, 208, 184, 0.34), rgba(255, 200, 71, 0.28), rgba(255, 91, 105, 0.18));
+  box-shadow: 0 28px 80px rgba(23, 23, 44, 0.12);
+}
+
+.seo-hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 280px);
+  gap: 26px;
+  align-items: center;
+}
+
+.seo-hero-card h1 {
+  margin-bottom: 16px;
+  font-size: clamp(2.35rem, 5vw, 4.8rem);
+  line-height: 1;
+}
+
+.seo-hero-card .lead {
+  color: var(--muted);
+  text-shadow: none;
+}
+
+.seo-score-card {
+  min-height: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 28px;
+  padding: 24px;
+  display: grid;
+  align-content: center;
+  background: rgba(255, 255, 255, 0.80);
+  box-shadow: 0 22px 55px rgba(23, 23, 44, 0.11);
+}
+
+.seo-score-card span {
+  color: var(--muted);
+  font-weight: 950;
+}
+
+.seo-score-card strong {
+  margin: 8px 0;
+  color: var(--coral);
+  font-size: clamp(3rem, 8vw, 5.2rem);
+  line-height: 0.95;
+}
+
+.seo-score-card p {
+  color: var(--ink);
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.seo-stat-grid,
+.seo-content-grid,
+.related-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.seo-stat-grid {
+  margin-top: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.seo-stat,
+.seo-content-grid article,
+.related-grid article,
+.insight-panel,
+.comparison-table {
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: var(--panel);
+  box-shadow: 0 16px 44px rgba(23, 23, 44, 0.07);
+}
+
+.seo-stat {
+  min-height: 150px;
+  padding: 22px;
+}
+
+.seo-stat span {
+  color: var(--muted);
+  font-weight: 950;
+}
+
+.seo-stat strong {
+  display: block;
+  margin: 8px 0;
+  color: var(--blue);
+  font-size: clamp(1.85rem, 4vw, 2.55rem);
+  line-height: 1;
+}
+
+.seo-stat p,
+.seo-content-grid p,
+.insight-panel p,
+.seo-cta p {
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.seo-content-grid,
+.related-grid {
+  margin-top: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.seo-content-grid article,
+.related-grid article,
+.insight-panel {
+  padding: 26px;
+}
+
+.seo-content-grid h2,
+.related-grid h2,
+.insight-panel h2,
+.seo-cta h2 {
+  margin-bottom: 10px;
+  font-size: 1.55rem;
+}
+
+.seo-page > section:not(.seo-hero-card):not(.seo-stat-grid):not(.seo-content-grid):not(.related-grid):not(.seo-cta) {
+  margin-top: 24px;
+}
+
+.insight-panel {
+  border-color: rgba(255, 91, 105, 0.18);
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 200, 71, 0.20), transparent 22%),
+    #fff8f6;
+}
+
+.seo-link-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.seo-link-list a {
+  color: var(--coral);
+  font-weight: 900;
+}
+
+.seo-cta {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+}
+
+.comparison-table {
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.2fr) repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: center;
+  padding: 18px 22px;
+}
+
+.compare-row + .compare-row {
+  border-top: 1px solid var(--line);
+}
+
+.compare-row span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.compare-row strong {
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: var(--wash);
+  color: var(--ink);
+  font-size: 1.18rem;
+}
+
+.compare-row strong.winner {
+  color: #087f5d;
+  background: #ddf8ed;
+}
+
 .site-footer {
   width: min(1120px, calc(100% - 36px));
   min-height: 126px;
@@ -726,7 +944,12 @@ h1 {
   .accessibility-callout,
   .split,
   .pro-panel,
-  .feature-grid {
+  .feature-grid,
+  .seo-hero-card,
+  .seo-cta,
+  .seo-stat-grid,
+  .seo-content-grid,
+  .related-grid {
     grid-template-columns: 1fr;
   }
 
@@ -788,6 +1011,18 @@ h1 {
   }
 
   .accessibility-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .seo-page {
+    padding-top: 34px;
+  }
+
+  .seo-score-card {
+    min-height: auto;
+  }
+
+  .compare-row {
     grid-template-columns: 1fr;
   }
 }
