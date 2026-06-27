@@ -1,7 +1,3 @@
-const state = {
-  token: localStorage.getItem("tuitionlumaGrowthToken") || ""
-};
-
 const formatNumber = value => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not configured";
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Number(value));
@@ -21,16 +17,13 @@ const formatMetric = (value, type = "number") => {
 async function loadDashboard() {
   setStatus("Loading", "Connecting providers", "Fetching live metrics and site health signals.");
   try {
-    const headers = state.token ? { "x-admin-token": state.token } : {};
-    const response = await fetch("/api/growth", { headers });
+    const response = await fetch("/api/growth");
     if (response.status === 401) {
-      showTokenPanel();
-      setStatus("Locked", "Admin token required", "Enter the private token to load growth intelligence.");
+      setStatus("Locked", "Login required", "Refresh and enter the Growth dashboard username and password.");
       return;
     }
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Dashboard request failed.");
-    hideTokenPanel();
     renderDashboard(data);
   } catch (error) {
     setStatus("Error", "Dashboard unavailable", error.message);
@@ -41,14 +34,6 @@ async function loadDashboard() {
 function setStatus(label, title, description) {
   const status = document.getElementById("refresh-status");
   status.innerHTML = `<span>${label}</span><strong>${title}</strong><p>${description}</p>`;
-}
-
-function showTokenPanel() {
-  document.getElementById("token-panel").classList.remove("hidden");
-}
-
-function hideTokenPanel() {
-  document.getElementById("token-panel").classList.add("hidden");
 }
 
 function renderDashboard(data) {
@@ -184,12 +169,5 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-
-document.getElementById("token-form").addEventListener("submit", event => {
-  event.preventDefault();
-  state.token = document.getElementById("admin-token").value.trim();
-  localStorage.setItem("tuitionlumaGrowthToken", state.token);
-  loadDashboard();
-});
 
 loadDashboard();

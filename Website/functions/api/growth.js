@@ -2,9 +2,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
-  if (!isAuthorized(request, env)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
 
   const dateRange = buildDateRange();
   const siteOrigin = env.SITE_ORIGIN || new URL(request.url).origin;
@@ -52,11 +49,6 @@ export async function onRequestGet(context) {
     performance: results.performance,
     advisor
   });
-}
-
-function isAuthorized(request, env) {
-  if (!env.GROWTH_ADMIN_TOKEN) return true;
-  return request.headers.get("x-admin-token") === env.GROWTH_ADMIN_TOKEN;
 }
 
 function json(payload, status = 200) {

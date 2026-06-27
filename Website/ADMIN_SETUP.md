@@ -26,15 +26,16 @@ npx wrangler pages dev . --compatibility-date=2026-06-26
 
 Recommended production setup:
 
-- Protect `/admin/*` with Cloudflare Access.
-- Set `GROWTH_ADMIN_TOKEN` as a Cloudflare Pages environment variable.
-- The dashboard API requires the token through the `x-admin-token` header when `GROWTH_ADMIN_TOKEN` is configured.
+- Set `GROWTH_ADMIN_USERNAME` and `GROWTH_ADMIN_PASSWORD` as Cloudflare Pages environment variables.
+- The dashboard uses browser Basic Auth for `/admin/*` and `/api/growth`.
+- Cloudflare Access can still be added later for stronger identity-based access.
 
 ## Required Environment Variables
 
 Admin:
 
-- `GROWTH_ADMIN_TOKEN`
+- `GROWTH_ADMIN_USERNAME`
+- `GROWTH_ADMIN_PASSWORD`
 - `SITE_ORIGIN=https://tuitionluma.pages.dev`
 
 Google OAuth:
