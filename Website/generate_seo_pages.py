@@ -285,6 +285,95 @@ def program_links(count=5, offset=0):
     return selected
 
 
+def linked_school(school):
+    return f'<a href="/college-cost/{esc(school["slug"])}/">{esc(school["name"])}</a>'
+
+
+def linked_program(program):
+    return f'<a href="/programs/{esc(program[0])}/">{esc(program[1])}</a>'
+
+
+def sentence_join(items):
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    return ", ".join(items[:-1]) + ", and " + items[-1]
+
+
+def data_position(value, values, lower_is_better=False):
+    known = sorted(v for v in values if v is not None)
+    if value is None or not known:
+        return "not enough reported data to place it confidently"
+    midpoint = statistics.median(known)
+    if lower_is_better:
+        if value <= midpoint * 0.82:
+            return "lower than many schools in this sample"
+        if value >= midpoint * 1.18:
+            return "higher than many schools in this sample"
+    else:
+        if value >= midpoint * 1.18:
+            return "higher than many schools in this sample"
+        if value <= midpoint * 0.82:
+            return "lower than many schools in this sample"
+    return "near the middle of this sample"
+
+
+def school_editorial(school, schools, related, related_programs):
+    net_position = data_position(school.get("net_price"), [s.get("net_price") for s in schools], lower_is_better=True)
+    earnings_position = data_position(school.get("earnings"), [s.get("earnings") for s in schools])
+    debt_position = data_position(school.get("debt"), [s.get("debt") for s in schools], lower_is_better=True)
+    grad_position = data_position(school.get("graduation_rate"), [s.get("graduation_rate") for s in schools])
+    related_a = related[0]
+    related_b = related[1] if len(related) > 1 else related[0]
+    program_a = related_programs[0]
+    program_b = related_programs[1] if len(related_programs) > 1 else related_programs[0]
+    strengths = []
+    if school.get("earnings") is not None:
+        strengths.append(f"reported earnings of {money(school['earnings'])}")
+    if school.get("graduation_rate") is not None:
+        strengths.append(f"a graduation rate of {percent(school['graduation_rate'])}")
+    if school.get("net_price") is not None:
+        strengths.append(f"an average net price of {money(school['net_price'])}")
+    strength_text = sentence_join(strengths) if strengths else "the cost and outcome fields that are currently reported"
+    return f"""<section class="editorial-panel">
+        <h2>College planning perspective</h2>
+        <p>{esc(school['name'])} may be a practical option for students who want to compare a {esc(school['ownership'].lower())} school in {esc(school['city'])}, {esc(school['state'])} against clear cost and outcome signals. Its average net price is {money(school.get('net_price'))}, which is {net_position}. Reported median earnings are {money(school.get('earnings'))}, which is {earnings_position}, while median completer debt is {money(school.get('debt'))}, a debt signal that is {debt_position}. The graduation rate is {percent(school.get('graduation_rate'))}, which is {grad_position}; that matters because taking extra terms can raise housing, fees, and borrowing.</p>
+        <p>The main value question is whether {esc(school['name'])} keeps costs manageable while still offering enough completion and earnings support for the student&apos;s intended path. Families comparing this school should also review nearby or similar options such as {linked_school(related_a)} and {linked_school(related_b)}, then test different academic interests such as {linked_program(program_a)} or {linked_program(program_b)}. <strong>Who should consider this school?</strong> Students who see a realistic aid package, can keep borrowing in a comfortable range, and want to evaluate {strength_text} before deciding may want to keep it on the shortlist. Final costs should still be verified with official school and aid sources.</p>
+      </section>"""
+
+
+def comparison_editorial(a, b, winner, reasons):
+    affordability = a if lower_better(a.get("net_price"), b.get("net_price")) else b
+    earnings = a if higher_better(a.get("earnings"), b.get("earnings")) else b
+    debt = a if lower_better(a.get("debt"), b.get("debt")) else b
+    grad = a if higher_better(a.get("graduation_rate"), b.get("graduation_rate")) else b
+    reason_text = sentence_join(reasons)
+    return f"""<section class="editorial-panel">
+        <h2>Editorial comparison</h2>
+        <p>{linked_school(a)} and {linked_school(b)} ask families to weigh different parts of the college decision. On affordability, {esc(affordability['name'])} has the lower reported average net price at {money(affordability.get('net_price'))}. For long-term earnings, {esc(earnings['name'])} has the higher reported median earnings at {money(earnings.get('earnings'))}. Debt also deserves a separate look: {esc(debt['name'])} reports the lower median completer debt at {money(debt.get('debt'))}. Graduation data points toward {esc(grad['name'])} with a reported rate of {percent(grad.get('graduation_rate'))}, which may matter for students trying to limit extra semesters and additional borrowing.</p>
+        <p>The overall tradeoff is not simply which school has the lowest cost or the highest earnings number. A student with a strong aid offer may reasonably choose the school that fits their academic path, while a family focused on repayment comfort may prioritize net price and debt. Based on the available data, TuitionLuma leans toward {esc(winner['name'])} because of {esc(reason_text)}. Students should compare this result with actual financial aid letters, housing plans, and intended programs before deciding.</p>
+      </section>
+      <section class="seo-pick-grid">
+        <article><span>Best for Value</span><strong>{esc(short_name(winner['name']))}</strong><p>Higher combined Luma Score using the available cost and outcome fields.</p></article>
+        <article><span>Best for Affordability</span><strong>{esc(short_name(affordability['name']))}</strong><p>Lower reported average net price in this comparison.</p></article>
+        <article><span>Best for Long-Term Earnings</span><strong>{esc(short_name(earnings['name']))}</strong><p>Higher reported median earnings after entry.</p></article>
+      </section>"""
+
+
+def program_editorial(program, examples, typical, debt_note):
+    slug, name, category, career = program
+    first = examples[0]
+    second = examples[1] if len(examples) > 1 else examples[0]
+    related = [p for p in program_links(3, len(name)) if p[0] != slug][:2]
+    related_text = sentence_join([linked_program(p) for p in related])
+    return f"""<section class="editorial-panel">
+        <h2>Program planning perspective</h2>
+        <p>{esc(name)} is usually a decision about both academic fit and repayment comfort. Students interested in {esc(career)} should compare programs by more than the course title: the school&apos;s net price, the likely time to finish, completion support, and reported earnings all shape the return. In this sample, the example schools linked below show school-wide reported median earnings around {typical}; that is useful context, but it should not be treated as a program-specific salary promise. Outcomes vary by school, credential level, location, work experience, and the student&apos;s path after graduation.</p>
+        <p>Debt is the part families can plan most directly. For the example schools on this page, the median debt signal is {debt_note}, but a student&apos;s actual borrowing can change with grants, scholarships, family contribution, living arrangement, and whether extra terms are needed. Students comparing {esc(name)} may want to review schools such as {linked_school(first)} and {linked_school(second)}, then compare related paths like {related_text}. A careful plan should ask whether the expected credential is worth the likely net cost and whether monthly repayment would still feel manageable if earnings start below the school-wide median.</p>
+      </section>"""
+
+
 def school_page(school, schools):
     canonical = f"{SITE_URL}/college-cost/{school['slug']}/"
     title = f"{school['name']} Cost, Outcomes, Debt & Luma Score | TuitionLuma"
@@ -313,6 +402,7 @@ def school_page(school, schools):
         </aside>
       </section>
       <section class="seo-stat-grid">{stat_cards(school)}</section>
+      {school_editorial(school, schools, related, related_programs)}
       <section class="seo-content-grid">
         <article><h2>Cost overview</h2><p>{esc(school['name'])} reports an average net price of {money(school.get('net_price'))}. Tuition is {money(school.get('tuition_in_state'))} for in-state students and {money(school.get('tuition_out_state'))} for out-of-state students where reported. Families should compare this against grants, scholarships, housing, and likely borrowing.</p></article>
         <article><h2>Outcomes overview</h2><p>Reported median earnings are {money(school.get('earnings'))}. This is not a guaranteed salary, but it helps compare the long-term payoff side of the college decision.</p></article>
@@ -379,6 +469,7 @@ def comparison_page(a, b):
         {comparison_row('Median debt', money(a.get('debt')), money(b.get('debt')), lower_better(a.get('debt'), b.get('debt')))}
         {comparison_row('Graduation rate', percent(a.get('graduation_rate')), percent(b.get('graduation_rate')), higher_better(a.get('graduation_rate'), b.get('graduation_rate')))}
       </section>
+      {comparison_editorial(a, b, winner, reasons)}
       <section class="seo-content-grid">
         <article><h2>Cost comparison</h2><p>{esc(a['name'])} reports an average net price of {money(a.get('net_price'))}, while {esc(b['name'])} reports {money(b.get('net_price'))}. The better choice depends on your aid package, residency, housing, and borrowing plan.</p></article>
         <article><h2>Earnings comparison</h2><p>Reported median earnings are {money(a.get('earnings'))} for {esc(a['name'])} and {money(b.get('earnings'))} for {esc(b['name'])}. Use this as a directional outcome signal, not a salary promise.</p></article>
@@ -437,6 +528,7 @@ def program_page(program, schools):
         <div><p class="eyebrow">{esc(category)} planning</p><h1>{esc(name)} degree cost, outcomes, and ROI</h1><p class="lead">{esc(name)} can lead toward {esc(career)}. TuitionLuma helps families compare the cost and outcome side of that path before choosing a school.</p></div>
         <aside class="seo-score-card"><span>Planning focus</span><strong>ROI</strong><p>Compare salary, debt, and completion data where reported.</p></aside>
       </section>
+      {program_editorial(program, examples, typical, debt_note)}
       <section class="seo-content-grid">
         <article><h2>Cost overview</h2><p>{esc(name)} affordability depends on the school, credential level, time to completion, housing, and aid. Compare net price and debt together instead of judging the program by tuition alone.</p></article>
         <article><h2>Career overview</h2><p>{esc(name)} students often compare schools by curriculum fit, completion support, internship or clinical pathways, and the cost required to reach the credential.</p></article>
