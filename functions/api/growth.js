@@ -1,5 +1,7 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CACHE_TTL_SECONDS = 15 * 60;
+const SEO_PAGE_SCAN_LIMIT = 10;
+const SEO_LINK_CHECK_LIMIT = 12;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -754,7 +756,7 @@ class SEOAnalyzer extends Provider {
   async fetchData() {
     const sitemap = await fetchText(`${this.siteOrigin}/sitemap.xml`);
     const robots = await fetchText(`${this.siteOrigin}/robots.txt`).catch(() => "");
-    const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]).slice(0, 80);
+    const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]).slice(0, SEO_PAGE_SCAN_LIMIT);
     const pages = await Promise.all(urls.map(async url => {
       const started = Date.now();
       const response = await fetch(url);
@@ -778,7 +780,7 @@ class SEOAnalyzer extends Provider {
       }
       schemaStatus.push({ page: path, status: /application\/ld\+json/.test(page.text) ? "Structured data present" : "Missing structured data" });
       const hrefs = [...page.text.matchAll(/href="(\/[^"#]+)"/g)].map(match => match[1]).filter(href => !href.startsWith("/assets/") && href !== "/styles.css");
-      for (const href of hrefs.slice(0, 40)) {
+      for (const href of hrefs.slice(0, Math.max(1, Math.floor(SEO_LINK_CHECK_LIMIT / Math.max(1, pages.length))))) {
         const check = await fetch(`${this.siteOrigin}${href}`, { method: "HEAD" });
         if (!check.ok) brokenLinks.push({ page: path, href });
       }
