@@ -15,11 +15,10 @@ cd Website
 python3 -m http.server 8081
 ```
 
-Cloudflare Pages Functions locally:
+Cloudflare Pages Functions locally from the repository root:
 
 ```bash
-cd Website
-npx wrangler pages dev . --compatibility-date=2026-06-26
+npx wrangler pages dev Website --compatibility-date=2026-06-10
 ```
 
 ## Access Control
