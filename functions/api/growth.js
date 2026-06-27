@@ -11,7 +11,7 @@ export async function onRequestGet(context) {
   }
 
   const dateRange = buildDateRange();
-  const siteOrigin = env.SITE_ORIGIN || new URL(request.url).origin;
+  const siteOrigin = resolveSiteOrigin(request, env);
   const providers = [
     new GoogleSearchConsoleProvider(env, dateRange),
     new GoogleAnalyticsProvider(env, dateRange),
@@ -34,8 +34,15 @@ export async function onRequestGet(context) {
       ok: result.ok,
       status: result.status,
       message: result.message,
+      health: result.health,
+      lastApiResponse: result.lastApiResponse,
+      lastError: result.lastError,
       lastSuccessfulRefresh: result.lastSuccessfulRefresh,
       refreshIntervalMinutes: provider.refreshIntervalMinutes,
+      setupTimeMinutes: provider.setupTimeMinutes,
+      connectTitle: provider.connectTitle,
+      connectDescription: provider.connectDescription,
+      missingCredentials: provider.missingCredentials(),
       requiredEnvironment: provider.requiredEnvironment()
     });
   }));
@@ -120,12 +127,26 @@ function toDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function resolveSiteOrigin(request, env) {
+  if (env.SITE_ORIGIN) return env.SITE_ORIGIN.replace(/\/$/, "");
+  const requestUrl = new URL(request.url);
+  if (requestUrl.hostname === "localhost" || requestUrl.hostname === "127.0.0.1") {
+    return requestUrl.origin;
+  }
+  if (env.CF_PAGES_URL) return env.CF_PAGES_URL.replace(/\/$/, "");
+  return requestUrl.origin;
+}
+
 class Provider {
   constructor(key, name, options = {}) {
     this.key = key;
     this.name = name;
     this.refreshIntervalMinutes = options.refreshIntervalMinutes || 60;
     this.requiredEnv = options.requiredEnv || [];
+    this.credentialGroups = options.credentialGroups || [];
+    this.setupTimeMinutes = options.setupTimeMinutes || 10;
+    this.connectTitle = options.connectTitle || `Connect ${name}`;
+    this.connectDescription = options.connectDescription || "Connect this provider to unlock production metrics.";
   }
 
   isConfigured() {
@@ -147,14 +168,26 @@ class Provider {
     }));
   }
 
+  missingCredentials() {
+    return this.credentialGroups
+      .map(group => ({
+        ...group,
+        configured: group.variables.every(name => Boolean(this.env?.[name]))
+      }))
+      .filter(group => !group.configured);
+  }
+
   async safeFetch(now) {
     if (!this.isConfigured()) {
       return {
         ok: false,
-        status: "Configuration Required",
-        message: "Configuration Required",
+        status: "Connect",
+        message: this.connectTitle,
+        health: "Missing credentials",
+        lastApiResponse: "Not connected",
+        lastError: null,
         lastSuccessfulRefresh: null,
-        data: this.emptyData("Configuration Required")
+        data: this.emptyData("Connect")
       };
     }
     try {
@@ -162,6 +195,9 @@ class Provider {
         ok: true,
         status: "Connected",
         message: "Connected",
+        health: "Connected",
+        lastApiResponse: "200 OK",
+        lastError: null,
         lastSuccessfulRefresh: now,
         data: await this.fetchData()
       };
@@ -170,6 +206,9 @@ class Provider {
         ok: false,
         status: "Connection Error",
         message: error.message,
+        health: "API error",
+        lastApiResponse: "Error",
+        lastError: error.message,
         lastSuccessfulRefresh: null,
         data: this.emptyData(error.message)
       };
@@ -181,7 +220,25 @@ class GoogleOAuthProvider extends Provider {
   constructor(key, name, env, dateRange, options = {}) {
     super(key, name, {
       refreshIntervalMinutes: options.refreshIntervalMinutes || 60,
-      requiredEnv: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", ...(options.requiredEnv || [])]
+      requiredEnv: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", ...(options.requiredEnv || [])],
+      credentialGroups: [
+        {
+          label: "Google OAuth Client",
+          variables: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+          howToCreate: "Create an OAuth client in Google Cloud and enable the required Google API.",
+          setupTimeMinutes: 10
+        },
+        {
+          label: "Google OAuth Refresh Token",
+          variables: ["GOOGLE_REFRESH_TOKEN"],
+          howToCreate: "Authorize a Google account with access to TuitionLuma properties and save the refresh token.",
+          setupTimeMinutes: 5
+        },
+        ...(options.credentialGroups || [])
+      ],
+      setupTimeMinutes: options.setupTimeMinutes || 15,
+      connectTitle: options.connectTitle,
+      connectDescription: options.connectDescription
     });
     this.env = env;
     this.dateRange = dateRange;
@@ -213,7 +270,16 @@ class GoogleSearchConsoleProvider extends GoogleOAuthProvider {
   constructor(env, dateRange) {
     super("searchConsole", "Google Search Console", env, dateRange, {
       refreshIntervalMinutes: 60,
-      requiredEnv: ["GOOGLE_SEARCH_CONSOLE_SITE_URL"]
+      requiredEnv: ["GOOGLE_SEARCH_CONSOLE_SITE_URL"],
+      setupTimeMinutes: 15,
+      connectTitle: "Connect Google Search Console",
+      connectDescription: "Unlock keyword rankings, organic clicks, impressions, CTR, and pages close to page one.",
+      credentialGroups: [{
+        label: "Search Console Property",
+        variables: ["GOOGLE_SEARCH_CONSOLE_SITE_URL"],
+        howToCreate: "Add or verify the TuitionLuma website property in Google Search Console.",
+        setupTimeMinutes: 5
+      }]
     });
   }
 
@@ -295,7 +361,16 @@ class GoogleAnalyticsProvider extends GoogleOAuthProvider {
   constructor(env, dateRange) {
     super("analytics", "Google Analytics Data API", env, dateRange, {
       refreshIntervalMinutes: 30,
-      requiredEnv: ["GA4_PROPERTY_ID"]
+      requiredEnv: ["GA4_PROPERTY_ID"],
+      setupTimeMinutes: 15,
+      connectTitle: "Connect Google Analytics",
+      connectDescription: "Track users, sessions, organic traffic, landing pages, engagement, and conversions.",
+      credentialGroups: [{
+        label: "GA4 Property",
+        variables: ["GA4_PROPERTY_ID"],
+        howToCreate: "Create or open a GA4 property and copy the numeric property ID.",
+        setupTimeMinutes: 5
+      }]
     });
   }
 
@@ -385,7 +460,24 @@ class CloudflareAnalyticsProvider extends Provider {
   constructor(env, dateRange) {
     super("cloudflare", "Cloudflare Analytics", {
       refreshIntervalMinutes: 15,
-      requiredEnv: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_TAG"]
+      requiredEnv: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_TAG"],
+      setupTimeMinutes: 8,
+      connectTitle: "Connect Cloudflare Analytics",
+      connectDescription: "Track edge requests, cache hit rate, top URLs, countries, bandwidth, and response patterns.",
+      credentialGroups: [
+        {
+          label: "Cloudflare Analytics Token",
+          variables: ["CLOUDFLARE_API_TOKEN"],
+          howToCreate: "Create an API token with Analytics Read access for the TuitionLuma zone.",
+          setupTimeMinutes: 5
+        },
+        {
+          label: "Cloudflare Zone",
+          variables: ["CLOUDFLARE_ZONE_TAG"],
+          howToCreate: "Use the TuitionLuma zone ID from the Cloudflare dashboard.",
+          setupTimeMinutes: 3
+        }
+      ]
     });
     this.env = env;
     this.dateRange = dateRange;
@@ -470,6 +562,29 @@ class AppStoreConnectProvider extends Provider {
         "APP_STORE_CONNECT_PRIVATE_KEY",
         "APP_STORE_APP_ID",
         "APP_STORE_VENDOR_NUMBER"
+      ],
+      setupTimeMinutes: 20,
+      connectTitle: "Connect App Store Connect",
+      connectDescription: "Track downloads, app units, territory performance, version adoption, and App Store conversion signals.",
+      credentialGroups: [
+        {
+          label: "App Store Connect API Key",
+          variables: ["APP_STORE_CONNECT_KEY_ID", "APP_STORE_CONNECT_ISSUER_ID", "APP_STORE_CONNECT_PRIVATE_KEY"],
+          howToCreate: "Create an App Store Connect API key with access to TuitionLuma.",
+          setupTimeMinutes: 10
+        },
+        {
+          label: "TuitionLuma App",
+          variables: ["APP_STORE_APP_ID"],
+          howToCreate: "Copy the TuitionLuma app ID from App Store Connect.",
+          setupTimeMinutes: 3
+        },
+        {
+          label: "Sales and Trends Vendor",
+          variables: ["APP_STORE_VENDOR_NUMBER"],
+          howToCreate: "Copy the vendor number from App Store Connect Sales and Trends.",
+          setupTimeMinutes: 5
+        }
       ]
     });
     this.env = env;
@@ -553,6 +668,23 @@ class ReviewProvider extends Provider {
         "APP_STORE_CONNECT_ISSUER_ID",
         "APP_STORE_CONNECT_PRIVATE_KEY",
         "APP_STORE_APP_ID"
+      ],
+      setupTimeMinutes: 12,
+      connectTitle: "Connect App Reviews",
+      connectDescription: "Track average rating, recent reviews, rating trend, and review sentiment.",
+      credentialGroups: [
+        {
+          label: "App Store Connect API Key",
+          variables: ["APP_STORE_CONNECT_KEY_ID", "APP_STORE_CONNECT_ISSUER_ID", "APP_STORE_CONNECT_PRIVATE_KEY"],
+          howToCreate: "Use the same App Store Connect API key configured for app performance.",
+          setupTimeMinutes: 10
+        },
+        {
+          label: "TuitionLuma App",
+          variables: ["APP_STORE_APP_ID"],
+          howToCreate: "Copy the TuitionLuma app ID from App Store Connect.",
+          setupTimeMinutes: 3
+        }
       ]
     });
     this.env = env;
@@ -595,7 +727,12 @@ class ReviewProvider extends Provider {
 
 class SEOAnalyzer extends Provider {
   constructor(siteOrigin) {
-    super("performance", "SEO Analyzer", { refreshIntervalMinutes: 60 });
+    super("performance", "SEO Analyzer", {
+      refreshIntervalMinutes: 60,
+      setupTimeMinutes: 0,
+      connectTitle: "SEO Analyzer",
+      connectDescription: "Automatically scans sitemap, robots, metadata, schema, links, and page health."
+    });
     this.siteOrigin = siteOrigin;
   }
 
@@ -610,12 +747,16 @@ class SEOAnalyzer extends Provider {
       brokenLinks: [],
       missingMetadata: [],
       schemaStatus: [],
+      sitemapUrl: `${this.siteOrigin}/sitemap.xml`,
+      robotsUrl: `${this.siteOrigin}/robots.txt`,
+      scannedPages: 0,
       error
     };
   }
 
   async fetchData() {
     const sitemap = await fetchText(`${this.siteOrigin}/sitemap.xml`);
+    const robots = await fetchText(`${this.siteOrigin}/robots.txt`).catch(() => "");
     const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]).slice(0, 80);
     const pages = await Promise.all(urls.map(async url => {
       const started = Date.now();
@@ -657,7 +798,11 @@ class SEOAnalyzer extends Provider {
       slowestPages: pages.sort((a, b) => b.durationMs - a.durationMs).slice(0, 10).map(page => ({ url: new URL(page.url).pathname, durationMs: page.durationMs })),
       brokenLinks: brokenLinks.slice(0, 20),
       missingMetadata: missingMetadata.slice(0, 20),
-      schemaStatus: schemaStatus.slice(0, 20)
+      schemaStatus: schemaStatus.slice(0, 20),
+      sitemapUrl: `${this.siteOrigin}/sitemap.xml`,
+      robotsUrl: `${this.siteOrigin}/robots.txt`,
+      robotsSitemapPresent: /sitemap:/i.test(robots),
+      scannedPages: pages.length
     };
   }
 }
@@ -734,6 +879,15 @@ class AIAdvisor {
         expectedImpact: "Improves page speed and crawl efficiency."
       });
     }
+    const missingSearch = this.statuses.find(status => status.key === "searchConsole" && status.status === "Connect");
+    if (missingSearch) {
+      recommendations.push({
+        impact: "High",
+        title: "Connect Google Search Console first",
+        detail: "This unlocks keyword rankings, organic clicks, impressions, CTR, and pages that are close to stronger search visibility.",
+        expectedImpact: "Highest-impact setup step for SEO growth decisions."
+      });
+    }
     if (!analytics.users) {
       recommendations.push({
         impact: "High",
@@ -752,9 +906,10 @@ class AIAdvisor {
     }
 
     const configured = this.statuses.filter(status => status.configured).length;
-    const summary = configured
-      ? `Growth intelligence is using ${configured} configured provider${configured === 1 ? "" : "s"}. SEO clicks are ${formatSafe(sc.clicks)}, organic users are ${formatSafe(analytics.organicUsers)}, and ${recommendations.length} prioritized recommendations are ready.`
-      : "External providers require configuration. The dashboard is rendering live site-health checks until API credentials are added.";
+    const connected = this.statuses.filter(status => status.status === "Connected").length;
+    const summary = connected > 1
+      ? `Growth intelligence is using ${connected} live provider${connected === 1 ? "" : "s"}. SEO clicks are ${formatSafe(sc.clicks)}, organic users are ${formatSafe(analytics.organicUsers)}, and ${recommendations.length} prioritized recommendations are ready.`
+      : `SEO health is running automatically. Connect Search Console, Analytics, and App Store Connect to unlock production growth recommendations.`;
 
     return { summary, recommendations };
   }
@@ -884,6 +1039,6 @@ function shortPath(url) {
 }
 
 function formatSafe(value) {
-  if (value === null || value === undefined) return "Configuration Required";
+  if (value === null || value === undefined) return "Connect";
   return new Intl.NumberFormat("en-US").format(value);
 }

@@ -98,7 +98,15 @@ App Store Connect:
 - `SEOAnalyzer`
 - `AIAdvisor`
 
-Each provider displays `Connected` when its Cloudflare Pages environment bindings are present and authentication succeeds. Missing credentials display `Configuration Required`.
+The SEO Analyzer auto-detects the current request origin, Cloudflare Pages URL, `sitemap.xml`, `robots.txt`, and generated page locations. External providers display guided `Connect` states until their official API credentials are added.
+
+The settings wizard at `/admin/settings/` shows:
+
+- Setup steps
+- Completion percentage
+- Estimated setup time
+- Friendly missing credential labels
+- Developer-only environment variable details
 
 ## Deployment
 

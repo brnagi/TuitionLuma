@@ -13,3 +13,7 @@
 /api/growth
   X-Robots-Tag: noindex, nofollow, noarchive
   Cache-Control: no-store
+
+/api/growth-settings
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store

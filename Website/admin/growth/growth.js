@@ -1,10 +1,10 @@
 const formatNumber = value => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Configuration Required";
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Connect";
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Number(value));
 };
 
 const formatPercent = value => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Configuration Required";
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Connect";
   return `${(Number(value) * 100).toFixed(1)}%`;
 };
 
@@ -38,7 +38,8 @@ function setStatus(label, title, description) {
 
 function renderDashboard(data) {
   const updated = data.generatedAt ? new Date(data.generatedAt).toLocaleString() : "just now";
-  setStatus("Live", "Growth dashboard ready", `Updated ${updated}. ${data.providerStatus.configured}/${data.providerStatus.total} providers configured.`);
+  const connected = (data.providerStatus.providers || []).filter(provider => provider.status === "Connected").length;
+  setStatus("Live", "Growth dashboard ready", `Updated ${updated}. ${connected}/${data.providerStatus.total} providers connected.`);
   renderProviderStatus(data.providerStatus.providers || []);
   renderOverview(data);
   renderAdvisor(data.advisor);
@@ -49,23 +50,31 @@ function renderDashboard(data) {
 }
 
 function renderOverview(data) {
+  const providerStatus = providerMap(data);
   const metrics = [
-    ["Downloads today", data.appStore?.downloadsToday, "App Store Connect", "coral"],
-    ["Downloads this week", data.appStore?.downloadsThisWeek, "App Store Connect", "coral"],
-    ["Organic users", data.analytics?.organicUsers, "Google Analytics", "green"],
-    ["Website visitors", data.analytics?.users, "Google Analytics", "blue"],
-    ["SEO clicks", data.searchConsole?.clicks, "Search Console", "purple"],
-    ["Product page conversion", data.appStore?.productPageConversionRate, "App Store Connect", "green", "percent"],
-    ["Current rating", data.reviews?.averageRating, "App reviews", "blue", "position"],
-    ["Cache hit rate", data.cloudflare?.cacheHitRate, "Cloudflare", "purple", "percent"]
-  ];
-  document.getElementById("overview-grid").innerHTML = metrics.map(([label, value, note, tone, type]) => `
+    ["Downloads today", data.appStore?.downloadsToday, "App Store Connect", "coral", "number", "appStore"],
+    ["Downloads this week", data.appStore?.downloadsThisWeek, "App Store Connect", "coral", "number", "appStore"],
+    ["Organic users", data.analytics?.organicUsers, "Google Analytics", "green", "number", "analytics"],
+    ["Website visitors", data.analytics?.users, "Google Analytics", "blue", "number", "analytics"],
+    ["SEO clicks", data.searchConsole?.clicks, "Search Console", "purple", "number", "searchConsole"],
+    ["Product page conversion", data.appStore?.productPageConversionRate, "App Store Connect", "green", "percent", "appStore"],
+    ["Current rating", data.reviews?.averageRating, "App reviews", "blue", "position", "reviews"],
+    ["Cache hit rate", data.cloudflare?.cacheHitRate, "Cloudflare", "purple", "percent", "cloudflare"]
+  ].filter(([, value,,,, providerKey]) => hasValue(value) || providerStatus[providerKey]?.status === "Connected");
+
+  const cards = metrics.map(([label, value, note, tone, type]) => `
     <article class="metric-card" data-tone="${tone}">
       <span>${label}</span>
       <strong>${formatMetric(value, type)}</strong>
       <p>${note}</p>
     </article>
-  `).join("");
+  `);
+
+  if (!metrics.length) {
+    cards.push(connectPromptCard("Connect production providers", "Connect Search Console, Analytics, and App Store Connect to unlock the full growth pulse.", "Open settings", "/admin/settings/"));
+  }
+
+  document.getElementById("overview-grid").innerHTML = cards.join("");
 }
 
 function renderProviderStatus(providers) {
@@ -74,14 +83,18 @@ function renderProviderStatus(providers) {
     const refresh = provider.lastSuccessfulRefresh
       ? new Date(provider.lastSuccessfulRefresh).toLocaleString()
       : "Awaiting first successful refresh";
+    const label = connected ? "Connected" : "Connect";
+    const healthIcon = connected ? "🟢" : provider.status === "Connection Error" ? "🔴" : "🟡";
     return `
       <article class="provider-card ${connected ? "connected" : "required"}">
         <div>
-          <span class="tag ${connected ? "connected-tag" : "required-tag"}">${escapeHtml(provider.status || provider.message || "Configuration Required")}</span>
+          <span class="tag ${connected ? "connected-tag" : "required-tag"}">${healthIcon} ${escapeHtml(label)}</span>
           <h3>${escapeHtml(provider.name)}</h3>
-          <p>Refresh interval: every ${escapeHtml(provider.refreshIntervalMinutes || 60)} minutes</p>
+          <p>${escapeHtml(provider.connectDescription || "Production provider")}</p>
         </div>
-        <p><strong>Last successful refresh:</strong> ${escapeHtml(refresh)}</p>
+        <p><strong>Last successful sync:</strong> ${escapeHtml(refresh)}</p>
+        <p><strong>Last API response:</strong> ${escapeHtml(provider.lastApiResponse || "Not connected")}</p>
+        ${connected ? "" : `<a class="connect-button" href="/admin/settings/">Connect · ${escapeHtml(provider.setupTimeMinutes || 10)} min</a>`}
       </article>
     `;
   }).join("");
@@ -102,6 +115,10 @@ function renderAdvisor(advisor = {}) {
 
 function renderSEO(data) {
   const sc = data.searchConsole || {};
+  if (!hasRows(sc.topPages) && !hasRows(sc.topQueries)) {
+    document.getElementById("seo-panel").innerHTML = connectPromptCard("Connect Google Search Console to unlock search insights.", "See organic clicks, impressions, CTR, keyword rankings, and pages ranking positions 8-20.", "Connect Search Console", "/admin/settings/");
+    return;
+  }
   const cards = [
     tableCard("Top pages", sc.topPages, row => [row.page || row.label, `${formatNumber(row.clicks)} clicks`]),
     tableCard("Top queries", sc.topQueries, row => [row.query || row.label, `${formatNumber(row.impressions)} impressions`]),
@@ -126,6 +143,10 @@ function renderContent(data) {
 function renderBusiness(data) {
   const app = data.appStore || {};
   const reviews = data.reviews || {};
+  if (!hasRows(app.territories) && !hasRows(reviews.recentReviews) && !hasValue(app.appUnits)) {
+    document.getElementById("business-panel").innerHTML = connectPromptCard("Connect App Store Connect to begin tracking downloads.", "See downloads, app units, territories, version adoption, reviews, and App Store performance.", "Connect App Store", "/admin/settings/");
+    return;
+  }
   const cards = [
     tableCard("App Store Connect", [
       { label: "Product page views", value: formatNumber(app.productPageViews) },
@@ -134,12 +155,7 @@ function renderBusiness(data) {
     ], row => [row.label, row.value]),
     tableCard("Territory breakdown", app.territories, row => [row.territory || row.label, `${formatNumber(row.downloads)} downloads`]),
     tableCard("Recent reviews", reviews.recentReviews, row => [row.title || "Review", `${row.rating || "-"} stars`]),
-    tableCard("Future revenue", [
-      { label: "Revenue", value: "Configuration Required" },
-      { label: "MRR", value: "Configuration Required" },
-      { label: "Subscribers", value: "Configuration Required" },
-      { label: "Pro conversion", value: "Configuration Required" }
-    ], row => [row.label, row.value])
+    connectPromptCard("Revenue tracking is future-ready", "Revenue, MRR, subscribers, and Pro conversion can be added when a revenue provider is configured.", "Review settings", "/admin/settings/")
   ];
   document.getElementById("business-panel").innerHTML = cards.join("");
 }
@@ -158,7 +174,7 @@ function renderPerformance(data) {
 
 function tableCard(title, rows = [], mapper) {
   if (!rows || !rows.length) {
-    return `<article class="data-card"><h3>${title}</h3>${emptyCard("Configuration Required", "Connect the related provider or wait for enough production data to accumulate.")}</article>`;
+    return "";
   }
   return `<article class="data-card"><h3>${title}</h3><div class="table-list">${
     rows.slice(0, 8).map(row => {
@@ -170,6 +186,26 @@ function tableCard(title, rows = [], mapper) {
 
 function emptyCard(title, description) {
   return `<article class="empty-card"><strong>${title}</strong><p>${description}</p></article>`;
+}
+
+function connectPromptCard(title, description, action, href) {
+  return `<article class="connect-card">
+    <strong>${escapeHtml(title)}</strong>
+    <p>${escapeHtml(description)}</p>
+    <a class="connect-button" href="${escapeHtml(href)}">${escapeHtml(action)}</a>
+  </article>`;
+}
+
+function providerMap(data) {
+  return Object.fromEntries((data.providerStatus?.providers || []).map(provider => [provider.key, provider]));
+}
+
+function hasValue(value) {
+  return value !== null && value !== undefined && !Number.isNaN(Number(value));
+}
+
+function hasRows(rows) {
+  return Array.isArray(rows) && rows.length > 0;
 }
 
 function renderEmptyDashboard(message) {

@@ -90,6 +90,8 @@ h1 {
 .empty-card,
 .provider-card,
 .settings-card,
+.connect-card,
+.wizard-progress,
 .token-panel,
 .advisor-summary {
   border: 1px solid rgba(255, 255, 255, 0.78);
@@ -99,7 +101,8 @@ h1 {
 }
 
 .admin-link,
-.secondary-link {
+.secondary-link,
+.connect-button {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -118,6 +121,12 @@ h1 {
   margin-top: 0;
   border: 1px solid var(--line);
   background: white;
+}
+
+.connect-button {
+  margin-top: 10px;
+  color: white;
+  background: linear-gradient(135deg, var(--coral), var(--gold), var(--mint));
 }
 
 .status-card {
@@ -185,7 +194,9 @@ h1 {
 }
 
 .provider-card,
-.settings-card {
+.settings-card,
+.connect-card,
+.wizard-progress {
   padding: 22px;
 }
 
@@ -204,9 +215,23 @@ h1 {
 }
 
 .provider-card p,
-.settings-card p {
+.settings-card p,
+.connect-card p {
   color: var(--muted);
   line-height: 1.5;
+}
+
+.connect-card {
+  display: grid;
+  gap: 10px;
+  border-color: rgba(255, 91, 105, 0.20);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255, 200, 71, 0.18), transparent 34%),
+    rgba(255, 255, 255, 0.92);
+}
+
+.connect-card strong {
+  font-size: 1.2rem;
 }
 
 .metric-card {
@@ -316,6 +341,55 @@ h1 {
   justify-content: space-between;
 }
 
+.wizard-progress {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+}
+
+.wizard-progress span {
+  color: var(--coral);
+  font-weight: 950;
+}
+
+.wizard-progress strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.4rem;
+}
+
+.progress-track {
+  overflow: hidden;
+  height: 14px;
+  border-radius: 999px;
+  background: #e8edf7;
+}
+
+.progress-track div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--coral), var(--gold), var(--mint));
+}
+
+.wizard-step {
+  position: relative;
+  padding-left: 66px;
+}
+
+.step-number {
+  position: absolute;
+  top: 22px;
+  left: 20px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 999px;
+  color: white;
+  background: var(--coral);
+  font-weight: 950;
+}
+
 .settings-card-header > strong {
   flex: 0 0 auto;
   padding: 8px 11px;
@@ -331,9 +405,10 @@ h1 {
 }
 
 .env-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
   padding: 10px 0;
   border-top: 1px solid var(--line);
@@ -343,6 +418,10 @@ h1 {
   overflow-wrap: anywhere;
   color: var(--ink);
   font-weight: 850;
+}
+
+.env-row p {
+  margin: 4px 0 0;
 }
 
 .env-set {
@@ -357,6 +436,29 @@ h1 {
   margin-top: 18px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
+}
+
+.auto-list {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(50, 200, 121, 0.24);
+  border-radius: 18px;
+  background: #effbf6;
+}
+
+.auto-list strong {
+  color: #087f5d;
+}
+
+.auto-list p,
+.developer-note {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+}
+
+.developer-note {
+  padding-top: 12px;
+  color: var(--muted);
 }
 
 .recommendation-list {
