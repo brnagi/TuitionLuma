@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <title>Growth Intelligence | TuitionLuma Admin</title>
+    <link rel="icon" href="/assets/tuitionluma-cap-icon.png">
+    <link rel="apple-touch-icon" href="/assets/tuitionluma-cap-icon.png">
+    <link rel="stylesheet" href="/admin/growth/growth.css">
+  </head>
+  <body>
+    <main class="growth-shell">
+      <header class="growth-hero">
+        <div>
+          <p class="eyebrow">Private Growth Intelligence</p>
+          <h1>TuitionLuma operating dashboard</h1>
+          <p class="lead">Search, web, app, content, and performance signals in one internal workspace.</p>
+        </div>
+        <div class="status-card" id="refresh-status">
+          <span>Loading</span>
+          <strong>Connecting providers</strong>
+          <p>Live metrics appear when API credentials are configured.</p>
+        </div>
+      </header>
+
+      <section class="token-panel hidden" id="token-panel">
+        <h2>Admin token required</h2>
+        <p>Enter the private dashboard token configured in Cloudflare Pages.</p>
+        <form id="token-form">
+          <input id="admin-token" type="password" autocomplete="current-password" placeholder="Admin token">
+          <button type="submit">Unlock dashboard</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Overview</p>
+          <h2>Growth pulse</h2>
+        </div>
+        <div class="metric-grid" id="overview-grid"></div>
+      </section>
+
+      <section class="section advisor-section">
+        <div class="section-heading">
+          <p class="eyebrow">AI Growth Advisor</p>
+          <h2>Executive summary</h2>
+        </div>
+        <div id="advisor-summary" class="advisor-summary"></div>
+        <div id="advisor-recommendations" class="recommendation-list"></div>
+      </section>
+
+      <section class="section two-column">
+        <div>
+          <div class="section-heading">
+            <p class="eyebrow">SEO</p>
+            <h2>Search demand</h2>
+          </div>
+          <div id="seo-panel" class="panel-stack"></div>
+        </div>
+        <div>
+          <div class="section-heading">
+            <p class="eyebrow">Content</p>
+            <h2>Expansion queue</h2>
+          </div>
+          <div id="content-panel" class="panel-stack"></div>
+        </div>
+      </section>
+
+      <section class="section two-column">
+        <div>
+          <div class="section-heading">
+            <p class="eyebrow">Business</p>
+            <h2>App growth</h2>
+          </div>
+          <div id="business-panel" class="panel-stack"></div>
+        </div>
+        <div>
+          <div class="section-heading">
+            <p class="eyebrow">Performance</p>
+            <h2>Site health</h2>
+          </div>
+          <div id="performance-panel" class="panel-stack"></div>
+        </div>
+      </section>
+    </main>
+
+    <template id="empty-template">
+      <article class="empty-card">
+        <strong></strong>
+        <p></p>
+      </article>
+    </template>
+
+    <script src="/admin/growth/growth.js" defer></script>
+  </body>
+</html>
